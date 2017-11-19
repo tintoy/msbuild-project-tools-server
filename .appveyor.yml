@@ -19,11 +19,11 @@ test_script:
 
     & $dotnet test "$PWD\test\LanguageServer.Engine.Tests\LanguageServer.Engine.Tests.csproj" /p:Version="$env:APPVEYOR_BUILD_VERSION"
 artifacts:
-- path: out\packages\*.nupkg
 - path: out\language-server
-  name: MSBuildProjectTools.Server.$(APPVEYOR_BUILD_VERSION).zip
+  name: MSBuildProjectTools.Server.$(APPVEYOR_BUILD_VERSION)
 - path: out\task-reflection
-  name: MSBuildProjectTools.Server.TaskReflection-$(APPVEYOR_BUILD_VERSION).zip
+  name: MSBuildProjectTools.Server.TaskReflection-$(APPVEYOR_BUILD_VERSION)
+- path: out\packages\*.nupkg
 deploy:
 - provider: NuGet
   server: https://ci.appveyor.com/nuget/tintoy
