@@ -20,9 +20,9 @@ test_script:
     & $dotnet test "$PWD\test\LanguageServer.Engine.Tests\LanguageServer.Engine.Tests.csproj" /p:Version="$env:APPVEYOR_BUILD_VERSION"
 artifacts:
 - path: out\packages\*.nupkg
-- path: out\packages\language-server
+- path: out\language-server
   name: MSBuildProjectTools.Server.$(APPVEYOR_BUILD_VERSION).zip
-- path: out\packages\task-reflection
+- path: out\task-reflection
   name: MSBuildProjectTools.Server.TaskReflection-$(APPVEYOR_BUILD_VERSION).zip
 deploy:
 - provider: NuGet
