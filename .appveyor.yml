@@ -28,10 +28,17 @@ deploy:
 - provider: NuGet
   server: https://ci.appveyor.com/nuget/tintoy
   api_key:
-    secure: q39x6PEgs44mEgPtumqarZNEe+lIvfbtb0zkZ8fxNYQ=
+    secure: KmmArnxozcI5fVSCqThW1eLsI05fI0mjAIiSeFeH/6A=
   symbol_server: https://ci.appveyor.com/nuget/tintoy
   on:
     branch: master
+- provider: GitHub
+  artifact: /MSBuildProjectTools\..*\.zip/
+  draft: true
+  prerelease: false
+  on:
+    branch: master                # release from master branch only
+    appveyor_repo_tag: true       # deploy on tag push only
 notifications:
 - provider: Email
   to:
