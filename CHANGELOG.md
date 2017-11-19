@@ -1,5 +1,9 @@
 # Change Log
 
+## v0.2.17
+
+* Split out language server from VS Code extension.
+
 ## v0.2.16
 
 * Bug-fix: language server does not correctly report server capabilities when first initialised (tintoy/msbuild-project-tools-vscode#22).
