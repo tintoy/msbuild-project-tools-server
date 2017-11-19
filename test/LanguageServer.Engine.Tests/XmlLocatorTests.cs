@@ -41,7 +41,6 @@ namespace MSBuildProjectTools.LanguageServer.Tests
             // TODO: Change this test to use XmlLocator.
 
             Position testPosition = new Position(line, column);
-            Console.WriteLine("Test Position: {0}", testPosition);
 
             string testXml = LoadTestFile("TestFiles", testFileName + ".xml");
             TextPositions positions = new TextPositions(testXml);
