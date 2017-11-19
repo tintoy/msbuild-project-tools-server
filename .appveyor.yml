@@ -1,18 +1,14 @@
-version: 0.2.17.{build}
+version: 1.0.{build}
 image: Visual Studio 2017
 build_script:
 - ps: >-
     $dotnet = Get-Command 'dotnet'
 
-
     & $dotnet restore /p:Version="$env:APPVEYOR_BUILD_VERSION"
-
     & $dotnet build /p:Version="$env:APPVEYOR_BUILD_VERSION"
-
+    
     & $dotnet pack -o "$PWD\out\packages" /p:Version="$env:APPVEYOR_BUILD_VERSION"
-
     & $dotnet publish "$PWD\src\LanguageServer\LanguageServer.csproj" -f netcoreapp2.0 -o "$PWD\out\language-server" /p:Version="$env:APPVEYOR_BUILD_VERSION"
-
     & $dotnet publish "$PWD\src\LanguageServer.TaskReflection\LanguageServer.TaskReflection.csproj" -f netcoreapp2.0 -o "$PWD\out\task-reflection" /p:Version="$env:APPVEYOR_BUILD_VERSION"
 test_script:
 - ps: >-
@@ -21,6 +17,18 @@ test_script:
     & $dotnet test "$PWD\test\LanguageServer.Engine.Tests\LanguageServer.Engine.Tests.csproj" /p:Version="$env:APPVEYOR_BUILD_VERSION"
 artifacts:
 - path: out\packages\*.nupkg
+- path: out\packages\language-server
+  name: MSBuildProjectTools.Server.$(APPVEYOR_BUILD_VERSION).zip
+- path: out\packages\task-reflection
+  name: MSBuildProjectTools.Server.TaskReflection-$(APPVEYOR_BUILD_VERSION).zip
+deploy:
+- provider: NuGet
+  server: https://ci.appveyor.com/nuget/tintoy
+  api_key:
+    secure: q39x6PEgs44mEgPtumqarZNEe+lIvfbtb0zkZ8fxNYQ=
+  symbol_server: https://ci.appveyor.com/nuget/tintoy
+  on:
+    branch: master
 notifications:
 - provider: Email
   to:
