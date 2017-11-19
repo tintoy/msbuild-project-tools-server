@@ -33,6 +33,8 @@ deploy:
   on:
     branch: master
 - provider: GitHub
+  auth_token:
+    secure: 8dOYcBY+OqWsl9eM1N8zj2JWYQxIUw+2PdFGgp5sH6QRO69h/gG0lvGjSuYBGhwv
   artifact: /MSBuildProjectTools\..*\.zip/
   draft: true
   prerelease: false
