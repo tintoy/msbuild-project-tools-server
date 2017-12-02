@@ -15,18 +15,18 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
     using Utilities;
 
     /// <summary>
-    ///     Completion provider for the common property elements.
+    ///     Completion provider for the common item elements.
     /// </summary>
-    public class PropertyElementCompletion
+    public class ItemElementCompletion
         : CompletionProvider
     {
         /// <summary>
-        ///     Create a new <see cref="PropertyElementCompletion"/>.
+        ///     Create a new <see cref="ItemElementCompletion"/>.
         /// </summary>
         /// <param name="logger">
         ///     The application logger.
         /// </param>
-        public PropertyElementCompletion(ILogger logger)
+        public ItemElementCompletion(ILogger logger)
             : base(logger)
         {
         }
@@ -34,7 +34,12 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
         /// <summary>
         ///     The provider display name.
         /// </summary>
-        public override string Name => "Property Elements";
+        public override string Name => "Item Elements";
+
+        /// <summary>
+        ///     The provider's default priority for completion items.
+        /// </summary>
+        public override int Priority => 1000;
 
         /// <summary>
         ///     Provide completions for the specified location.
@@ -66,9 +71,9 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
             using (await projectDocument.Lock.ReaderLockAsync())
             {
                 XSElement replaceElement;
-                if (!location.CanCompleteElement(out replaceElement, parentPath: WellKnownElementPaths.PropertyGroup))
+                if (!location.CanCompleteElement(out replaceElement, parentPath: WellKnownElementPaths.ItemGroup))
                 {
-                    Log.Verbose("Not offering any completions for {XmlLocation:l} (not a direct child of a 'PropertyGroup' element).", location);
+                    Log.Verbose("Not offering any completions for {XmlLocation:l} (not a direct child of a 'ItemGroup' element).", location);
 
                     return null;
                 }
@@ -108,7 +113,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
         }
 
         /// <summary>
-        ///     Get property element completions.
+        ///     Get item element completions.
         /// </summary>
         /// <param name="projectDocument">
         ///     The <see cref="ProjectDocument"/> for which completions will be offered.
@@ -126,85 +131,53 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
 
             LspModels.Range replaceRangeLsp = replaceRange.ToLsp();
 
-            HashSet<string> offeredPropertyNames = new HashSet<string>();
-
-            // Special-case properties
-
-            // Output type
-            yield return new CompletionItem
+            HashSet<string> offeredItemNames = new HashSet<string>
             {
-                Label = "<OutputType>",
-                Detail = "Property",
-                Kind = CompletionItemKind.Property,
-                Documentation = MSBuildSchemaHelp.ForProperty("OutputType"),
-                SortText = Priority + "<OutputType>",
-                TextEdit = new TextEdit
-                {
-                    NewText = "<OutputType>${1|Library,Exe|}</OutputType>",
-                    Range = replaceRangeLsp
-                },
-                InsertTextFormat = InsertTextFormat.Snippet
+                "PackageReference",
+                "DotNetCliToolReference"
             };
-            offeredPropertyNames.Add("OutputType");
-
-            // Target framework
-            yield return new CompletionItem
-            {
-                Label = "<TargetFramework>",
-                Detail = "Property",
-                Kind = CompletionItemKind.Property,
-                Documentation = MSBuildSchemaHelp.ForProperty("TargetFramework"),
-                SortText = Priority + "<TargetFramework>",
-                TextEdit = new TextEdit
-                {
-                    NewText = "<TargetFramework>${1|netstandard1.0,netstandard1.1,netstandard1.2,netstandard1.3,netstandard1.4,netstandard1.5,netstandard1.6,netstandard2.0,netcoreapp1.0,netcoreapp1.1,netcoreapp2.0,net4,net451,net452,net46,net461,net462,net47|}</TargetFramework>",
-                    Range = replaceRangeLsp
-                },
-                InsertTextFormat = InsertTextFormat.Snippet
-            };
-            offeredPropertyNames.Add("TargetFramework");
 
             // Well-known (but standard-format) properties.
 
-            foreach (string wellKnownPropertyName in MSBuildSchemaHelp.WellKnownPropertyNames)
+            foreach (string wellKnownItemName in MSBuildSchemaHelp.WellKnownItemTypes)
             {
-                if (!offeredPropertyNames.Add(wellKnownPropertyName))
+                if (!offeredItemNames.Add(wellKnownItemName))
                     continue;
 
-                yield return PropertyCompletionItem(wellKnownPropertyName, replaceRangeLsp,
-                    description: MSBuildSchemaHelp.ForProperty(wellKnownPropertyName)
+                yield return ItemCompletion(wellKnownItemName, replaceRangeLsp,
+                    description: MSBuildSchemaHelp.ForItemType(wellKnownItemName)
                 );
             }
             
             if (!projectDocument.HasMSBuildProject)
                 yield break; // Without a valid MSBuild project (even a cached one will do), we can't inspect existing MSBuild properties.
 
-            if (!projectDocument.Workspace.Configuration.Language.CompletionsFromProject.Contains(CompletionSource.Property))
+            if (!projectDocument.Workspace.Configuration.Language.CompletionsFromProject.Contains(CompletionSource.ItemType))
                 yield break;
 
-            int otherPropertyPriority = Priority + 10;
+            int otherItemPriority = Priority + 10;
 
-            string[] otherPropertyNames =
+            string[] otherItemNames =
                 projectDocument.MSBuildProject.Properties
-                    .Select(property => property.Name)
-                    .Where(propertyName => !propertyName.StartsWith("_")) // Ignore private properties.
+                    .Select(item => item.Name)
+                    .Where(itemName => !itemName.StartsWith("_")) // Ignore private item types.
                     .ToArray();
-            foreach (string propertyName in otherPropertyNames)
+            foreach (string itemName in otherItemNames)
             {
-                if (!offeredPropertyNames.Add(propertyName))
+                if (!offeredItemNames.Add(itemName))
                     continue;
 
-                yield return PropertyCompletionItem(propertyName, replaceRangeLsp, otherPropertyPriority,
-                    description: $"I don't know anything about the '{propertyName}' property, but it's defined in this project (or a project that it imports); you can override its value by specifying it here."
+                yield return ItemCompletion(itemName, replaceRangeLsp, otherItemPriority,
+                    description: $"I don't know anything about the '{itemName}' item type, but it's defined in this project (or a project that it imports); you can override its value by specifying it here."
                 );
             }
         }
 
         /// <summary>
-        ///     Create a standard <see cref="CompletionItem"/> for the specified MSBuild property.
+        ///     Create a standard <see cref="CompletionItem"/> for the specified MSBuild item.
         /// </summary>
-        /// <param name="propertyName">
-        ///     The MSBuild property name.
+        /// <param name="itemName">
+        ///     The MSBuild item name.
         /// </param>
         /// <param name="replaceRange">
         ///     The range of text that will be replaced by the completion.
@@ -218,18 +191,18 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
         /// <returns>
         ///     The <see cref="CompletionItem"/>.
         /// </returns>
-        CompletionItem PropertyCompletionItem(string propertyName, LspModels.Range replaceRange, int? priority = null, string description = null)
+        CompletionItem ItemCompletion(string itemName, LspModels.Range replaceRange, int? priority = null, string description = null)
         {
             return new CompletionItem
             {
-                Label = $"<{propertyName}>",
-                Detail = "Property",
+                Label = $"<{itemName}>",
+                Detail = "Item",
                 Documentation = description,
-                Kind = CompletionItemKind.Property,
-                SortText = $"{priority ?? Priority:0000}<{propertyName}>",
+                Kind = CompletionItemKind.Class,
+                SortText = $"{priority ?? Priority:0000}<{itemName}>",
                 TextEdit = new TextEdit
                 {
-                    NewText = $"<{propertyName}>$0</{propertyName}>",
+                    NewText = $"<{itemName} Include=\"$1\" />$0",
                     Range = replaceRange
                 },
                 InsertTextFormat = InsertTextFormat.Snippet

@@ -13,6 +13,7 @@ namespace MSBuildProjectTools.LanguageServer
     using CustomProtocol;
     using Diagnostics;
     using Handlers;
+    
     using LanguageServer = OmniSharp.Extensions.LanguageServer.LanguageServer;
 
     /// <summary>

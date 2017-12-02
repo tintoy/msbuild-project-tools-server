@@ -103,7 +103,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
         /// <summary>
         ///     The names of well-known MSBuild item types.
         /// </summary>
-        public static IEnumerable<string> WellKnownItemTypes => ItemHelp.Keys;
+        public static IEnumerable<string> WellKnownItemTypes => ItemHelp.Keys.Where(key => !key.Contains("*"));
 
         /// <summary>
         ///     The nnames of well-known metadata for the specified item type.

@@ -2,6 +2,7 @@
 
 ## v0.2.17
 
+* Add completions for item elements.
 * Split out language server from VS Code extension.
 
 ## v0.2.16
