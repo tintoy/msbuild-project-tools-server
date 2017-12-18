@@ -12,8 +12,8 @@
     <PackageReference Include="Autofac" Version="4.6.1" />
     <PackageReference Include="OmniSharp.Extensions.JsonRpc" Version="0.4.1" />
     <PackageReference Include="OmniSharp.Extensions.LanguageServerProtocol" Version="0.4.1" />
-    <PackageReference Include="Microsoft.Build" Version="15.3.409" />
-    <PackageReference Include="Microsoft.Build.Runtime" Version="15.3.409" />
+    <PackageReference Include="Microsoft.Build" Version="15.5.180" />
+    <PackageReference Include="Microsoft.Build.Runtime" Version="15.5.180" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="2.0.0" />
     <PackageReference Include="Microsoft.Language.Xml" Version="1.1.14" />
     <PackageReference Include="Nito.AsyncEx.Tasks" Version="1.0.1" />
@@ -36,4 +36,15 @@
   <ItemGroup>
     <ProjectReference Include="../LanguageServer.Engine/LanguageServer.Engine.csproj" />
   </ItemGroup>
+
+  <Target Name="Temp" BeforeTargets="CoreCompile">
+    <Message Text="Compile = '@(Compile->'%(Filename)%(Extension)')'" Importance="high" Condition="'%(Compile.NuGetPackageId)' != 'Microsoft.Build.Runtime'" />
+    
+    <Message Text="Compile = '@(Compile->'%(Filename)%(Extension)')'" Importance="high" Condition="'%(Compile.NuGetPackageId)' == 'Microsoft.Build.Runtime'" />
+
+    <ItemGroup>
+      <Compile Remove="@(Compile)" Condition="'%(Compile.NuGetPackageId)' == 'Microsoft.Build.Runtime'" />
+    </ItemGroup>
+    <Message Text="Compile = '@(Compile)'" Importance="high" />
+  </Target>
 </Project>

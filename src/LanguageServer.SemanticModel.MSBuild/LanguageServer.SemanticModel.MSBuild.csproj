@@ -9,7 +9,7 @@
   <Import Project="../Common.props" />
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Build" Version="15.3.409" />
+    <PackageReference Include="Microsoft.Build" Version="15.5.180" />
     <PackageReference Include="Microsoft.Language.Xml" Version="1.1.14" />
     <PackageReference Include="Nito.AsyncEx.Tasks" Version="1.0.1" />
     <PackageReference Include="Nito.AsyncEx.Coordination" Version="1.0.1" />
