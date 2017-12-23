@@ -1,16 +1,15 @@
-using OmniSharp.Extensions.LanguageServer;
 using OmniSharp.Extensions.LanguageServer.Protocol;
+using OmniSharp.Extensions.LanguageServer.Server;
 using Serilog;
 using Serilog.Core;
 using System;
 using Serilog.Events;
-using OmniSharp.Extensions.LanguageServer.Models;
+using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 
 namespace MSBuildProjectTools.LanguageServer.Logging
 {
     using Handlers;
-
-    using LanguageServer = OmniSharp.Extensions.LanguageServer.LanguageServer;
+    using LanguageServer = OmniSharp.Extensions.LanguageServer.Server.LanguageServer;
 
     /// <summary>
     ///     A Serilog logging sink that sends log events to the language server logging facility.

@@ -1,4 +1,5 @@
 using OmniSharp.Extensions.LanguageServer;
+using OmniSharp.Extensions.LanguageServer.Server;
 using Serilog;
 using Serilog.Configuration;
 using Serilog.Core;

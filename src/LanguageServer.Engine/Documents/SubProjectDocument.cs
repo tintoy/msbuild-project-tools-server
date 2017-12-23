@@ -107,6 +107,11 @@ namespace MSBuildProjectTools.LanguageServer.Documents
             }
             catch (InvalidProjectFileException invalidProjectFile)
             {
+                Log.Verbose(invalidProjectFile, "Failed to load MSBuild proiect '{ProjectFileName}' because the project file is invalid. {ErrorMessage}",
+                    ProjectFile.FullName,
+                    invalidProjectFile.Message
+                );
+
                 AddErrorDiagnostic(invalidProjectFile.BaseMessage,
                     range: invalidProjectFile.GetRange(XmlLocator),
                     diagnosticCode: invalidProjectFile.ErrorCode
@@ -114,6 +119,11 @@ namespace MSBuildProjectTools.LanguageServer.Documents
             }
             catch (XmlException invalidProjectXml)
             {
+                Log.Verbose(invalidProjectXml, "Failed to load MSBuild proiect '{ProjectFileName}' because the project XML is invalid. {ErrorMessage}",
+                    ProjectFile.FullName,
+                    invalidProjectXml.Message
+                );
+
                 // TODO: Match SourceUri (need overloads of AddXXXDiagnostic for reporting diagnostics for other files).
                 AddErrorDiagnostic(invalidProjectXml.Message,
                     range: invalidProjectXml.GetRange(XmlLocator),

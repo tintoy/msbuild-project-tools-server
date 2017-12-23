@@ -1,9 +1,5 @@
 using OmniSharp.Extensions.JsonRpc;
 using OmniSharp.Extensions.LanguageServer;
-using OmniSharp.Extensions.LanguageServer.Abstractions;
-using OmniSharp.Extensions.LanguageServer.Capabilities.Client;
-using OmniSharp.Extensions.LanguageServer.Models;
-using OmniSharp.Extensions.LanguageServer.Protocol;
 using NuGet.Versioning;
 using Serilog;
 using System;
@@ -16,8 +12,14 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
 {
     using CompletionProviders;
     using Documents;
+    using OmniSharp.Extensions.LanguageServer.Protocol;
+    using OmniSharp.Extensions.LanguageServer.Protocol.Client.Capabilities;
+    using OmniSharp.Extensions.LanguageServer.Protocol.Models;
+    using OmniSharp.Extensions.LanguageServer.Server;
     using SemanticModel;
     using Utilities;
+
+    using Position = LanguageServer.Position;
 
     /// <summary>
     ///     Handler for completion requests.
@@ -155,11 +157,15 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
             List<CompletionItem> completionItems = new List<CompletionItem>();
             using (await projectDocument.Lock.ReaderLockAsync(cancellationToken))
             {
-                if (!projectDocument.HasXml)
-                    return NoCompletions;
-
                 Position position = parameters.Position.ToNative();
                 Log.Verbose("Completion requested for {Position:l}", position);
+
+                if (!projectDocument.HasXml)
+                {
+                    Log.Verbose("Completion short-circuited; project document does not have valid XML.");
+
+                    return NoCompletions;
+                }
 
                 location = projectDocument.XmlLocator.Inspect(position);
                 if (location == null)

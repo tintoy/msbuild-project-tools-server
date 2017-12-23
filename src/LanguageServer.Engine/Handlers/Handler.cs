@@ -1,8 +1,6 @@
 using OmniSharp.Extensions.JsonRpc;
 using OmniSharp.Extensions.LanguageServer;
-using OmniSharp.Extensions.LanguageServer.Capabilities.Client;
-using OmniSharp.Extensions.LanguageServer.Capabilities.Server;
-using OmniSharp.Extensions.LanguageServer.Models;
+using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using OmniSharp.Extensions.LanguageServer.Protocol;
 using Serilog;
 using System;
@@ -14,6 +12,7 @@ using System.Reactive.Disposables;
 
 namespace MSBuildProjectTools.LanguageServer.Handlers
 {
+    using OmniSharp.Extensions.LanguageServer.Server;
     using Utilities;
 
     /// <summary>

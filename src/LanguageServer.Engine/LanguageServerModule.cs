@@ -1,5 +1,5 @@
 using Autofac;
-using OmniSharp.Extensions.LanguageServer;
+using OmniSharp.Extensions.LanguageServer.Server;
 using Serilog;
 using System;
 using System.Collections.Generic;
@@ -14,7 +14,7 @@ namespace MSBuildProjectTools.LanguageServer
     using Diagnostics;
     using Handlers;
     
-    using LanguageServer = OmniSharp.Extensions.LanguageServer.LanguageServer;
+    using LanguageServer = OmniSharp.Extensions.LanguageServer.Server.LanguageServer;
 
     /// <summary>
     ///     Registration logic for language server components.

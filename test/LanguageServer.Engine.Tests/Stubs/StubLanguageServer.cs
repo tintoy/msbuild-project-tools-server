@@ -1,6 +1,7 @@
 using OmniSharp.Extensions.JsonRpc;
 using OmniSharp.Extensions.LanguageServer;
-using OmniSharp.Extensions.LanguageServer.Models;
+using OmniSharp.Extensions.LanguageServer.Server;
+using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -47,6 +48,29 @@ namespace MSBuildProjectTools.LanguageServer.Tests.Stubs
         /// </returns>
         public virtual IDisposable AddHandler(IJsonRpcHandler handler)
         {
+            if (handler == null)
+                throw new ArgumentNullException(nameof(handler));
+
+            return Disposable.Empty;
+        }
+
+        /// <summary>
+        ///     Add a handler for the specified method to the server's collection of JSON RPC handlers.
+        /// </summary>
+        /// <param name="method">
+        ///     The method name.
+        /// </param>
+        /// <param name="handler">
+        ///     The handler to add.
+        /// </param>
+        /// <returns>
+        ///     An <see cref="IDisposable"/> representing the handler; when disposed, the handler is removed from the handler collection.
+        /// </returns>
+        public IDisposable AddHandler(string method, IJsonRpcHandler handler)
+        {
+            if (String.IsNullOrWhiteSpace(method))
+                throw new ArgumentException("Argument cannot be null, empty, or entirely composed of whitespace: 'method'.", nameof(method));
+            
             if (handler == null)
                 throw new ArgumentNullException(nameof(handler));
 

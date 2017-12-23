@@ -60,7 +60,7 @@ namespace MSBuildProjectTools.LanguageServer
             using (ActivityCorrelationManager.BeginActivityScope())
             using (IContainer container = BuildContainer())
             {
-                var server = container.Resolve<LSP.LanguageServer>();
+                var server = container.Resolve<LSP.Server.LanguageServer>();
 
                 await server.Initialize();
                 await server.WasShutDown;

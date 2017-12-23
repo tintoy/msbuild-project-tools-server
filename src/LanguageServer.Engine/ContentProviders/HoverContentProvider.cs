@@ -1,4 +1,4 @@
-using OmniSharp.Extensions.LanguageServer.Models;
+using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using Microsoft.Build.Evaluation;
 using Microsoft.Language.Xml;
 using System;

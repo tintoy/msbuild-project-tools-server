@@ -1,4 +1,4 @@
-using OmniSharp.Extensions.LanguageServer.Models;
+using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using Microsoft.Build.Construction;
 using Serilog;
 using System;
@@ -10,7 +10,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-using LspModels = OmniSharp.Extensions.LanguageServer.Models;
+using LspModels = OmniSharp.Extensions.LanguageServer.Protocol.Models;
 
 namespace MSBuildProjectTools.LanguageServer.CompletionProviders
 {

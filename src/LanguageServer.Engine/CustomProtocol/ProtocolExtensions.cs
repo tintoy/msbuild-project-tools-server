@@ -1,5 +1,6 @@
 using OmniSharp.Extensions.LanguageServer;
-using OmniSharp.Extensions.LanguageServer.Models;
+using OmniSharp.Extensions.LanguageServer.Protocol.Models;
+using OmniSharp.Extensions.LanguageServer.Server;
 using System;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
