@@ -83,7 +83,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
             AddItems();
             AddImports();
 
-            SortObjectRanges();
+            _objectRanges.Sort();
         }
 
         /// <summary>
@@ -164,14 +164,6 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
                 throw new ArgumentNullException(nameof(xml));
             
             return xml.Span.ToNative(_xmlPositions);
-        }
-
-        /// <summary>
-        ///     Ensure that the locator's object ranges are sorted by start position, then end position.
-        /// </summary>
-        void SortObjectRanges()
-        {
-            _objectRanges.Sort();
         }
 
         /// <summary>

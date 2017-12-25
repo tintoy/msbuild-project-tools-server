@@ -59,7 +59,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
                 _nodesByStartPosition.Add(node.Range.Start, node);
             }
 
-            SortNodeRanges();
+            _nodeRanges.Sort();
         }
 
         /// <summary>
@@ -167,20 +167,6 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
                 return null;
 
             return _nodesByStartPosition[lastMatchingRange.Start];
-        }
-
-        /// <summary>
-        ///     Ensure that the locator's object ranges are sorted by start position, then end position.
-        /// </summary>
-        void SortNodeRanges()
-        {
-            Range[] unsortedRanges = _nodeRanges.ToArray();
-            _nodeRanges.Clear();
-            _nodeRanges.AddRange(
-                unsortedRanges
-                    .OrderBy(range => range.Start)
-                    .ThenBy(range => range.End)
-            );
         }
 
         /// <summary>
