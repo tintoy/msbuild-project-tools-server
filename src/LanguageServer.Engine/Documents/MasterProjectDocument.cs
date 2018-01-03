@@ -230,18 +230,5 @@ namespace MSBuildProjectTools.LanguageServer.Documents
                 return false;
             }
         }
-
-        /// <summary>
-        ///     Warm up the project's NuGet client.
-        /// </summary>
-        void WarmUpNuGetClient()
-        {
-            SuggestPackageIds("Newtonsoft.Json", includePrerelease: false).ContinueWith(task =>
-            {
-                Log.Error(task.Exception.Flatten().InnerExceptions[0],
-                     "Error initialising NuGet client."
-                );
-            }, TaskContinuationOptions.OnlyOnFaulted);
-        }
     }
 }

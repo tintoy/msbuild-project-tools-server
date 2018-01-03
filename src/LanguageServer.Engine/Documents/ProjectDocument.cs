@@ -406,6 +406,23 @@ namespace MSBuildProjectTools.LanguageServer.Documents
         }
 
         /// <summary>
+        ///     Warm up the project's NuGet client.
+        /// </summary>
+        protected virtual void WarmUpNuGetClient()
+        {
+            SuggestPackageIds("Newtonsoft.Json", includePrerelease: false).ContinueWith(task =>
+            {
+                foreach (Exception exception in task.Exception.Flatten().InnerExceptions)
+                {
+                    Log.Verbose(exception,
+                        "Error initialising NuGet client. {ErrorMessage}",
+                        exception.Message
+                    );
+                }
+            }, TaskContinuationOptions.OnlyOnFaulted);
+        }
+
+        /// <summary>
         ///     Unload the project.
         /// </summary>
         public virtual void Unload()
