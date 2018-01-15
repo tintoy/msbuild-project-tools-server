@@ -111,11 +111,11 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         /// <returns>
         ///     A <see cref="Task"/> representing the operation whose result is the completion list or <c>null</c> if no completions are provided.
         /// </returns>
-        async Task<SymbolInformationContainer> OnDocumentSymbols(DocumentSymbolParams parameters, CancellationToken cancellationToken)
+        async Task<DocumentSymbolInformationContainer> OnDocumentSymbols(DocumentSymbolParams parameters, CancellationToken cancellationToken)
         {
             ProjectDocument projectDocument = await Workspace.GetProjectDocument(parameters.TextDocument.Uri);
 
-            List<SymbolInformation> symbols = new List<SymbolInformation>();
+            List<DocumentSymbolInformation> symbols = new List<DocumentSymbolInformation>();
             using (await projectDocument.Lock.ReaderLockAsync(cancellationToken))
             {
                 // We need a valid MSBuild project with up-to-date positional information.
@@ -137,7 +137,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
                             );
                                 
 
-                            return new SymbolInformation
+                            return new DocumentSymbolInformation
                             {
                                 Name = $"{itemGroup.Name} ({trimmedInclude})",
                                 Kind = SymbolKind.Array,
@@ -153,7 +153,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
                         continue;
                     }
 
-                    SymbolInformation symbol = new SymbolInformation
+                    DocumentSymbolInformation symbol = new DocumentSymbolInformation
                     {
                         Name = msbuildObject.Name,
                         Location = new Location
@@ -192,7 +192,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
             if (symbols.Count == 0)
                 return null;
 
-            return new SymbolInformationContainer(
+            return new DocumentSymbolInformationContainer(
                 symbols.OrderBy(symbol => symbol.Name)
             );
         }
@@ -217,7 +217,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         /// <returns>
         ///     A <see cref="Task"/> representing the operation whose result is the symbol container or <c>null</c> if no symbols are provided.
         /// </returns>
-        async Task<SymbolInformationContainer> IRequestHandler<DocumentSymbolParams, SymbolInformationContainer>.Handle(DocumentSymbolParams parameters, CancellationToken cancellationToken)
+        async Task<DocumentSymbolInformationContainer> IRequestHandler<DocumentSymbolParams, DocumentSymbolInformationContainer>.Handle(DocumentSymbolParams parameters, CancellationToken cancellationToken)
         {
             if (parameters == null)
                 throw new ArgumentNullException(nameof(parameters));

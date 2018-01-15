@@ -283,7 +283,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
 
                 return new Hover
                 {
-                    Contents = hoverContent,
+                    Contents = new MarkedStringsOrMarkupContent(hoverContent),
                     Range = location.Node.Range.ToLsp()
                 };
             }
