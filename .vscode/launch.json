@@ -4,8 +4,23 @@
    // For further information visit https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md
    "version": "0.2.0",
    "configurations": [
+       {
+           "name": "Run language server host",
+           "type": "coreclr",
+           "request": "launch",
+           "preLaunchTask": "build",
+           "program": "${workspaceRoot}/src/LanguageServer/bin/Debug/netcoreapp2.0/MSBuildProjectTools.LanguageServer.Host.dll",
+           "args": [],
+           "cwd": "${workspaceRoot}",
+           "stopAtEntry": true,
+           "env": {
+               "MSBUILD_PROJECT_TOOLS_VERBOSE_LOGGING": "1",
+               "MSBUILD_PROJECT_TOOLS_LOG_FILE": "D:\\Stage\\msbpt.log"
+           },
+           "console": "internalConsole"
+       },
         {
-            "name": ".NET Core Launch (console)",
+            "name": "Run tests",
             "type": "coreclr",
             "request": "launch",
             "preLaunchTask": "build",

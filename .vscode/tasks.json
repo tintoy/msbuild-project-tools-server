@@ -7,7 +7,7 @@
             "type": "process",
             "args": [
                 "build",
-                "${workspaceFolder}/test/LanguageServer.Engine.Tests/LanguageServer.Engine.Tests.csproj"
+                "${workspaceFolder}/MSBuildProjectTools.sln"
             ],
             "problemMatcher": "$msCompile"
         }
