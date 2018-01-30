@@ -1,5 +1,9 @@
 # Change Log
 
+## v0.2.23
+
+* Upgrade to v0.7.5 of OmniSharp LSP libraries (improves stability and diagnostic capabilities).
+
 ## v0.2.20
 
 * Log errors encountered while warming up NuGet client as Verbose instead of Error (tintoy/msbuild-project-tools-server#2).
