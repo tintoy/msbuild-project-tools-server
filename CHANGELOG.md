@@ -1,5 +1,9 @@
 # Change Log
 
+## v0.2.24
+
+* Implement default value(s) for well-known property completions (tintoy/msbuild-project-tools-vscode#31).
+
 ## v0.2.23
 
 * Upgrade to v0.7.5 of OmniSharp LSP libraries (improves stability and diagnostic capabilities).

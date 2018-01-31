@@ -3,6 +3,7 @@ using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -171,8 +172,12 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
                 if (!offeredPropertyNames.Add(wellKnownPropertyName))
                     continue;
 
+                var propertyDefaults = MSBuildSchemaHelp.DefaultsForProperty(wellKnownPropertyName);
+
                 yield return PropertyCompletionItem(wellKnownPropertyName, replaceRangeLsp,
-                    description: MSBuildSchemaHelp.ForProperty(wellKnownPropertyName)
+                    description: MSBuildSchemaHelp.ForProperty(wellKnownPropertyName),
+                    defaultValue: propertyDefaults.defaultValue,
+                    defaultValues: propertyDefaults.defaultValues
                 );
             }
             
@@ -213,12 +218,20 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
         ///     The item sort priority (defaults to <see cref="CompletionProvider.Priority"/>).
         /// </param>
         /// <param name="description">
-        ///     An optional description for the item.
+        ///     An optional description for the property.
+        /// </param>
+        /// <param name="defaultValue">
+        ///     An optional default value for the property.
+        /// </param>
+        /// <param name="defaultValues">
+        ///     An optional list of default values for the property.
+        /// 
+        ///     If specified, then the inserted property's snippet will offer these as a drop-down list.
         /// </param>
         /// <returns>
         ///     The <see cref="CompletionItem"/>.
         /// </returns>
-        CompletionItem PropertyCompletionItem(string propertyName, LspModels.Range replaceRange, int? priority = null, string description = null)
+        CompletionItem PropertyCompletionItem(string propertyName, LspModels.Range replaceRange, int? priority = null, string description = null, string defaultValue = null, IReadOnlyList<string> defaultValues = null)
         {
             return new CompletionItem
             {
@@ -229,11 +242,71 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
                 SortText = $"{priority ?? Priority:0000}<{propertyName}>",
                 TextEdit = new TextEdit
                 {
-                    NewText = $"<{propertyName}>$0</{propertyName}>",
+                    NewText = GetCompletionText(propertyName, defaultValue, defaultValues),
                     Range = replaceRange
                 },
                 InsertTextFormat = InsertTextFormat.Snippet
             };
+        }
+
+        /// <summary>
+        ///     Get the completion text for the specified property and its default value(s), if any.
+        /// </summary>
+        /// <param name="propertyName">
+        ///     The property name.
+        /// </param>
+        /// <param name="defaultValue">
+        ///     The property's default value (if any).
+        /// </param>
+        /// <param name="defaultValues">
+        ///     The property's default values (if any).
+        /// 
+        ///     If specified, then the inserted property's snippet will offer these as a drop-down list.
+        /// </param>
+        /// <returns>
+        ///     The completion text (in standard LSP Snippet format).
+        /// </returns>
+        string GetCompletionText(string propertyName, string defaultValue, IReadOnlyList<string> defaultValues)
+        {
+            StringBuilder completionText = new StringBuilder();
+            completionText.AppendFormat("<{0}>", propertyName);
+
+            bool haveValue = false;
+            if (defaultValues != null && defaultValues.Count > 0)
+            {
+                haveValue = true;
+
+                completionText.Append("${1|");
+                completionText.Append(
+                    defaultValues[0]
+                );
+                for (int valueIndex = 1; valueIndex < defaultValues.Count; valueIndex++)
+                {
+                    completionText.Append(',');
+                    completionText.Append(
+                        defaultValues[valueIndex]
+                    );
+                }
+                completionText.Append("|}");
+            }
+            else if (!String.IsNullOrWhiteSpace(defaultValue))
+            {
+                haveValue = true;
+
+                completionText.Append("${1:");
+                completionText.Append(defaultValue);
+                completionText.Append("}");
+            }
+            else
+                completionText.Append("$0");
+
+            completionText.AppendFormat("</{0}>", propertyName);
+            
+            // If we have a default value / values, then the final cursor position should be after the property element.
+            if (haveValue)
+                completionText.Append("$0");
+
+            return completionText.ToString();
         }
     }
 }

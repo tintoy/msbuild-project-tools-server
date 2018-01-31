@@ -16,6 +16,18 @@ namespace MSBuildProjectTools.LanguageServer.Help
         public string Description { get; set; }
 
         /// <summary>
+        ///     The property's default value.
+        /// </summary>
+        [JsonProperty("defaultValue")]
+        public string DefaultValue { get; set; }
+
+        /// <summary>
+        ///     The property's default values (if specified, the completion's snippet will present a drop-down list of values for the user to choose from as the property value.').
+        /// </summary>
+        [JsonProperty("defaultValues", DefaultValueHandling = DefaultValueHandling.IgnoreAndPopulate)]
+        public List<string> DefaultValues { get; set; }
+
+        /// <summary>
         ///     Load help property help from JSON.
         /// </summary>
         /// <param name="json">
