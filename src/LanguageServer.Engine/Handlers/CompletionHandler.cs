@@ -1,5 +1,9 @@
 using OmniSharp.Extensions.JsonRpc;
 using OmniSharp.Extensions.LanguageServer;
+using OmniSharp.Extensions.LanguageServer.Protocol;
+using OmniSharp.Extensions.LanguageServer.Protocol.Client.Capabilities;
+using OmniSharp.Extensions.LanguageServer.Protocol.Models;
+using OmniSharp.Extensions.LanguageServer.Server;
 using NuGet.Versioning;
 using Serilog;
 using System;
@@ -12,10 +16,6 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
 {
     using CompletionProviders;
     using Documents;
-    using OmniSharp.Extensions.LanguageServer.Protocol;
-    using OmniSharp.Extensions.LanguageServer.Protocol.Client.Capabilities;
-    using OmniSharp.Extensions.LanguageServer.Protocol.Models;
-    using OmniSharp.Extensions.LanguageServer.Server;
     using SemanticModel;
     using Utilities;
 
@@ -64,7 +64,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         Configuration Configuration { get; }
 
         /// <summary>
-        ///     The document selector that describes documents to synchronise.
+        ///     The LSP document selector that describes documents the handler is interested in.
         /// </summary>
         DocumentSelector DocumentSelector { get; } = new DocumentSelector(
             new DocumentFilter
@@ -90,7 +90,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         );
 
         /// <summary>
-        ///     Get registration options for handling document events.
+        ///     Registration options for handling document events.
         /// </summary>
         TextDocumentRegistrationOptions DocumentRegistrationOptions
         {
@@ -101,7 +101,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         }
 
         /// <summary>
-        ///     Get registration options for handling completion requests events.
+        ///     Registration options for handling completion-request events.
         /// </summary>
         CompletionRegistrationOptions CompletionRegistrationOptions
         {
@@ -126,7 +126,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         CompletionCapability CompletionCapabilities { get; set; }
 
         /// <summary>
-        ///     Should the handler return empty <see cref="CompletionList"/>s instead of <c>null</c>?
+        ///     Should the handler return an empty <see cref="CompletionList"/>s instead of <c>null</c>?
         /// </summary>
         bool ReturnEmptyCompletionLists => Workspace.Configuration.EnableExperimentalFeatures.Contains("empty-completion-lists");
 
