@@ -1,5 +1,9 @@
 # Change Log
 
+## v0.2.25
+
+* Implement completion for top-level `<Import>` element.
+
 ## v0.2.24
 
 * Implement default value(s) for well-known property completions (tintoy/msbuild-project-tools-vscode#31).

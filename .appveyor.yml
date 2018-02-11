@@ -1,4 +1,4 @@
-version: 0.2.24.{build}
+version: 0.2.25.{build}
 image: Visual Studio 2017
 build_script:
 - ps: >-
@@ -39,8 +39,7 @@ deploy:
   draft: true
   prerelease: false
   on:
-    branch: master                # release from master branch only
-    appveyor_repo_tag: true       # deploy on tag push only
+    appveyor_repo_tag: true  # only publish when tagged
 notifications:
 - provider: Email
   to:

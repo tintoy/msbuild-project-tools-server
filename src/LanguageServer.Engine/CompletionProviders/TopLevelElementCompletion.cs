@@ -174,6 +174,21 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
                 },
                 InsertTextFormat = InsertTextFormat.Snippet
             };
+
+            // <Import Project="ProjectFile" />
+            yield return new CompletionItem
+            {
+                Label = "<Import>",
+                Detail = "Element",
+                Documentation = MSBuildSchemaHelp.ForElement("Import"),
+                SortText = Priority + "<Import>",
+                TextEdit = new TextEdit
+                {
+                    NewText = "<Import Project=\"${1:ProjectFile}\" />$0",
+                    Range = completionRange
+                },
+                InsertTextFormat = InsertTextFormat.Snippet
+            };
         }
     }
 }
