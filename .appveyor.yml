@@ -1,4 +1,4 @@
-version: 0.2.25.{build}
+version: 0.2.27.{build}
 image: Visual Studio 2017
 build_script:
 - ps: >-

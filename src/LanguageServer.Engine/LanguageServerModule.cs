@@ -1,6 +1,7 @@
 using Autofac;
 using OmniSharp.Extensions.LanguageServer.Server;
 using Serilog;
+using Serilog.Events;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -13,7 +14,7 @@ namespace MSBuildProjectTools.LanguageServer
     using CustomProtocol;
     using Diagnostics;
     using Handlers;
-    
+
     using LanguageServer = OmniSharp.Extensions.LanguageServer.Server.LanguageServer;
 
     /// <summary>
@@ -59,9 +60,19 @@ namespace MSBuildProjectTools.LanguageServer
                     var configurationHandler = activated.Context.Resolve<ConfigurationHandler>();
                     languageServer.AddHandler(configurationHandler);
 
+                    void configureServerLogLevel()
+                    {
+                        if (configurationHandler.Configuration.Logging.Level < LogEventLevel.Verbose)
+                            languageServer.MinimumLogLevel = MSLogging.LogLevel.Warning;
+                    }
+
                     languageServer.OnInitialize(initializationParameters =>
                     {
                         configurationHandler.Configuration.UpdateFrom(initializationParameters);
+                        configureServerLogLevel();
+
+                        // Handle subsequent logging configuration changes.
+                        configurationHandler.ConfigurationChanged += (sender, args) => configureServerLogLevel();
 
                         return Task.CompletedTask;
                     });
