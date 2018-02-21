@@ -37,13 +37,17 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         /// <param name="solutionDirectory">
         ///     The base (i.e. solution) directory.
         /// </param>
+        /// <param name="globalPropertyOverrides">
+        ///     An optional dictionary containing property values to override.
+        /// </param>
         /// <returns>
         ///     The project collection.
         /// </returns>
-        public static ProjectCollection CreateProjectCollection(string solutionDirectory)
+        public static ProjectCollection CreateProjectCollection(string solutionDirectory, Dictionary<string, string> globalPropertyOverrides = null)
         {
             return CreateProjectCollection(solutionDirectory,
-                DotNetRuntimeInfo.GetCurrent(solutionDirectory)
+                DotNetRuntimeInfo.GetCurrent(solutionDirectory),
+                globalPropertyOverrides
             );
         }
 
@@ -56,10 +60,13 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         /// <param name="runtimeInfo">
         ///     Information about the current .NET Core runtime.
         /// </param>
+        /// <param name="globalPropertyOverrides">
+        ///     An optional dictionary containing property values to override.
+        /// </param>
         /// <returns>
         ///     The project collection.
         /// </returns>
-        public static ProjectCollection CreateProjectCollection(string solutionDirectory, DotNetRuntimeInfo runtimeInfo)
+        public static ProjectCollection CreateProjectCollection(string solutionDirectory, DotNetRuntimeInfo runtimeInfo, Dictionary<string, string> globalPropertyOverrides = null)
         {
             if (String.IsNullOrWhiteSpace(solutionDirectory))
                 throw new ArgumentException("Argument cannot be null, empty, or entirely composed of whitespace: 'baseDir'.", nameof(solutionDirectory));
@@ -70,7 +77,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
             if (String.IsNullOrWhiteSpace(runtimeInfo.BaseDirectory))
                 throw new InvalidOperationException("Cannot determine base directory for .NET Core (check the output of 'dotnet --info').");
 
-            Dictionary<string, string> globalProperties = CreateGlobalMSBuildProperties(runtimeInfo, solutionDirectory);
+            Dictionary<string, string> globalProperties = CreateGlobalMSBuildProperties(runtimeInfo, solutionDirectory, globalPropertyOverrides);
             EnsureMSBuildEnvironment(globalProperties);
 
             ProjectCollection projectCollection = new ProjectCollection(globalProperties) { IsBuildEnabled = false };
@@ -79,7 +86,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
             Toolset toolset = projectCollection.GetToolset("15.0");
             toolset = new Toolset(
                 toolsVersion: "15.0",
-                toolsPath: globalProperties["MSBuildExtensionsPath"],
+                toolsPath: runtimeInfo.BaseDirectory,
                 projectCollection: projectCollection,
                 msbuildOverrideTasksPath: ""
             );
@@ -97,10 +104,13 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         /// <param name="solutionDirectory">
         ///     The base (i.e. solution) directory.
         /// </param>
+        /// <param name="globalPropertyOverrides">
+        ///     An optional dictionary containing property values to override.
+        /// </param>
         /// <returns>
         ///     A dictionary containing the global properties.
         /// </returns>
-        public static Dictionary<string, string> CreateGlobalMSBuildProperties(DotNetRuntimeInfo runtimeInfo, string solutionDirectory)
+        public static Dictionary<string, string> CreateGlobalMSBuildProperties(DotNetRuntimeInfo runtimeInfo, string solutionDirectory, Dictionary<string, string> globalPropertyOverrides = null)
         {
             if (runtimeInfo == null)
                 throw new ArgumentNullException(nameof(runtimeInfo));
@@ -116,7 +126,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
             if (String.IsNullOrWhiteSpace(sdksPath))
                 sdksPath = Path.Combine(runtimeInfo.BaseDirectory, "Sdks");
 
-            return new Dictionary<string, string>
+            var globalProperties = new Dictionary<string, string>
             {
                 [WellKnownPropertyNames.DesignTimeBuild] = "true",
                 [WellKnownPropertyNames.BuildProjectReferences] = "false",
@@ -126,6 +136,14 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
                 [WellKnownPropertyNames.MSBuildSDKsPath] = sdksPath,
                 [WellKnownPropertyNames.RoslynTargetsPath] = Path.Combine(runtimeInfo.BaseDirectory, "Roslyn")
             };
+
+            if (globalPropertyOverrides != null)
+            {
+                foreach (string propertyName in globalPropertyOverrides.Keys)
+                    globalProperties[propertyName] = globalPropertyOverrides[propertyName];
+            }
+
+            return globalProperties;
         }
 
         /// <summary>
@@ -231,9 +249,19 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
             public static readonly string MSBuildExtensionsPath = "MSBuildExtensionsPath";
 
             /// <summary>
+            ///     The "MSBuildExtensionsPath32" property.
+            /// </summary>
+            public static readonly string MSBuildExtensionsPath32 = "MSBuildExtensionsPath32";
+
+            /// <summary>
             ///     The "MSBuildSDKsPath" property.
             /// </summary>
             public static readonly string MSBuildSDKsPath = "MSBuildSDKsPath";
+
+            /// <summary>
+            ///     The "MSBuildToolsPath" property.
+            /// </summary>
+            public static readonly string MSBuildToolsPath = "MSBuildToolsPath";
 
             /// <summary>
             ///     The "SolutionDir" property.
