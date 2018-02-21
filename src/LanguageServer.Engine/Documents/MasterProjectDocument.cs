@@ -147,7 +147,11 @@ namespace MSBuildProjectTools.LanguageServer.Documents
                     return true;
 
                 if (MSBuildProjectCollection == null)
-                    MSBuildProjectCollection = MSBuildHelper.CreateProjectCollection(ProjectFile.Directory.FullName);
+                {
+                    MSBuildProjectCollection = MSBuildHelper.CreateProjectCollection(ProjectFile.Directory.FullName,
+                        globalPropertyOverrides: GetMSBuildGlobalPropertyOverrides()
+                    );
+                }
 
                 if (HasMSBuildProject && IsDirty)
                 {

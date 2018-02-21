@@ -613,6 +613,20 @@ namespace MSBuildProjectTools.LanguageServer.Documents
         }
 
         /// <summary>
+        ///     Get overrides (if any) for MSBuild global properties.
+        /// </summary>
+        protected virtual Dictionary<string, string> GetMSBuildGlobalPropertyOverrides()
+        {
+            var propertyOverrides = new Dictionary<string, string>();
+            if (!String.IsNullOrWhiteSpace(Workspace.Configuration.MSBuild.ExtensionsPath))
+                propertyOverrides[MSBuildHelper.WellKnownPropertyNames.MSBuildExtensionsPath] = Workspace.Configuration.MSBuild.ExtensionsPath;
+            if (!String.IsNullOrWhiteSpace(Workspace.Configuration.MSBuild.ExtensionsPath32))
+                propertyOverrides[MSBuildHelper.WellKnownPropertyNames.MSBuildExtensionsPath32] = Workspace.Configuration.MSBuild.ExtensionsPath32;
+
+            return propertyOverrides;
+        }
+
+        /// <summary>
         ///     Attempt to load the underlying MSBuild project.
         /// </summary>
         /// <returns>

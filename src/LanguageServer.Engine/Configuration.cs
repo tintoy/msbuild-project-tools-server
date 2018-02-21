@@ -40,6 +40,12 @@ namespace MSBuildProjectTools.LanguageServer
         /// </summary>
         [JsonProperty("language", ObjectCreationHandling = ObjectCreationHandling.Reuse)]
         public LanguageConfiguration Language { get; } = new LanguageConfiguration();
+
+        /// <summary>
+        ///     The MSBuild language service's MSBuild engine configuration.
+        /// </summary>
+        [JsonProperty("msbuild", ObjectCreationHandling = ObjectCreationHandling.Reuse)]
+        public MSBuildConfiguration MSBuild { get; } = new MSBuildConfiguration();
         
         /// <summary>
         ///     The MSBuild language service's NuGet configuration.
@@ -158,6 +164,31 @@ namespace MSBuildProjectTools.LanguageServer
         /// </summary>
         [JsonProperty("completionsFromProject", ObjectCreationHandling = ObjectCreationHandling.Reuse)]
         public HashSet<CompletionSource> CompletionsFromProject { get; } = new HashSet<CompletionSource>();
+    }
+
+    /// <summary>
+    ///     Configuration for the MSBuild engine.
+    /// </summary>
+    public class MSBuildConfiguration
+    {
+        /// <summary>
+        ///     Create a new <see cref="MSBuildConfiguration"/>.
+        /// </summary>
+        public MSBuildConfiguration()
+        {
+        }
+
+        /// <summary>
+        ///     Override the default value of MSBuildExtensionsPath.
+        /// </summary>
+        [JsonProperty("extensionsPath")]
+        public string ExtensionsPath { get; set; }
+
+        /// <summary>
+        ///     Override the default value of MSBuildExtensionsPath32.
+        /// </summary>
+        [JsonProperty("extensionsPath32")]
+        public string ExtensionsPath32 { get; set; }
     }
 
     /// <summary>
