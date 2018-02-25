@@ -58,6 +58,7 @@ namespace MSBuildProjectTools.LanguageServer
         static async Task AsyncMain()
         {
             using (ActivityCorrelationManager.BeginActivityScope())
+            using (Terminator terminator = new Terminator())
             using (IContainer container = BuildContainer())
             {
                 var server = container.Resolve<LSP.Server.LanguageServer>();
@@ -70,6 +71,15 @@ namespace MSBuildProjectTools.LanguageServer
                 await server.WaitForExit;
 
                 Log.Information("Server has shut down. Preparing to terminate server process...");
+
+                // AF: Temporary fix for tintoy/msbuild-project-tools-vscode#36
+                //
+                //     The server hangs while waiting for LSP's ProcessScheduler thread to terminate so, after a timeout has elapsed, we forcibly terminate this process.
+                terminator.TerminateAfter(
+                    TimeSpan.FromSeconds(3)
+                );
+
+                // TODO: Terminate immediately if the client process has terminated unexpectedly.
             }
 
             Log.Information("Server process is ready to terminate.");
