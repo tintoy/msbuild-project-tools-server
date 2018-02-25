@@ -64,7 +64,15 @@ namespace MSBuildProjectTools.LanguageServer
 
                 await server.Initialize();
                 await server.WasShutDown;
+
+                Log.Information("Server is shutting down...");
+
+                await server.WaitForExit;
+
+                Log.Information("Server has shut down. Preparing to terminate server process...");
             }
+
+            Log.Information("Server process is ready to terminate.");
         }
 
         /// <summary>
