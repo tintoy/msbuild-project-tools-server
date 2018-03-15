@@ -47,6 +47,11 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
         public override string Name => "Package Reference Items";
 
         /// <summary>
+        ///     The default sort priority for the provider's items.
+        /// </summary>
+        public override int Priority => 100;
+
+        /// <summary>
         ///     Provide completions for the specified location.
         /// </summary>
         /// <param name="location">
@@ -150,10 +155,11 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
                 SortedSet<string> packageIds = await projectDocument.SuggestPackageIds(packageIdPrefix, includePreRelease, cancellationToken);
 
                 var completionItems = new List<CompletionItem>(
-                    packageIds.Select(packageId => new CompletionItem
+                    packageIds.Select((packageId, index) => new CompletionItem
                     {
                         Label = packageId,
                         Detail = "Package Id",
+                        SortText = $"{Priority:0000}NuGet{index:000}",
                         Kind = CompletionItemKind.Module,
                         TextEdit = new TextEdit
                         {
@@ -184,7 +190,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
                     {
                         Label = packageVersion.ToNormalizedString(),
                         Detail = "Package Version",
-                        SortText = projectDocument.Workspace.Configuration.NuGet.ShowNewestVersionsFirst ? $"NuGet{index:00}" : null, // Override default sort order if configured to do so.
+                        SortText = $"{Priority:0000}NuGet{index:000}",
                         Kind = CompletionItemKind.Field,
                         TextEdit = new TextEdit
                         {
@@ -233,7 +239,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
                     Label = "<PackageReference />",
                     Detail = "Element",
                     Documentation = "A NuGet package",
-                    SortText = "1000<PackageReference />",
+                    SortText = $"{Priority}A<PackageReference />",
                     Kind = CompletionItemKind.Class,
                     TextEdit = new TextEdit
                     {
@@ -248,7 +254,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
                     Detail = "Element",
                     Documentation = "A command extension package for the dotnet CLI",
                     Kind = CompletionItemKind.Class,
-                    SortText = "1000<DotNetCliToolReference />",
+                    SortText = $"{Priority}B<DotNetCliToolReference />",
                     TextEdit = new TextEdit
                     {
                         NewText = "<DotNetCliToolReference Include=\"${1:PackageId}\" Version=\"${2:PackageVersion}\" />$0",
