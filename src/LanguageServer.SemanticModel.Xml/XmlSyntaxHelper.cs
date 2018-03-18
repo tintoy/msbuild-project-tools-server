@@ -198,7 +198,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
         }
 
         /// <summary>
-        ///     Get the syntax node's first ancestor of any of the the specified kinds.
+        ///     Get the syntax node's first ancestor of any of the specified kinds.
         /// </summary>
         /// <param name="syntaxNode">
         ///     The target syntax node.

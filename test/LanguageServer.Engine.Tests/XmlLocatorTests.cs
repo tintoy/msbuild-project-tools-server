@@ -324,7 +324,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests
         ///     The target column.
         /// </param>
         /// <param name="expectedElementName">
-        ///     The the name of the element to whicht the attribute will be added.
+        ///     The name of the element to which the attribute will be added.
         /// </param>
         [InlineData("Test1", 6, 14, "Element5", PaddingType.Leading)]
         [InlineData("Test2", 17, 18, "Compile", PaddingType.Trailing)]

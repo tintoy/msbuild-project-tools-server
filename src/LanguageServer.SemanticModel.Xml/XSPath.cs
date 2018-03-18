@@ -224,7 +224,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
         }
 
         /// <summary>
-        ///     Determine whether the <see cref="XSPath"/> has ends with the the specified path.
+        ///     Determine whether the <see cref="XSPath"/> has ends with the specified path.
         /// </summary>
         /// <param name="ancestorPath">
         ///     The other <see cref="XSPath"/>.

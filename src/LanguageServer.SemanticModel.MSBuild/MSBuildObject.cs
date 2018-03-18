@@ -65,7 +65,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
         ///     The target position.
         /// </param>
         /// <returns>
-        ///     <c>true</c>, if the the specified position lies within the object's XML span; otherwise, <c>false</c>.
+        ///     <c>true</c>, if the specified position lies within the object's XML span; otherwise, <c>false</c>.
         /// </returns>
         public bool XmlContains(Position position)
         {
