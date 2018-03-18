@@ -159,7 +159,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel.MSBuildExpressions
         public static Parser<char> SingleQuotedStringChar =
             EscapedChar.Or(
                 Parse.AnyChar.Except(
-                    SingleQuote.Or(Dollar).Or(At) // FIXME: Technically these should be EvalOpen and ItemGroupOpen; a single "$" or "@" is legal.
+                    SingleQuote.Or(Dollar).Or(Percent).Or(At) // FIXME: Technically these should be EvalOpen and ItemGroupOpen; a single "$" or "@" is legal.
                 )
             ).Named("token: single-quoted string character");
 

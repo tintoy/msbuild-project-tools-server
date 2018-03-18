@@ -360,7 +360,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel.MSBuildExpressions
         );
 
         /// <summary>
-        ///     Parse an MSBuild quoted-string-literal expression.
+        ///     Parse an MSBuild quoted-string expression.
         /// </summary>
         public static readonly Parser<QuotedString> QuotedString = Parse.Positioned(
             from leadingQuote in Tokens.SingleQuote.Named("open quoted string")
@@ -568,7 +568,22 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel.MSBuildExpressions
         ///     Parse the root of an expression tree.
         /// </summary>
         public static readonly Parser<ExpressionTree> Root = Parse.Positioned(
-            from expressions in GroupedExpression.Or(Expression).Or(QuotedString).Token().Many()
+            from expressions in
+                GroupedExpression
+                    .Or(Expression)
+                    .Or(QuotedString)
+                    .Or(
+                        // Unquoted string content (i.e. raw composite expression).
+                        SingleQuotedStringContent.As<ExpressionNode>()
+                            .Or(Evaluation)
+                            .Or(ItemGroupTransform)
+                            .Or(ItemGroup)
+                            .Or(ItemMetadata)
+                            .Positioned()
+                            .Named("unquoted string content")
+                    )
+                    .Token()
+                    .Many()
             select new ExpressionTree
             {
                 Children = ImmutableList.CreateRange(expressions)

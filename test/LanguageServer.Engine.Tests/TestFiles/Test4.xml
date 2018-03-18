@@ -1,0 +1,8 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <ItemGroup>
+        <Foo Include="$()" />
+        <Foo Include="%()" />
+        <Foo Include="%(RelativeDirectory).%()" />
+        <Foo Include="%(RelativeDirectory).$()" />
+    </ItemGroup>
+</Project>

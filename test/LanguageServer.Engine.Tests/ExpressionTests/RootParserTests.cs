@@ -99,7 +99,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests.ExpressionTests
         [InlineData("(! ('ABC' != 'DEF'))",     ExpressionKind.Logical     )]
         [InlineData("(! (('ABC' != 'DEF')))",   ExpressionKind.Logical     )]
         [InlineData("ABC And (! (DEF Or GHI))", ExpressionKind.Logical     )]
-        [Theory(DisplayName = "Root parser succeeds with expression kind ")]
+        [Theory(DisplayName = "Root parser succeeds with expression kind " )]
         public void Parse_Logical_Success(string input, ExpressionKind expectedRootExpressionKind)
         {
             AssertParser.SucceedsWith(Parsers.Root, input, actualRoot =>
@@ -167,28 +167,33 @@ namespace MSBuildProjectTools.LanguageServer.Tests.ExpressionTests
         /// <param name="expectedParentExpressionKind">
         ///     The expected parent expression kind (if any).
         /// </param>
-        [InlineData("ABC",                                 00, ExpressionKind.Symbol,       ExpressionKind.Root        )]
-        [InlineData("! ABC",                               00, ExpressionKind.Logical,      ExpressionKind.Root        )]
-        [InlineData("! ABC",                               02, ExpressionKind.Symbol,       ExpressionKind.Logical     )]
-        [InlineData("ABC And DEF",                         00, ExpressionKind.Symbol,       ExpressionKind.Logical     )]
-        [InlineData("ABC And DEF",                         04, ExpressionKind.Logical,      ExpressionKind.Root        )]
-        [InlineData("ABC And DEF",                         08, ExpressionKind.Symbol,       ExpressionKind.Logical     )]
-        [InlineData("$(ABC)",                              00, ExpressionKind.Evaluate,     ExpressionKind.Root        )]
-        [InlineData("$(ABC)",                              02, ExpressionKind.Symbol,       ExpressionKind.Evaluate    )]
-        [InlineData("@(ABC)",                              02, ExpressionKind.Symbol,       ExpressionKind.ItemGroup   )]
-        [InlineData("%(ABC)",                              02, ExpressionKind.Symbol,       ExpressionKind.ItemMetadata)]
-        [InlineData("%(ABC.DEF)",                          02, ExpressionKind.Symbol,       ExpressionKind.ItemMetadata)]
-        [InlineData("%(ABC.DEF)",                          05, ExpressionKind.ItemMetadata, ExpressionKind.Root        )]
-        [InlineData("%(ABC.DEF)",                          06, ExpressionKind.Symbol,       ExpressionKind.ItemMetadata)]
-        [InlineData("%(ABC.DEF)",                          07, ExpressionKind.Symbol,       ExpressionKind.ItemMetadata)]
-        [InlineData("%(ABC.)",                             06, ExpressionKind.Symbol,       ExpressionKind.ItemMetadata)]
-        [InlineData("'ABC'",                               00, ExpressionKind.QuotedString, ExpressionKind.Root        )]
-        [InlineData("'ABC' != 'DEF'",                      00, ExpressionKind.QuotedString, ExpressionKind.Compare     )]
-        [InlineData(" '$(YetAnotherProperty)' == 'true' ", 01, ExpressionKind.QuotedString, ExpressionKind.Compare     )]
-        [InlineData(" '$(YetAnotherProperty)' == 'true' ", 02, ExpressionKind.Evaluate,     ExpressionKind.QuotedString)]
-        [InlineData(" '$(YetAnotherProperty)' == 'true' ", 03, ExpressionKind.Evaluate,     ExpressionKind.QuotedString)]
-        [InlineData(" '$(YetAnotherProperty)' == 'true' ", 04, ExpressionKind.Symbol,       ExpressionKind.Evaluate    )]
-        [InlineData(" '$(YetAnotherProperty)' == 'true' ", 26, ExpressionKind.Compare,      ExpressionKind.Root        )]
+        [InlineData("ABC",                                 00, ExpressionKind.Symbol,       ExpressionKind.Root          )]
+        [InlineData("! ABC",                               00, ExpressionKind.Logical,      ExpressionKind.Root          )]
+        [InlineData("! ABC",                               02, ExpressionKind.Symbol,       ExpressionKind.Logical       )]
+        [InlineData("ABC And DEF",                         00, ExpressionKind.Symbol,       ExpressionKind.Logical       )]
+        [InlineData("ABC And DEF",                         04, ExpressionKind.Logical,      ExpressionKind.Root          )]
+        [InlineData("ABC And DEF",                         08, ExpressionKind.Symbol,       ExpressionKind.Logical       )]
+        [InlineData("$(ABC)",                              00, ExpressionKind.Evaluate,     ExpressionKind.Root          )]
+        [InlineData("$(ABC)",                              02, ExpressionKind.Symbol,       ExpressionKind.Evaluate      )]
+        [InlineData("@(ABC)",                              02, ExpressionKind.Symbol,       ExpressionKind.ItemGroup     )]
+        [InlineData("%(ABC)",                              02, ExpressionKind.Symbol,       ExpressionKind.ItemMetadata  )]
+        [InlineData("%(ABC.DEF)",                          02, ExpressionKind.Symbol,       ExpressionKind.ItemMetadata  )]
+        [InlineData("%(ABC.DEF)",                          05, ExpressionKind.ItemMetadata, ExpressionKind.Root          )]
+        [InlineData("%(ABC.DEF)",                          06, ExpressionKind.Symbol,       ExpressionKind.ItemMetadata  )]
+        [InlineData("%(ABC.DEF)",                          07, ExpressionKind.Symbol,       ExpressionKind.ItemMetadata  )]
+        [InlineData("%(ABC.)",                             06, ExpressionKind.Symbol,       ExpressionKind.ItemMetadata  )]
+        [InlineData("'ABC'",                               00, ExpressionKind.QuotedString, ExpressionKind.Root          )]
+        [InlineData("'ABC' != 'DEF'",                      00, ExpressionKind.QuotedString, ExpressionKind.Compare       )]
+        [InlineData(" '$(YetAnotherProperty)' == 'true' ", 01, ExpressionKind.QuotedString, ExpressionKind.Compare       )]
+        [InlineData(" '$(YetAnotherProperty)' == 'true' ", 02, ExpressionKind.Evaluate,     ExpressionKind.QuotedString  )]
+        [InlineData(" '$(YetAnotherProperty)' == 'true' ", 03, ExpressionKind.Evaluate,     ExpressionKind.QuotedString  )]
+        [InlineData(" '$(YetAnotherProperty)' == 'true' ", 04, ExpressionKind.Symbol,       ExpressionKind.Evaluate      )]
+        [InlineData(" '$(YetAnotherProperty)' == 'true' ", 26, ExpressionKind.Compare,      ExpressionKind.Root          )]
+        [InlineData("$(ABC) $(DEF)",                       07, ExpressionKind.Evaluate,     ExpressionKind.Root          )]
+        [InlineData("%(RelativeDirectory) %()",            22, ExpressionKind.ItemMetadata, ExpressionKind.Root          )]
+        [InlineData("%(RelativeDirectory) %()",            23, ExpressionKind.Symbol,       ExpressionKind.ItemMetadata  )]
+        [InlineData("%(RelativeDirectory).%()",            22, ExpressionKind.ItemMetadata, ExpressionKind.Root)] 
+        [InlineData("%(RelativeDirectory).%()",            23, ExpressionKind.Symbol,       ExpressionKind.ItemMetadata)]
         [Theory(DisplayName = "Root parser succeeds for node at position ")]
         public void FindDeepestNode_Success(string input, int absolutePosition, ExpressionKind expectedExpressionKind, ExpressionKind? parentExpressionKind)
         {
@@ -198,11 +203,32 @@ namespace MSBuildProjectTools.LanguageServer.Tests.ExpressionTests
                     new TextPositions(input)
                 );
 
+                TestOutput.WriteLine("Actual expression:");
+                DumpExpression(actualExpression, currentDepth: 1);
+
                 ExpressionNode actualNodeAtPosition = actualExpression.FindDeepestNodeAt(absolutePosition);
                 Assert.NotNull(actualNodeAtPosition);
+
                 Assert.Equal(expectedExpressionKind, actualNodeAtPosition.Kind);
                 Assert.Equal(parentExpressionKind, actualNodeAtPosition.Parent?.Kind);
             });
+        }
+
+        void DumpExpression(ExpressionNode expression, int currentDepth = 0)
+        {
+            if (expression == null)
+                throw new ArgumentNullException(nameof(expression));
+
+            TestOutput.WriteLine("{0}{1}",
+                new String(' ', currentDepth * 2),
+                expression.ToString()
+            );
+
+            if (expression is ExpressionContainerNode compositeExpression)
+            {
+                foreach (ExpressionNode childNode in compositeExpression.Children)
+                    DumpExpression(childNode, currentDepth + 1);
+            }
         }
     }
 }

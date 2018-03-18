@@ -8,7 +8,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel.MSBuildExpressions
     /// <remarks>
     ///     Quoted strings can contain sub-expressions, but quoted string literals cannot.
     /// </remarks>
-    public class QuotedStringLiteral
+    public sealed class QuotedStringLiteral
         : QuotedString, IPositionAware<QuotedStringLiteral>
     {
         /// <summary>
@@ -32,6 +32,14 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel.MSBuildExpressions
         ///     The quoted string's textual content.
         /// </summary>
         public override string StringContent => Content;
+
+        /// <summary>
+        ///     Get a string representation of the expression node.
+        /// </summary>
+        /// <returns>
+        ///     The string representation.
+        /// </returns>
+        public override string ToString() => $"MSBuild QuotedStringLiteral @ {Range}";
 
         /// <summary>
         ///     Update positioning information.

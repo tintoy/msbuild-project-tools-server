@@ -8,7 +8,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel.MSBuildExpressions
     /// <remarks>
     ///     'Foo $(XXX)' will be parsed as StringContent("Foo ") and Evaluation(Symbol("XXX")).
     /// </remarks>
-    public class StringContent
+    public sealed class StringContent
         : ExpressionNode, IPositionAware<StringContent>
     {
         /// <summary>
@@ -32,6 +32,14 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel.MSBuildExpressions
         ///     The string content.
         /// </summary>
         public string Content { get; set; }
+
+        /// <summary>
+        ///     Get a string representation of the expression node.
+        /// </summary>
+        /// <returns>
+        ///     The string representation.
+        /// </returns>
+        public override string ToString() => $"MSBuild StringContent @ {Range}";
 
         /// <summary>
         ///     Update positioning information.
