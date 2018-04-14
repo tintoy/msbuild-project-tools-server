@@ -172,6 +172,12 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
                 throw new ArgumentException("Argument cannot be null, empty, or entirely composed of whitespace: 'elementName'.", nameof(elementName));
 
             string helpKey = elementName;
+
+            // Prefer new help content (includes links to documentation).
+            if (ElementHelp.TryGetValue(helpKey, out ElementHelp elementHelp))
+                return elementHelp.Description;
+
+            // Fall back to existing help content.
             if (Root.TryGetValue(helpKey, out string help))
                 return help;
 
