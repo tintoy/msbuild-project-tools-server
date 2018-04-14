@@ -25,6 +25,9 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
             HelpDirectory = new DirectoryInfo(
                 Path.Combine(extensionDirectory, "help")
             );
+            ElementHelpFile = new FileInfo(
+                Path.Combine(HelpDirectory.FullName, "elements.json")
+            );
             PropertyHelpFile = new FileInfo(
                 Path.Combine(HelpDirectory.FullName, "properties.json")
             );
@@ -34,6 +37,12 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
             TaskHelpFile = new FileInfo(
                 Path.Combine(HelpDirectory.FullName, "tasks.json")
             );
+
+            using (StreamReader input = ElementHelpFile.OpenText())
+            using (JsonTextReader json = new JsonTextReader(input))
+            {
+                ElementHelp = Help.ElementHelp.FromJson(json);
+            }
 
             using (StreamReader input = PropertyHelpFile.OpenText())
             using (JsonTextReader json = new JsonTextReader(input))
@@ -54,6 +63,11 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
                 TaskHelp = Help.TaskHelp.FromJson(json);
             }
         }
+
+        /// <summary>
+        ///     Help for MSBuild elements.
+        /// </summary>
+        static SortedDictionary<string, ElementHelp> ElementHelp { get; }
 
         /// <summary>
         ///     Help for MSBuild properties.
@@ -79,6 +93,11 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
         ///     The directory where extension help files are stored.
         /// </summary>
         public static DirectoryInfo HelpDirectory { get; }
+
+        /// <summary>
+        ///     The file that stores help for well-known MSBuild elements.
+        /// </summary>
+        public static FileInfo ElementHelpFile { get; }
 
         /// <summary>
         ///     The file that stores help for well-known MSBuild properties.
@@ -155,6 +174,27 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
             string helpKey = elementName;
             if (Root.TryGetValue(helpKey, out string help))
                 return help;
+
+            return null;
+        }
+
+        /// <summary>
+        ///     Get a help link (if available) for the specified element.
+        /// </summary>
+        /// <param name="elementName">
+        ///     The element name.
+        /// </param>
+        /// <returns>
+        ///     The element help link, or <c>null</c> if no link is available for it.
+        /// </returns>
+        public static string HelpLinkForElement(string elementName)
+        {
+            if (String.IsNullOrWhiteSpace(elementName))
+                throw new ArgumentException("Argument cannot be null, empty, or entirely composed of whitespace: 'elementName'.", nameof(elementName));
+
+            string helpKey = elementName;
+            if (ElementHelp.TryGetValue(helpKey, out ElementHelp help))
+                return help.HelpLink;
 
             return null;
         }
