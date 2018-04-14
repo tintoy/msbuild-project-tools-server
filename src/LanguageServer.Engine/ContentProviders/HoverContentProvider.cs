@@ -434,16 +434,30 @@ namespace MSBuildProjectTools.LanguageServer.ContentProviders
         {
             if (import == null)
                 throw new ArgumentNullException(nameof(import));
+
+            List<MarkedString> content = new List<MarkedString>
+            {
+                $"Import: `{import.Name}`"
+            };
             
             StringBuilder imports = new StringBuilder("Imports:");
             imports.AppendLine();
             foreach (string projectFile in import.ImportedProjectFiles)
                 imports.AppendLine($"* [{Path.GetFileName(projectFile)}]({VSCodeDocumentUri.FromFileSystemPath(projectFile)})");
 
-            return new MarkedStringContainer(
-                $"Import: `{import.Name}`",
+            content.Add(
                 imports.ToString()
             );
+
+            string helpLink = MSBuildSchemaHelp.HelpLinkForElement(import.Element.Name);
+            if (!String.IsNullOrWhiteSpace(helpLink))
+            {
+                content.Add(
+                    $"[Help]({helpLink})"
+                );
+            }
+
+            return new MarkedStringContainer(content);
         }
 
         /// <summary>
@@ -483,10 +497,21 @@ namespace MSBuildProjectTools.LanguageServer.ContentProviders
                 $"Evaluated Condition: `{evaluatedCondition}`"
             );
 
-            return new MarkedStringContainer(
-                $"Unresolved Import (condition is false)",
+            List<MarkedString> content = new List<MarkedString>
+            {
+                "Unresolved Import (condition is false)",
                 descriptionContent.ToString()
-            );
+            };
+
+            string helpLink = MSBuildSchemaHelp.HelpLinkForElement(unresolvedImport.Element.Name);
+            if (!String.IsNullOrWhiteSpace(helpLink))
+            {
+                content.Add(
+                    $"[Help]({helpLink})"
+                );
+            }
+
+            return new MarkedStringContainer(content);
         }
 
         /// <summary>
