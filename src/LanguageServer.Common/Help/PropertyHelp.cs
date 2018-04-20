@@ -16,6 +16,12 @@ namespace MSBuildProjectTools.LanguageServer.Help
         public string Description { get; set; }
 
         /// <summary>
+        ///     A link to the property's documentation (if available).
+        /// </summary>
+        [JsonProperty("helpLink")]
+        public string HelpLink { get; set; }
+
+        /// <summary>
         ///     The property's default value.
         /// </summary>
         [JsonProperty("defaultValue")]

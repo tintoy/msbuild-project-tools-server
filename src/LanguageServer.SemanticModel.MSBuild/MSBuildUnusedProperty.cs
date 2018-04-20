@@ -29,6 +29,11 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
         public override string Name => PropertyElement.Name;
 
         /// <summary>
+        ///     The <see cref="XSElement"/> that declares the property.
+        /// </summary>
+        public XSElement Element => (XSElement)base.Xml;
+
+        /// <summary>
         ///     The kind of MSBuild object represented by the <see cref="MSBuildUnusedProperty"/>.
         /// </summary>
         public override MSBuildObjectKind Kind => MSBuildObjectKind.UnusedProperty;

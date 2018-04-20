@@ -16,6 +16,12 @@ namespace MSBuildProjectTools.LanguageServer.Help
         public string Description { get; set; }
 
         /// <summary>
+        ///     A link to the item type's documentation (if available).
+        /// </summary>
+        [JsonProperty("helpLink")]
+        public string HelpLink { get; set; }
+
+        /// <summary>
         ///     Descriptions for the item's metadata.
         /// </summary>
         [JsonProperty("metadata", ObjectCreationHandling = ObjectCreationHandling.Reuse)]

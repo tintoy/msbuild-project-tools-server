@@ -91,6 +91,14 @@ namespace MSBuildProjectTools.LanguageServer.ContentProviders
             else
                 content.Add($"Value: `{property.Value}`");
 
+            string helpLink = MSBuildSchemaHelp.HelpLinkForProperty(property.Name);
+            if (!String.IsNullOrWhiteSpace(helpLink))
+            {
+                content.Add(
+                    $"[Help]({helpLink})"
+                );
+            }
+
             return new MarkedStringContainer(content);
         }
 
@@ -121,6 +129,14 @@ namespace MSBuildProjectTools.LanguageServer.ContentProviders
                 $"Value would have been: `{unusedProperty.Value}`"
             );
 
+            string helpLink = MSBuildSchemaHelp.HelpLinkForProperty(unusedProperty.Name);
+            if (!String.IsNullOrWhiteSpace(helpLink))
+            {
+                content.Add(
+                    $"[Help]({helpLink})"
+                );
+            }
+
             return new MarkedStringContainer(content);
         }
 
@@ -142,6 +158,8 @@ namespace MSBuildProjectTools.LanguageServer.ContentProviders
             {
                 string packageVersion = itemGroup.GetFirstMetadataValue("Version");
                 
+                // TODO: Verify package is from NuGet (later, we can also recognise MyGet)
+
                 return new MarkedStringContainer(
                     $"NuGet Package: [{itemGroup.FirstInclude}](https://nuget.org/packages/{itemGroup.FirstInclude}/{packageVersion})",
                     $"Version: {packageVersion}"
@@ -183,6 +201,14 @@ namespace MSBuildProjectTools.LanguageServer.ContentProviders
             content.Add(
                 itemIncludeContent.ToString()
             );
+
+            string helpLink = MSBuildSchemaHelp.HelpLinkForItem(itemGroup.Name);
+            if (!String.IsNullOrWhiteSpace(helpLink))
+            {
+                content.Add(
+                    $"[Help]({helpLink})"
+                );
+            }
 
             return new MarkedStringContainer(content);  
         }
@@ -240,6 +266,14 @@ namespace MSBuildProjectTools.LanguageServer.ContentProviders
             content.Add(
                 descriptionContent.ToString()
             );
+
+            string helpLink = MSBuildSchemaHelp.HelpLinkForItem(unusedItemGroup.Name);
+            if (!String.IsNullOrWhiteSpace(helpLink))
+            {
+                content.Add(
+                    $"[Help]({helpLink})"
+                );
+            }
 
             return new MarkedStringContainer(content);  
         }
@@ -335,6 +369,14 @@ namespace MSBuildProjectTools.LanguageServer.ContentProviders
                 metadataContent.ToString()
             );
 
+            string helpLink = MSBuildSchemaHelp.HelpLinkForItem(itemGroup.Name);
+            if (!String.IsNullOrWhiteSpace(helpLink))
+            {
+                content.Add(
+                    $"[Help]({helpLink})"
+                );
+            }
+
             return new MarkedStringContainer(content);
         }
 
@@ -417,8 +459,21 @@ namespace MSBuildProjectTools.LanguageServer.ContentProviders
         {
             if (target == null)
                 throw new ArgumentNullException(nameof(target));
+
+            List<MarkedString> content = new List<MarkedString>
+            {
+                $"Target: `{target.Name}`"
+            };
+
+            string helpLink = MSBuildSchemaHelp.HelpLinkForElement(target.Element.Name);
+            if (!String.IsNullOrWhiteSpace(helpLink))
+            {
+                content.Add(
+                    $"[Help]({helpLink})"
+                );
+            }
             
-            return $"Target: `{target.Name}`";
+            return new MarkedStringContainer(content);
         }
 
         /// <summary>

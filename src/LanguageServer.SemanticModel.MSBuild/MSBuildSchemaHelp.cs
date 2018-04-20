@@ -206,6 +206,48 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
         }
 
         /// <summary>
+        ///     Get a help link (if available) for the specified item.
+        /// </summary>
+        /// <param name="itemType">
+        ///     The item type name.
+        /// </param>
+        /// <returns>
+        ///     The item help link, or <c>null</c> if no link is available for it.
+        /// </returns>
+        public static string HelpLinkForItem(string itemType)
+        {
+            if (String.IsNullOrWhiteSpace(itemType))
+                throw new ArgumentException("Argument cannot be null, empty, or entirely composed of whitespace: 'itemName'.", nameof(itemType));
+
+            string helpKey = itemType;
+            if (ItemHelp.TryGetValue(helpKey, out ItemHelp help))
+                return help.HelpLink;
+
+            return null;
+        }
+
+        /// <summary>
+        ///     Get a help link (if available) for the specified property.
+        /// </summary>
+        /// <param name="propertyName">
+        ///     The property name.
+        /// </param>
+        /// <returns>
+        ///     The property help link, or <c>null</c> if no link is available for it.
+        /// </returns>
+        public static string HelpLinkForProperty(string propertyName)
+        {
+            if (String.IsNullOrWhiteSpace(propertyName))
+                throw new ArgumentException("Argument cannot be null, empty, or entirely composed of whitespace: 'propertyName'.", nameof(propertyName));
+
+            string helpKey = propertyName;
+            if (PropertyHelp.TryGetValue(helpKey, out PropertyHelp help))
+                return help.HelpLink;
+
+            return null;
+        }
+
+        /// <summary>
         ///     Get help content for the specified attribute.
         /// </summary>
         /// <param name="elementName">

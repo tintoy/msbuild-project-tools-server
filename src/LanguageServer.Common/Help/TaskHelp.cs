@@ -16,6 +16,12 @@ namespace MSBuildProjectTools.LanguageServer.Help
         public string Description { get; set; }
 
         /// <summary>
+        ///     A link to the task's documentation (if available).
+        /// </summary>
+        [JsonProperty("helpLink")]
+        public string HelpLink { get; set; }
+
+        /// <summary>
         ///     The task's parameters.
         /// </summary>
         [JsonProperty("parameters", ObjectCreationHandling = ObjectCreationHandling.Reuse)]
@@ -49,6 +55,12 @@ namespace MSBuildProjectTools.LanguageServer.Help
         /// </summary>
         [JsonProperty("description")]
         public string Description { get; set; }
+
+        /// <summary>
+        ///     A link to the task parameter's documentation (if available).
+        /// </summary>
+        [JsonProperty("helpLink")]
+        public string HelpLink { get; set; }
 
         /// <summary>
         ///     A description of the task parameter data-type.

@@ -3,7 +3,11 @@
         "description": "Flag indicating whether to allow local network loopback."
     },
     "AllowUnsafeBlocks": {
-        "description": "Allow unsafe code blocks."
+        "description": "Allow unsafe code blocks.",
+        "defaultValues": [
+            "true",
+            "false"
+        ]
     },
     "AppDesignerFolder": {
         "description": "Name of folder for Application Designer"
@@ -472,6 +476,17 @@
     },
     "InstallFrom": {
         "description": "Web, Unc, or Disk"
+    },
+    "IsPackable": {
+        "description": "Enable or disable production of the project's NuGet package.",
+        "defaultValues": [
+            "true",
+            "false"
+        ]
+    },
+    "LangVersion": {
+        "description": "Which version of the target language (e.g. C# / VB) to use.",
+        "defaultValue": "latest"
     },
     "LayoutDir": {
         "description": "Full path to a folder with package layout."
