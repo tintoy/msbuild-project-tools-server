@@ -189,7 +189,10 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
                         }
                         case MSBuildTarget target:
                         {
-                            hoverContent = contentProvider.Target(target);
+                            // Currently (and this is a bug), an MSBuildTarget is returned by MSBuildLocator when the location being inspected
+                            // is actually on one of its child (task) elements.
+                            if (element.Path == WellKnownElementPaths.Target)
+                                hoverContent = contentProvider.Target(target);
 
                             break;
                         }
