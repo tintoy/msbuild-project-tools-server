@@ -299,11 +299,22 @@ namespace MSBuildProjectTools.LanguageServer.ContentProviders
                 return null;
 
             string evaluatedCondition = _projectDocument.MSBuildProject.ExpandString(condition);
-            
-            return new MarkedStringContainer(
+
+            List<MarkedString> content = new List<MarkedString>
+            {
                 "Condition",
                 $"Evaluated: `{evaluatedCondition}`"
-            );
+            };
+
+            string helpLink = MSBuildSchemaHelp.HelpLinkForElement("*.Condition");
+            if (!String.IsNullOrWhiteSpace(helpLink))
+            {
+                content.Add(
+                    $"[Help]({helpLink})"
+                );
+            }
+            
+            return new MarkedStringContainer(content);
         }
 
         /// <summary>
@@ -624,6 +635,40 @@ namespace MSBuildProjectTools.LanguageServer.ContentProviders
                 $"Unresolved Import `{unresolvedSdkImport.Sdk}` (condition is false)",
                 descriptionContent.ToString()
             );
+        }
+
+        /// <summary>
+        ///     Get hover content for an XML element that does not directly correspond to an <see cref="MSBuildObject"/>.
+        /// </summary>
+        /// <param name="element">
+        ///     The <see cref="XSElement"/>.
+        /// </param>
+        /// <returns>
+        ///     The content, or <c>null</c> if no content is provided.
+        /// </returns>
+        public MarkedStringContainer Element(XSElement element)
+        {
+            if (element == null)
+                throw new ArgumentNullException(nameof(element));
+            
+            string elementDescription = MSBuildSchemaHelp.ForElement(element.Name);
+            if (String.IsNullOrWhiteSpace(elementDescription))
+                return null;
+
+            List<MarkedString> content = new List<MarkedString>
+            {
+                elementDescription
+            };
+
+            string helpLink = MSBuildSchemaHelp.HelpLinkForElement(element.Name);
+            if (!String.IsNullOrWhiteSpace(helpLink))
+            {
+                content.Add(
+                    $"[Help]({helpLink})"
+                );
+            }
+
+            return new MarkedStringContainer(content);
         }
     }
 }

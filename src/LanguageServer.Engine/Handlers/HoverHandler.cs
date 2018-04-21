@@ -208,6 +208,12 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
 
                             break;
                         }
+                        default:
+                        {
+                            hoverContent = contentProvider.Element(element);
+
+                            break;
+                        }
                     }
                 }
                 else if (location.IsElementText(out XSElementText text))
