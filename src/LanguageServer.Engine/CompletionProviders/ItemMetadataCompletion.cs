@@ -64,6 +64,13 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
 
             using (await projectDocument.Lock.ReaderLockAsync())
             {
+                if (location.IsElement(out XSElement element) && !element.HasParentPath(WellKnownElementPaths.ItemGroup))
+                {
+                    Log.Verbose("Not offering any completions for {XmlLocation:l} (not a direct child of an ItemGroup element).", location);
+
+                    return null;
+                }
+
                 HashSet<string> existingMetadata = new HashSet<string>();
                 
                 completions.AddRange(
