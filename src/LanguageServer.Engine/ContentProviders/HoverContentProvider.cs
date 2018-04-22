@@ -116,10 +116,22 @@ namespace MSBuildProjectTools.LanguageServer.ContentProviders
             if (unusedProperty == null)
                 throw new ArgumentNullException(nameof(unusedProperty));
 
-            List<MarkedString> content = new List<MarkedString>
+            List<MarkedString> content = new List<MarkedString>();
+            if (unusedProperty.Element.HasParentPath(WellKnownElementPaths.DynamicPropertyGroup))
             {
-                $"Unused Property: `{unusedProperty.Name}` (condition is false)"
-            };
+                content.Add(
+                    $"Dynamic Property: `{unusedProperty.Name}`"
+                );
+                content.Add(
+                    "(properties declared in targets are only evaluated when building the project)"
+                );
+            }
+            else
+            {
+                content.Add(
+                    $"Unused Property: `{unusedProperty.Name}` (condition is false)"
+                );
+            }
 
             string propertyHelp = MSBuildSchemaHelp.ForProperty(unusedProperty.Name);
             if (propertyHelp != null)

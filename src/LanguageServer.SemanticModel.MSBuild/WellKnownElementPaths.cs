@@ -16,6 +16,11 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
         public static readonly XSPath PropertyGroup = XSPath.Parse("PropertyGroup");
 
         /// <summary>
+        ///     The relative path that represents a dynamic "PropertyGroup" element.
+        /// </summary>
+        public static readonly XSPath DynamicPropertyGroup = XSPath.Parse("Target/PropertyGroup");
+
+        /// <summary>
         ///     The relative path that represents a "ItemGroup" element (static or dynamic).
         /// </summary>
         public static readonly XSPath ItemGroup = XSPath.Parse("ItemGroup");
