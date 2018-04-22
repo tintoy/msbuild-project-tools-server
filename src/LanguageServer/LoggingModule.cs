@@ -80,6 +80,7 @@ namespace MSBuildProjectTools.LanguageServer
             var loggerConfiguration = new LoggerConfiguration()
                 .MinimumLevel.Verbose()
                 .Enrich.WithCurrentActivityId()
+                .Enrich.WithDemystifiedStackTraces()
                 .Enrich.FromLogContext();
 
             if (!String.IsNullOrWhiteSpace(configuration.Logging.Seq.Url))
