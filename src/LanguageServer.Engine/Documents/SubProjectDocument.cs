@@ -6,6 +6,7 @@ using NuGet.Configuration;
 using NuGet.Protocol.Core.Types;
 using NuGet.Versioning;
 using Serilog;
+using Serilog.Events;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -107,10 +108,13 @@ namespace MSBuildProjectTools.LanguageServer.Documents
             }
             catch (InvalidProjectFileException invalidProjectFile)
             {
-                Log.Verbose(invalidProjectFile, "Failed to load MSBuild proiect '{ProjectFileName}' because the project file is invalid. {ErrorMessage}",
-                    ProjectFile.FullName,
-                    invalidProjectFile.Message
-                );
+                if (Log.IsEnabled(LogEventLevel.Verbose))
+                {
+                    Log.Error(invalidProjectFile, "Failed to load MSBuild proiect '{ProjectFileName}' because the project file is invalid. {ErrorMessage}",
+                        ProjectFile.FullName,
+                        invalidProjectFile.Message
+                    );
+                }
 
                 AddErrorDiagnostic(invalidProjectFile.BaseMessage,
                     range: invalidProjectFile.GetRange(XmlLocator),
@@ -119,10 +123,13 @@ namespace MSBuildProjectTools.LanguageServer.Documents
             }
             catch (XmlException invalidProjectXml)
             {
-                Log.Verbose(invalidProjectXml, "Failed to load MSBuild proiect '{ProjectFileName}' because the project XML is invalid. {ErrorMessage}",
-                    ProjectFile.FullName,
-                    invalidProjectXml.Message
-                );
+                if (Log.IsEnabled(LogEventLevel.Verbose))
+                {
+                    Log.Error(invalidProjectXml, "Failed to load MSBuild proiect '{ProjectFileName}' because the project XML is invalid. {ErrorMessage}",
+                        ProjectFile.FullName,
+                        invalidProjectXml.Message
+                    );
+                }
 
                 // TODO: Match SourceUri (need overloads of AddXXXDiagnostic for reporting diagnostics for other files).
                 AddErrorDiagnostic(invalidProjectXml.Message,
