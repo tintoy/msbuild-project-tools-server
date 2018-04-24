@@ -111,6 +111,11 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
             if (solutionDirectory.Length > 0 && solutionDirectory[solutionDirectory.Length - 1] != Path.DirectorySeparatorChar)
                 solutionDirectory += Path.DirectorySeparatorChar;
 
+            // Support overriding of SDKs path.
+            string sdksPath = Environment.GetEnvironmentVariable("MSBuildSDKsPath");
+            if (String.IsNullOrWhiteSpace(sdksPath))
+                sdksPath = Path.Combine(runtimeInfo.BaseDirectory, "Sdks");
+
             return new Dictionary<string, string>
             {
                 [WellKnownPropertyNames.DesignTimeBuild] = "true",
@@ -118,7 +123,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
                 [WellKnownPropertyNames.ResolveReferenceDependencies] = "true",
                 [WellKnownPropertyNames.SolutionDir] = solutionDirectory,
                 [WellKnownPropertyNames.MSBuildExtensionsPath] = runtimeInfo.BaseDirectory,
-                [WellKnownPropertyNames.MSBuildSDKsPath] = Path.Combine(runtimeInfo.BaseDirectory, "Sdks"),
+                [WellKnownPropertyNames.MSBuildSDKsPath] = sdksPath,
                 [WellKnownPropertyNames.RoslynTargetsPath] = Path.Combine(runtimeInfo.BaseDirectory, "Roslyn")
             };
         }
