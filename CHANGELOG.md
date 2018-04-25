@@ -1,5 +1,9 @@
 # Change Log
 
+## v0.2.38
+
+* Improve log output (especially for project-load failures).
+
 ## v0.2.37
 
 * Support overriding of MSBuild SDKs path via environment variable (tintoy/msbuild-project-tools-server#5).
