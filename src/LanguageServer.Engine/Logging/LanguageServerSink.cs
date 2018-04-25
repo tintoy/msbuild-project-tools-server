@@ -2,13 +2,16 @@ using OmniSharp.Extensions.LanguageServer.Protocol;
 using OmniSharp.Extensions.LanguageServer.Server;
 using Serilog;
 using Serilog.Core;
-using System;
 using Serilog.Events;
+using System;
+using System.IO;
+using System.Text;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 
 namespace MSBuildProjectTools.LanguageServer.Logging
 {
     using Handlers;
+
     using LanguageServer = OmniSharp.Extensions.LanguageServer.Server.LanguageServer;
 
     /// <summary>
@@ -77,12 +80,24 @@ namespace MSBuildProjectTools.LanguageServer.Logging
             if (logEvent.Level < _levelSwitch.MinimumLevel)
                 return;
 
+            StringBuilder messageBuilder = new StringBuilder();
+
+            using (StringWriter messageWriter = new StringWriter(messageBuilder))
+            {
+                logEvent.RenderMessage(messageWriter);               
+            }
+            if (logEvent.Exception != null)
+            {
+                messageBuilder.AppendLine();
+                messageBuilder.Append(
+                    logEvent.Exception.ToString()
+                );
+            }
+
             LogMessageParams logParameters = new LogMessageParams
             {
-                Message = logEvent.RenderMessage()
+                Message = messageBuilder.ToString()
             };
-            if (logEvent.Exception != null)
-                logParameters.Message += "\n" + logEvent.Exception.ToString();
 
             switch (logEvent.Level)
             {

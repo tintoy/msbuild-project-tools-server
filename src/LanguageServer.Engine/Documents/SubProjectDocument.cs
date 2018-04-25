@@ -110,9 +110,8 @@ namespace MSBuildProjectTools.LanguageServer.Documents
             {
                 if (Log.IsEnabled(LogEventLevel.Verbose))
                 {
-                    Log.Error(invalidProjectFile, "Failed to load MSBuild proiect '{ProjectFileName}' because the project file is invalid. {ErrorMessage}",
-                        ProjectFile.FullName,
-                        invalidProjectFile.Message
+                    Log.Error(invalidProjectFile, "Failed to load MSBuild proiect '{ProjectFileName}'.",
+                        ProjectFile.FullName
                     );
                 }
 
@@ -125,9 +124,8 @@ namespace MSBuildProjectTools.LanguageServer.Documents
             {
                 if (Log.IsEnabled(LogEventLevel.Verbose))
                 {
-                    Log.Error(invalidProjectXml, "Failed to load MSBuild proiect '{ProjectFileName}' because the project XML is invalid. {ErrorMessage}",
-                        ProjectFile.FullName,
-                        invalidProjectXml.Message
+                    Log.Error(invalidProjectXml, "Failed to parse XML for project '{ProjectFileName}'.",
+                        ProjectFile.FullName
                     );
                 }
 

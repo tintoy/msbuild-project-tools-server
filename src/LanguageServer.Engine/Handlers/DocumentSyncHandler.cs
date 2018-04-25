@@ -172,16 +172,20 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
             {
                 case MasterProjectDocument masterProjectDocument:
                 {
-                    Log.Information("Successfully loaded project {ProjectFilePath}.", projectDocument.ProjectFile.FullName);
+                    if (masterProjectDocument.HasMSBuildProject)
+                        Log.Information("Successfully loaded project {ProjectFilePath}.", projectDocument.ProjectFile.FullName);
 
                     break;
                 }
                 case SubProjectDocument subProjectDocument:
                 {
-                    Log.Information("Successfully loaded project {ProjectFilePath} as a sub-project of {MasterProjectFileName}.",
-                        projectDocument.ProjectFile.FullName,
-                        subProjectDocument.MasterProjectDocument.ProjectFile.Name
-                    );
+                    if (subProjectDocument.HasMSBuildProject)
+                    {
+                        Log.Information("Successfully loaded project {ProjectFilePath} as a sub-project of {MasterProjectFileName}.",
+                            projectDocument.ProjectFile.FullName,
+                            subProjectDocument.MasterProjectDocument.ProjectFile.Name
+                        );
+                    }
 
                     break;
                 }
