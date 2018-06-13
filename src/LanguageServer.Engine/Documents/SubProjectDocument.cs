@@ -108,7 +108,7 @@ namespace MSBuildProjectTools.LanguageServer.Documents
             }
             catch (InvalidProjectFileException invalidProjectFile)
             {
-                if (Log.IsEnabled(LogEventLevel.Verbose))
+                if (Workspace.Configuration.Logging.IsDebugLoggingEnabled)
                 {
                     Log.Error(invalidProjectFile, "Failed to load MSBuild proiect '{ProjectFileName}'.",
                         ProjectFile.FullName
@@ -122,7 +122,7 @@ namespace MSBuildProjectTools.LanguageServer.Documents
             }
             catch (XmlException invalidProjectXml)
             {
-                if (Log.IsEnabled(LogEventLevel.Verbose))
+                if (Workspace.Configuration.Logging.IsDebugLoggingEnabled)
                 {
                     Log.Error(invalidProjectXml, "Failed to parse XML for project '{ProjectFileName}'.",
                         ProjectFile.FullName

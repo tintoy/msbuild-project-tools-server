@@ -1,5 +1,9 @@
 # Change Log
 
+## v0.2.39
+
+* Further improvements to log output (especially for project-load failures; exceptions from invalid project XML are only logged when configured log level is Debug or Verbose).
+
 ## v0.2.38
 
 * Improve log output (especially for project-load failures).

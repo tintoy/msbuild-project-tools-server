@@ -91,6 +91,12 @@ namespace MSBuildProjectTools.LanguageServer
         /// </summary>
         [JsonProperty("trace")]
         public bool Trace { get; set; }
+
+        /// <summary>
+        ///     Is the minimum logging level Debug or Verbose?
+        /// </summary>
+        [JsonIgnore]
+        public bool IsDebugLoggingEnabled => LevelSwitch.MinimumLevel <= LogEventLevel.Debug;
     }
 
     /// <summary>
