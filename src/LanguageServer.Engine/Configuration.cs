@@ -4,6 +4,8 @@ using Newtonsoft.Json.Linq;
 using Serilog.Core;
 using Serilog.Events;
 
+// TODO: Update Configuration to read from flattened settings schema.
+
 namespace MSBuildProjectTools.LanguageServer
 {
     /// <summary>
@@ -22,12 +24,6 @@ namespace MSBuildProjectTools.LanguageServer
         public Configuration()
         {
         }
-
-        /// <summary>
-        ///     The version of the configuration schema in use.
-        /// </summary>
-        [JsonProperty("schemaVersion", DefaultValueHandling = DefaultValueHandling.IgnoreAndPopulate)]
-        public int SchemaVersion { get; set; }
 
         /// <summary>
         ///     The MSBuild language service's logging configuration.

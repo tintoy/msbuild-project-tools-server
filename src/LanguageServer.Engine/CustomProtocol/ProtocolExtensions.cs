@@ -4,6 +4,7 @@ using OmniSharp.Extensions.LanguageServer.Server;
 using System;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System.Linq;
 
 namespace MSBuildProjectTools.LanguageServer.CustomProtocol
 {
@@ -115,25 +116,66 @@ namespace MSBuildProjectTools.LanguageServer.CustomProtocol
         /// <param name="configuration">
         ///     The <see cref="Configuration"/> to update.
         /// </param>
-        /// <param name="json">
-        ///     A <see cref="JObject"/> representing the JSON.
+        /// <param name="flattenedJson">
+        ///     A <see cref="JObject"/> representing the flattened settings JSON from VS Code.
         /// </param>
-        public static void UpdateFrom(this Configuration configuration, JObject json)
+        public static void UpdateFrom(this Configuration configuration, JObject flattenedJson)
         {
             if (configuration == null)
                 throw new ArgumentNullException(nameof(configuration));
             
-            if (json == null)
-                throw new ArgumentNullException(nameof(json));
+            if (flattenedJson == null)
+                throw new ArgumentNullException(nameof(flattenedJson));
             
             // Temporary workaround - JsonSerializer.Populate reuses existing HashSet.
             configuration.Language.CompletionsFromProject.Clear();
             configuration.EnableExperimentalFeatures.Clear();
 
-            using (JsonReader reader = json.CreateReader())
+            using (JsonReader reader = flattenedJson.ToNested().CreateReader())
             {
                 new JsonSerializer().Populate(reader, configuration);
             }
+        }
+
+        /// <summary>
+        ///     Convert a flattened settings <see cref="JObject"/> from VS Code to the native (nested) settings format.
+        /// </summary>
+        /// <param name="flattenedJson">
+        ///     The flattened <see cref="JObject"/> to convert.
+        /// </param>
+        /// <returns>
+        ///     The nested settings <see cref="JObject"/>.
+        /// </returns>
+        static JObject ToNested(this JObject flattenedJson)
+        {
+            if (flattenedJson == null)
+                throw new ArgumentNullException(nameof(flattenedJson));
+            
+            JObject root = new JObject();
+
+            foreach (JProperty property in flattenedJson.Properties())
+            {
+                string[] pathSegments = property.Name.Split('.');
+
+                JObject target = root;
+                foreach (string intermediatePropertyName in pathSegments.Take(pathSegments.Length - 1))
+                {
+                    // Get or create intermediate object.
+                    JObject child = target.Value<JToken>(intermediatePropertyName) as JObject;
+                    if (child == null)
+                    {
+                        child = new JObject();
+                        target[intermediatePropertyName] = child;
+                    }
+
+                    target = child;
+                }
+
+                string targetPropertyName = pathSegments.Last();
+                target[targetPropertyName] = property.Value;
+            }
+
+            return root;
         }
     }
 }
