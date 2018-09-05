@@ -116,22 +116,22 @@ namespace MSBuildProjectTools.LanguageServer.CustomProtocol
         /// <param name="configuration">
         ///     The <see cref="Configuration"/> to update.
         /// </param>
-        /// <param name="flattenedJson">
+        /// <param name="flattenedSettingsJson">
         ///     A <see cref="JObject"/> representing the flattened settings JSON from VS Code.
         /// </param>
-        public static void UpdateFrom(this Configuration configuration, JObject flattenedJson)
+        public static void UpdateFrom(this Configuration configuration, JObject flattenedSettingsJson)
         {
             if (configuration == null)
                 throw new ArgumentNullException(nameof(configuration));
             
-            if (flattenedJson == null)
-                throw new ArgumentNullException(nameof(flattenedJson));
+            if (flattenedSettingsJson == null)
+                throw new ArgumentNullException(nameof(flattenedSettingsJson));
             
             // Temporary workaround - JsonSerializer.Populate reuses existing HashSet.
             configuration.Language.CompletionsFromProject.Clear();
             configuration.EnableExperimentalFeatures.Clear();
 
-            using (JsonReader reader = flattenedJson.ToNested().CreateReader())
+            using (JsonReader reader = flattenedSettingsJson.ToNestedSettings().CreateReader())
             {
                 new JsonSerializer().Populate(reader, configuration);
             }
@@ -140,22 +140,22 @@ namespace MSBuildProjectTools.LanguageServer.CustomProtocol
         /// <summary>
         ///     Convert a flattened settings <see cref="JObject"/> from VS Code to the native (nested) settings format.
         /// </summary>
-        /// <param name="flattenedJson">
-        ///     The flattened <see cref="JObject"/> to convert.
+        /// <param name="flattenedSettingsJson">
+        ///     The flattened settings <see cref="JObject"/> to convert.
         /// </param>
         /// <returns>
         ///     The nested settings <see cref="JObject"/>.
         /// </returns>
-        static JObject ToNested(this JObject flattenedJson)
+        static JObject ToNestedSettings(this JObject flattenedSettingsJson)
         {
-            if (flattenedJson == null)
-                throw new ArgumentNullException(nameof(flattenedJson));
+            if (flattenedSettingsJson == null)
+                throw new ArgumentNullException(nameof(flattenedSettingsJson));
             
             JObject root = new JObject();
 
-            foreach (JProperty property in flattenedJson.Properties())
+            foreach (JProperty property in flattenedSettingsJson.Properties())
             {
-                string[] pathSegments = property.Name.Split('.');
+                string[] pathSegments = property.Name.Replace("msbuildProjectTools.", String.Empty).Split('.');
 
                 JObject target = root;
                 foreach (string intermediatePropertyName in pathSegments.Take(pathSegments.Length - 1))
