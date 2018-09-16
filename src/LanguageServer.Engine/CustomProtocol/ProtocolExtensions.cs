@@ -116,66 +116,26 @@ namespace MSBuildProjectTools.LanguageServer.CustomProtocol
         /// <param name="configuration">
         ///     The <see cref="Configuration"/> to update.
         /// </param>
-        /// <param name="flattenedSettingsJson">
+        /// <param name="settingsJson">
         ///     A <see cref="JObject"/> representing the flattened settings JSON from VS Code.
         /// </param>
-        public static void UpdateFrom(this Configuration configuration, JObject flattenedSettingsJson)
+        public static void UpdateFrom(this Configuration configuration, JObject settingsJson)
         {
             if (configuration == null)
                 throw new ArgumentNullException(nameof(configuration));
             
-            if (flattenedSettingsJson == null)
-                throw new ArgumentNullException(nameof(flattenedSettingsJson));
-            
+            if (settingsJson == null)
+                throw new ArgumentNullException(nameof(settingsJson));
+
             // Temporary workaround - JsonSerializer.Populate reuses existing HashSet.
             configuration.Language.CompletionsFromProject.Clear();
             configuration.EnableExperimentalFeatures.Clear();
 
-            using (JsonReader reader = flattenedSettingsJson.ToNestedSettings().CreateReader())
+            using (JsonReader reader = settingsJson.CreateReader())
             {
                 new JsonSerializer().Populate(reader, configuration);
             }
         }
 
-        /// <summary>
-        ///     Convert a flattened settings <see cref="JObject"/> from VS Code to the native (nested) settings format.
-        /// </summary>
-        /// <param name="flattenedSettingsJson">
-        ///     The flattened settings <see cref="JObject"/> to convert.
-        /// </param>
-        /// <returns>
-        ///     The nested settings <see cref="JObject"/>.
-        /// </returns>
-        static JObject ToNestedSettings(this JObject flattenedSettingsJson)
-        {
-            if (flattenedSettingsJson == null)
-                throw new ArgumentNullException(nameof(flattenedSettingsJson));
-            
-            JObject root = new JObject();
-
-            foreach (JProperty property in flattenedSettingsJson.Properties())
-            {
-                string[] pathSegments = property.Name.Replace("msbuildProjectTools.", String.Empty).Split('.');
-
-                JObject target = root;
-                foreach (string intermediatePropertyName in pathSegments.Take(pathSegments.Length - 1))
-                {
-                    // Get or create intermediate object.
-                    JObject child = target.Value<JToken>(intermediatePropertyName) as JObject;
-                    if (child == null)
-                    {
-                        child = new JObject();
-                        target[intermediatePropertyName] = child;
-                    }
-
-                    target = child;
-                }
-
-                string targetPropertyName = pathSegments.Last();
-                target[targetPropertyName] = property.Value;
-            }
-
-            return root;
-        }
     }
 }
