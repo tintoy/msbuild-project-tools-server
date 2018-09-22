@@ -62,6 +62,8 @@ namespace MSBuildProjectTools.LanguageServer.ContentProviders
 
             if (property.IsOverridden)
             {
+                // BUG: This is the location of the *overridden* property, not the *overriding* property.
+                //      We'll need to build a lookup by recursively following ProjectProperty.Predecessor.
                 Position overridingDeclarationPosition = property.DeclaringXml.Location.ToNative();
 
                 StringBuilder overrideDescription = new StringBuilder();
@@ -609,7 +611,7 @@ namespace MSBuildProjectTools.LanguageServer.ContentProviders
             StringBuilder imports = new StringBuilder("Imports:");
             imports.AppendLine();
             foreach (string projectFile in sdkImport.ImportedProjectFiles)
-                imports.AppendLine($"* [{Path.GetFileName(projectFile)}]({VSCodeDocumentUri.FromFileSystemPath(projectFile)})");
+                imports.AppendLine($"* `{projectFile}`");
 
             return new MarkedStringContainer(
                 $"SDK Import: {sdkImport.Name}",
