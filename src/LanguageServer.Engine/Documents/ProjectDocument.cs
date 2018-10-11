@@ -335,9 +335,13 @@ namespace MSBuildProjectTools.LanguageServer.Documents
                 _configuredPackageSources.Clear();
                 _autoCompleteResources.Clear();
 
+                bool includeLocalSources = Workspace.Configuration.NuGet.IncludeLocalSources;
+                
                 _configuredPackageSources.AddRange(
                     NuGetHelper.GetWorkspacePackageSources(ProjectFile.Directory.FullName)
-                        .Where(packageSource => packageSource.IsHttp)
+                        .Where(
+                            packageSource => packageSource.IsHttp || (includeLocalSources && packageSource.TrySourceAsUri?.Scheme == Uri.UriSchemeFile)
+                        )
                 );
                 _autoCompleteResources.AddRange(
                     await NuGetHelper.GetAutoCompleteResources(_configuredPackageSources, cancellationToken)

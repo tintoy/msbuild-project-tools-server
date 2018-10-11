@@ -186,10 +186,16 @@ namespace MSBuildProjectTools.LanguageServer
         public bool DisablePreFetch { get; set; } = false;
 
         /// <summary>
-        ///     Exclude suggestions for pre-release packages and package versions?
+        ///     Include suggestions for pre-release packages and package versions?
         /// </summary>
         [JsonProperty("includePreRelease", DefaultValueHandling = DefaultValueHandling.IgnoreAndPopulate)]
         public bool IncludePreRelease { get; set; } = false;
+
+        /// <summary>
+        ///     Include suggestions for packages from local (file-based) package sources?
+        /// </summary>
+        [JsonProperty("includeLocalSources", DefaultValueHandling = DefaultValueHandling.IgnoreAndPopulate)]
+        public bool IncludeLocalSources { get; set; } = false;
 
         /// <summary>
         ///     Sort package versions in descending order (i.e. newest versions first)?
