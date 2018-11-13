@@ -1,5 +1,9 @@
 # Change Log
 
+## v0.2.45
+
+* Handle localised output from `dotnet --info` (tintoy/msbuild-project-tools-vscode#43).
+
 ## v0.2.43
 
 * Optionally provide suggestions for packages from local (file-based) package sources (tintoy/msbuild-project-tools-server#9).

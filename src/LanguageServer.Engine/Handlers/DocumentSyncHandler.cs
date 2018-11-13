@@ -71,22 +71,26 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
             new DocumentFilter
             {
                 Pattern = "**/*.*",
-                Language = "msbuild"
+                Language = "msbuild",
+                Scheme = "file"
             },
             new DocumentFilter
             {
                 Pattern = "**/*.*proj",
-                Language = "xml"
+                Language = "xml",
+                Scheme = "file"
             },
             new DocumentFilter
             {
                 Pattern = "**/*.props",
-                Language = "xml"
+                Language = "xml",
+                Scheme = "file"
             },
             new DocumentFilter
             {
                 Pattern = "**/*.targets",
-                Language = "xml"
+                Language = "xml",
+                Scheme = "file"
             }
         );
 

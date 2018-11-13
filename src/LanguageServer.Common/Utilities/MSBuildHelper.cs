@@ -68,7 +68,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
                 throw new ArgumentNullException(nameof(runtimeInfo));
 
             if (String.IsNullOrWhiteSpace(runtimeInfo.BaseDirectory))
-                throw new InvalidOperationException("Cannot determine base directory for .NET Core.");
+                throw new InvalidOperationException("Cannot determine base directory for .NET Core (check the output of 'dotnet --info').");
 
             Dictionary<string, string> globalProperties = CreateGlobalMSBuildProperties(runtimeInfo, solutionDirectory);
             EnsureMSBuildEnvironment(globalProperties);
