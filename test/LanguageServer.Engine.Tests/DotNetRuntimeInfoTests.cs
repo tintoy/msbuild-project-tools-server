@@ -16,10 +16,10 @@ namespace MSBuildProjectTools.LanguageServer.Tests
         ///     Verify that <see cref="DotNetRuntimeInfo"/> can parse the output of "dotnet --info".
         /// </summary>
         [Theory(DisplayName = "Parse 'dotnet --info' output ")]
-        [InlineData("English", "2.1.401", @"C:\Program Files\dotnet\sdk\2.1.401\", Examples.English_2_1_401)]
-        [InlineData("German", "2.1.403", @"C:\Program Files\dotnet\sdk\2.1.403\", Examples.German_2_1_403)]
-        [InlineData("Chinese", "2.1.403", @"C:\Program Files\dotnet\sdk\2.1.403\", Examples.Chinese_2_1_403)]
-        public void Parse(string language, string expectedVersion, string expectedBaseDirectory, string dotnetInfoOutput)
+        [InlineData("English", "2.1.401", @"C:\Program Files\dotnet\sdk\2.1.401\", "win10-x64", Examples.English_2_1_401)]
+        [InlineData("German", "2.1.403", @"C:\Program Files\dotnet\sdk\2.1.403\", "win10-x64", Examples.German_2_1_403)]
+        [InlineData("Chinese", "2.1.403", @"C:\Program Files\dotnet\sdk\2.1.403\", "win10-x64", Examples.Chinese_2_1_403)]
+        public void Parse(string language, string expectedVersion, string expectedBaseDirectory, string expectedRID, string dotnetInfoOutput)
         {
             DotNetRuntimeInfo parsedOutput;
 
@@ -31,6 +31,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests
             Assert.NotNull(parsedOutput);
             Assert.Equal(expectedVersion, parsedOutput.Version);
             Assert.Equal(expectedBaseDirectory, parsedOutput.BaseDirectory);
+            Assert.Equal(expectedRID, parsedOutput.RID);
         }
 
         /// <summary>
