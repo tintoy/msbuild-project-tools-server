@@ -17,6 +17,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests
         /// </summary>
         [Theory(DisplayName = "Parse 'dotnet --info' output ")]
         [InlineData("English", "2.1.401", @"C:\Program Files\dotnet\sdk\2.1.401\", Examples.English_2_1_401)]
+        [InlineData("German", "2.1.403", @"C:\Program Files\dotnet\sdk\2.1.403\", Examples.German_2_1_403)]
         [InlineData("Chinese", "2.1.403", @"C:\Program Files\dotnet\sdk\2.1.403\", Examples.Chinese_2_1_403)]
         public void Parse(string language, string expectedVersion, string expectedBaseDirectory, string dotnetInfoOutput)
         {
@@ -153,6 +154,26 @@ Host (useful for support):
 
 To install additional .NET Core runtimes or SDKs:
   https://aka.ms/dotnet-download
+            ";
+
+            /// <summary>
+            ///     .NET Core SDK v2.1.403 (German)
+            /// </summary>
+            public const string German_2_1_403 = @"
+.NET Core SDK (gemäß ""global.json""):
+ Version:   2.1.403
+ Commit:    04e15494b6
+
+Laufzeitumgebung:
+ OS Name:     Windows
+ OS Version:  10.0.17763
+ OS Platform: Windows
+ RID:         win10-x64
+ Base Path:   C:\Program Files\dotnet\sdk\2.1.403\
+
+Host (useful for support):
+  Version: 2.1.5
+  Commit:  290303f510
             ";
         }
     }
