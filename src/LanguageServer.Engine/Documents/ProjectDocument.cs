@@ -22,6 +22,7 @@ namespace MSBuildProjectTools.LanguageServer.Documents
 {
     using SemanticModel;
     using SemanticModel.MSBuildExpressions;
+    using Serilog.Events;
     using Utilities;
 
     /// <summary>
@@ -343,6 +344,31 @@ namespace MSBuildProjectTools.LanguageServer.Documents
                             packageSource => packageSource.IsHttp || (includeLocalSources && packageSource.TrySourceAsUri?.Scheme == Uri.UriSchemeFile)
                         )
                 );
+
+                Log.Information("{PackageSourceCount} package sources configured for project {ProjectFile}.",
+                    _configuredPackageSources.Count,
+                    VSCodeDocumentUri.GetFileSystemPath(DocumentUri)
+                );
+                foreach (PackageSource packageSource in _configuredPackageSources)
+                {
+                    if (packageSource.IsMachineWide)
+                    {
+                        Log.Information("  Globally-configured package source {PackageSourceName} (v{PackageSourceProtocolVersion}) => {PackageSourceUri}",
+                            packageSource.Name,
+                            packageSource.ProtocolVersion,
+                            packageSource.SourceUri
+                        );
+                    }
+                    else
+                    {
+                        Log.Information("  Locally-configured package source {PackageSourceName} (v{PackageSourceProtocolVersion}) => {PackageSourceUri}",
+                            packageSource.Name,
+                            packageSource.ProtocolVersion,
+                            packageSource.SourceUri
+                        );
+                    }
+                }
+
                 _autoCompleteResources.AddRange(
                     await NuGetHelper.GetAutoCompleteResources(_configuredPackageSources, cancellationToken)
                 );
