@@ -107,7 +107,7 @@ namespace MSBuildProjectTools.LanguageServer
             ILogger logger = loggerConfiguration.CreateLogger();
             Log.Logger = logger;
 
-            Log.Verbose("Logger initialised.");
+            logger.Verbose("Logger initialised.");
 
             return logger;
         }

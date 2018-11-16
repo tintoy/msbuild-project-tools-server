@@ -50,7 +50,7 @@ namespace MSBuildProjectTools.LanguageServer
         /// </param>
         public async void TerminateAfter(TimeSpan timeout)
         {
-            Log.Verbose("Language server process will be forcibly terminated in {Timeout} seconds.", timeout.TotalSeconds);
+            Log.Debug("Language server process will be forcibly terminated in {Timeout} seconds.", timeout.TotalSeconds);
 
             CancellationToken cancellationToken = _cancellation.Token;
             _cancellation.CancelAfter(timeout);
@@ -59,12 +59,13 @@ namespace MSBuildProjectTools.LanguageServer
             {
                 await Task.Delay(timeout, cancellationToken);
 
-                Log.Warning("Timed out after waiting {Timeout} seconds; the language server process will now be forcibly terminated within {TerminationDelay} second(s).",
+                Log.Debug("Timed out after waiting {Timeout} seconds; the language server process will now be forcibly terminated within {TerminationDelay} second(s).",
                     timeout.TotalSeconds,
                     TerminationDelay.TotalSeconds
                 );
 
                 // Last-ditch effort to flush pending log entries.
+                (Log as IDisposable)?.Dispose();
                 Serilog.Log.CloseAndFlush();
                 await Task.Delay(
                     TimeSpan.FromSeconds(1)

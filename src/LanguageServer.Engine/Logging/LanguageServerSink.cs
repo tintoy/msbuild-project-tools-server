@@ -67,6 +67,11 @@ namespace MSBuildProjectTools.LanguageServer.Logging
         }
 
         /// <summary>
+        ///     Can log entries be sent to the language server?
+        /// </summary>
+        bool CanLog => _languageServer.Server != null && !_hasServerShutDown;
+
+        /// <summary>
         ///     Emit a log event.
         /// </summary>
         /// <param name="logEvent">
@@ -74,7 +79,7 @@ namespace MSBuildProjectTools.LanguageServer.Logging
         /// </param>
         public void Emit(LogEvent logEvent)
         {
-            if (_hasServerShutDown)
+            if (!CanLog)
                 return;
 
             if (logEvent.Level < _levelSwitch.MinimumLevel)

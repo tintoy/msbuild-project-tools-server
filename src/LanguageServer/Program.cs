@@ -47,6 +47,10 @@ namespace MSBuildProjectTools.LanguageServer
             {
                 Console.WriteLine(unexpectedError);
             }
+            finally
+            {
+                Log.CloseAndFlush();
+            }
         }
 
         /// <summary>
@@ -61,16 +65,26 @@ namespace MSBuildProjectTools.LanguageServer
             using (Terminator terminator = new Terminator())
             using (IContainer container = BuildContainer())
             {
+                // Force initialisation of logging.
+                ILogger log = container.Resolve<ILogger>().ForContext(typeof(Program));
+
+                log.Debug("Creating language server...");
+
                 var server = container.Resolve<LSP.Server.LanguageServer>();
 
+                log.Debug("Waiting for client to initialise language server...");
+
                 await server.Initialize();
+
+                log.Debug("Language server initialised by client.");
+
                 await server.WasShutDown;
 
-                Log.Information("Server is shutting down...");
+                log.Debug("Language server is shutting down...");
 
                 await server.WaitForExit;
 
-                Log.Information("Server has shut down. Preparing to terminate server process...");
+                log.Debug("Server has shut down. Preparing to terminate server process...");
 
                 // AF: Temporary fix for tintoy/msbuild-project-tools-vscode#36
                 //
@@ -79,10 +93,8 @@ namespace MSBuildProjectTools.LanguageServer
                     TimeSpan.FromSeconds(3)
                 );
 
-                // TODO: Terminate immediately if the client process has terminated unexpectedly.
+                log.Debug("Server process is ready to terminate.");
             }
-
-            Log.Information("Server process is ready to terminate.");
         }
 
         /// <summary>
