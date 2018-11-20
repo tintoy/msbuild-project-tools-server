@@ -2,6 +2,8 @@ version: 0.2.49.{build}
 image: Visual Studio 2017
 build_script:
 - ps: >-
+    Remove-Item .\global.json
+
     $dotnet = Get-Command 'dotnet'
 
     & $dotnet restore /p:Version="$env:APPVEYOR_BUILD_VERSION"
