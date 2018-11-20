@@ -1,6 +1,8 @@
+using Serilog;
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Text;
 
 namespace MSBuildProjectTools.LanguageServer.Utilities
 {
@@ -37,19 +39,83 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         {
             DotNetRuntimeInfo runtimeInfo = new DotNetRuntimeInfo();
 
-            Process dotnetInfoProcess = Process.Start(new ProcessStartInfo
+            Process dotnetInfoProcess = new Process
             {
-                FileName = "dotnet",
-                WorkingDirectory = baseDirectory,
-                Arguments = "--info",
-                UseShellExecute = false,
-                RedirectStandardOutput = true
-            });
+                StartInfo = new ProcessStartInfo
+                {
+                    FileName = "dotnet",
+                    WorkingDirectory = baseDirectory,
+                    Arguments = "--info",
+                    UseShellExecute = false,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true
+                },
+                EnableRaisingEvents = true
+            };
             using (dotnetInfoProcess)
             {
-                dotnetInfoProcess.WaitForExit();
+                // For logging purposes.
+                string command = $"{dotnetInfoProcess.StartInfo.FileName} {dotnetInfoProcess.StartInfo.Arguments}";
 
-                return ParseDotNetInfoOutput(dotnetInfoProcess.StandardOutput);
+                // Buffer the output locally (otherwise, the process may hang if it fills up its STDOUT / STDERR buffer).
+                StringBuilder localOutputBuffer = new StringBuilder();
+                dotnetInfoProcess.OutputDataReceived += (sender, args) =>
+                {
+                    lock (localOutputBuffer)
+                    {
+                        localOutputBuffer.AppendLine(args.Data);
+                    }
+                };
+                dotnetInfoProcess.ErrorDataReceived += (sender, args) =>
+                {
+                    lock (localOutputBuffer)
+                    {
+                        localOutputBuffer.AppendLine(args.Data);
+                    }
+                };
+
+                Log.Debug("Launching {Command}...", command);
+
+                dotnetInfoProcess.Start();
+
+                Log.Debug("Launched {Command}. Waiting for process {TargetProcessId} to terminate...", command, dotnetInfoProcess.Id);
+
+                // Asynchronously start reading from STDOUT / STDERR.
+                dotnetInfoProcess.BeginOutputReadLine();
+                dotnetInfoProcess.BeginErrorReadLine();
+
+                try
+                {
+                    dotnetInfoProcess.WaitForExit(milliseconds: 5000);
+                }
+                catch (TimeoutException exitTimedOut)
+                {
+                    Log.Error(exitTimedOut, "Timed out after waiting 5 seconds for {Command} to exit.", command);
+
+                    throw new TimeoutException($"Timed out after waiting 5 seconds for '{command}' to exit.", exitTimedOut);
+                }
+
+                Log.Debug("{Command} terminated with exit code {ExitCode}.", command, dotnetInfoProcess.ExitCode);
+
+                string processOutput;
+                lock (localOutputBuffer)
+                {
+                    processOutput = localOutputBuffer.ToString();
+                }
+
+                // Only log output if there's a problem.
+                if (dotnetInfoProcess.ExitCode != 0)
+                {
+                    if (!String.IsNullOrWhiteSpace(processOutput))
+                    Log.Debug("{Command} returned the following text on STDOUT / STDERR.\n\n{DotNetInfoOutput:l}", command, processOutput);
+                else
+                    Log.Debug("{Command} returned no output on STDOUT / STDERR.");
+                }
+
+                using (StringReader bufferReader = new StringReader(processOutput))
+                {
+                    return ParseDotNetInfoOutput(bufferReader);
+                }
             }
         }
 
