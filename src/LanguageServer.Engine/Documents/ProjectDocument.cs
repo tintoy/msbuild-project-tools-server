@@ -104,7 +104,7 @@ namespace MSBuildProjectTools.LanguageServer.Documents
             else
                 Kind = ProjectDocumentKind.Other;
 
-            Log = logger.ForContext("ProjectDocument", ProjectFile.FullName);
+            Log = logger.ForContext(GetType()).ForContext("ProjectDocument", ProjectFile.FullName);
         }
 
         /// <summary>
@@ -404,7 +404,18 @@ namespace MSBuildProjectTools.LanguageServer.Documents
             if (!HasXml)
                 throw new InvalidOperationException($"XML for project '{ProjectFile.FullName}' is not loaded.");
 
+            Log.Debug("Requesting suggestions for NuGet package Ids matching prefix {PackageIdPrefix} (include pre-release: {IncludePreRelease})...",
+                packageIdPrefix,
+                includePrerelease
+            );
+
             SortedSet<string> packageIds = await _autoCompleteResources.SuggestPackageIds(packageIdPrefix, includePrerelease, cancellationToken: cancellationToken);
+
+            Log.Debug("Found {PackageIdSuggestionCount} suggestions for NuGet package Ids matching prefix {PackageIdPrefix} (include pre-release: {IncludePreRelease}).",
+                packageIds.Count,
+                packageIdPrefix,
+                includePrerelease
+            );
             
             return packageIds;
         }
@@ -430,7 +441,18 @@ namespace MSBuildProjectTools.LanguageServer.Documents
             if (!HasXml)
                 throw new InvalidOperationException($"XML for project '{ProjectFile.FullName}' is not loaded.");
 
+            Log.Debug("Requesting suggestions for NuGet package versions matching Id {PackageId} (include pre-release: {IncludePreRelease})...",
+                packageId,
+                includePrerelease
+            );
+
             SortedSet<NuGetVersion> packageVersions = await _autoCompleteResources.SuggestPackageVersions(packageId, includePrerelease, cancellationToken: cancellationToken);
+
+            Log.Debug("Found {PackageVersionSuggestionCount} suggestions for NuGet package versions matching Id {PackageId} (include pre-release: {IncludePreRelease}).",
+                packageVersions.Count,
+                packageId,
+                includePrerelease
+            );
 
             return packageVersions;
         }
@@ -444,7 +466,7 @@ namespace MSBuildProjectTools.LanguageServer.Documents
             {
                 foreach (Exception exception in task.Exception.Flatten().InnerExceptions)
                 {
-                    Log.Verbose(exception,
+                    Log.Debug(exception,
                         "Error initialising NuGet client. {ErrorMessage}",
                         exception.Message
                     );
