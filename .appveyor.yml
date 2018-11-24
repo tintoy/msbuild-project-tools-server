@@ -6,6 +6,8 @@ build_script:
 
     $dotnet = Get-Command 'dotnet'
 
+    & $dotnet --info
+
     & $dotnet restore /p:Version="$env:APPVEYOR_BUILD_VERSION"
 
     & $dotnet build /p:Version="$env:APPVEYOR_BUILD_VERSION"
