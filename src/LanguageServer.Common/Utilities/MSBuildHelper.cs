@@ -1,6 +1,7 @@
 using Microsoft.Build.Construction;
 using Microsoft.Build.Evaluation;
 using Microsoft.Build.Exceptions;
+using NuGet.Versioning;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -82,10 +83,16 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
 
             ProjectCollection projectCollection = new ProjectCollection(globalProperties) { IsBuildEnabled = false };
 
+            SemanticVersion netcoreVersion;
+            if (!SemanticVersion.TryParse(runtimeInfo.Version, out netcoreVersion))
+                throw new FormatException($"Cannot parse .NET Core version '{runtimeInfo.Version}' (does not appear to be a valid semantic version).");
+
+            // For .NET Core 3.0 and newer, toolset version is simply "Current" instead of "15.0" (tintoy/msbuild-project-tools-vscode#46).
+            string toolsVersion = netcoreVersion.Major < 3 ? "15.0" : "Current";
+
             // Override toolset paths (for some reason these point to the main directory where the dotnet executable lives).
-            Toolset toolset = projectCollection.GetToolset("15.0");
-            toolset = new Toolset(
-                toolsVersion: "15.0",
+            Toolset toolset = projectCollection.GetToolset(toolsVersion);
+            toolset = new Toolset(toolsVersion,
                 toolsPath: runtimeInfo.BaseDirectory,
                 projectCollection: projectCollection,
                 msbuildOverrideTasksPath: ""
