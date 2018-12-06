@@ -97,7 +97,10 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
                 projectCollection: projectCollection,
                 msbuildOverrideTasksPath: ""
             );
+            // using exact version of toolset
+            projectCollection.RemoveAllToolsets();
             projectCollection.AddToolset(toolset);
+            projectCollection.DefaultToolsVersion = toolsVersion;
 
             return projectCollection;
         }
