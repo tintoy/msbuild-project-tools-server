@@ -50,7 +50,9 @@ namespace MSBuildProjectTools.LanguageServer.Tests
         public async Task Scan_FrameworkTaskAssembly_Success(string fileName)
         {
             string taskAssemblyFile = GetFrameworkTaskAssemblyFile(fileName);
-            Assert.True(File.Exists(taskAssemblyFile), "Task assembly exists");
+            Assert.True(File.Exists(taskAssemblyFile),
+                $"Task assembly '{taskAssemblyFile}' exists"
+            );
 
             MSBuildTaskAssemblyMetadata metadata = await MSBuildTaskScanner.GetAssemblyTaskMetadata(taskAssemblyFile);
             Assert.NotNull(metadata);
