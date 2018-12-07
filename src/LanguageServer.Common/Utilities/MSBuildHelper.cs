@@ -97,8 +97,12 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
                 projectCollection: projectCollection,
                 msbuildOverrideTasksPath: ""
             );
-            // using exact version of toolset
+            
+            // Other toolset versions won't be supported by the .NET Core SDK
             projectCollection.RemoveAllToolsets();
+
+            // TODO: Add configuration setting that enables user to configure custom toolsets.
+
             projectCollection.AddToolset(toolset);
             projectCollection.DefaultToolsVersion = toolsVersion;
 
