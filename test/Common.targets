@@ -1,0 +1,8 @@
+<Project>
+    <!-- Remove Compile items erroneously added by Microsoft.Build.Runtime package -->
+    <Target Name="RemoveMSBuildRuntimeCompileItems" BeforeTargets="CoreCompile">
+	    <ItemGroup>
+	      <Compile Remove="@(Compile)" Condition="'%(Compile.NuGetPackageId)' == 'Microsoft.Build.Runtime'" />
+	    </ItemGroup>
+	  </Target>
+</Project>
