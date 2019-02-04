@@ -135,7 +135,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
                 SortText = Priority + "<PropertyGroup>",
                 TextEdit = new TextEdit
                 {
-                    NewText = "<PropertyGroup>\n    $0\n</PropertyGroup>",
+                    NewText = "<PropertyGroup>\n\t$0\n</PropertyGroup>",
                     Range = completionRange
                 },
                 InsertTextFormat = InsertTextFormat.Snippet
@@ -152,7 +152,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
                 SortText = Priority + "<ItemGroup>",
                 TextEdit = new TextEdit
                 {
-                    NewText = "<ItemGroup>\n    $0\n</ItemGroup>",
+                    NewText = "<ItemGroup>\n\t$0\n</ItemGroup>",
                     Range = completionRange
                 },
                 InsertTextFormat = InsertTextFormat.Snippet
@@ -169,7 +169,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
                 SortText = Priority + "<Target>",
                 TextEdit = new TextEdit
                 {
-                    NewText = "<Target Name=\"${1:TargetName}\">\n    $0\n</Target>",
+                    NewText = "<Target Name=\"${1:TargetName}\">\n\t$0\n</Target>",
                     Range = completionRange
                 },
                 InsertTextFormat = InsertTextFormat.Snippet
