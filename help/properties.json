@@ -701,6 +701,9 @@
     "UseIncrementalAppxRegistration": {
         "description": "Flag indicating whether to enable incremental registration of the app layout."
     },
+    "UserSecretsId": {
+        "description": "A unique identifier for the application used to isolate user secrets."
+    },
     "Version": {
         "description": "Numeric value of the version in the format major.minor.patch (e.g. 2.4.0)"
     },
