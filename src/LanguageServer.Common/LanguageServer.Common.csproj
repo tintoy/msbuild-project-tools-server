@@ -9,7 +9,7 @@
   <Import Project="../Common.props" />
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Build" Version="15.5.180" />
+    <PackageReference Include="Microsoft.Build" Version="15.9.20" />
     <PackageReference Include="Microsoft.Language.Xml" Version="1.1.14" />
     <PackageReference Include="NuGet.Client" Version="4.0.0" />
     <PackageReference Include="NuGet.Configuration" Version="4.6.2" />
