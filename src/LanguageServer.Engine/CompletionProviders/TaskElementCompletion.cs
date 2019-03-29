@@ -182,7 +182,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
             if (taskMetadata.Parameters.Any(parameter => parameter.IsOutput))
             {
                 // Create Outputs sub-element if there are any output parameters.
-                restOfElement = $">\n    ${requiredParameters.Length + 1}\n</{taskName}>$0";
+                restOfElement = $">\n\t${requiredParameters.Length + 1}\n</{taskName}>$0";
             }
             
             return new CompletionItem
