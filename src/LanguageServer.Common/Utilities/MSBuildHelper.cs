@@ -1,7 +1,10 @@
 using Microsoft.Build.Construction;
 using Microsoft.Build.Evaluation;
 using Microsoft.Build.Exceptions;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using NuGet.Versioning;
+using Serilog;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -253,6 +256,94 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         }
 
         /// <summary>
+        ///     Get the project assets file (usually "project.assets.json").
+        /// </summary>
+        /// <param name="project">
+        ///     The MSBuild <see cref="Project"/>.
+        /// </param>
+        /// <returns>
+        ///     A <see cref="FileInfo"/> representing the project assets file, or <c>null</c> if the project does not have a <see cref="WellKnownPropertyNames.ProjectAssetsFile"/> property.
+        /// </returns>
+        public static FileInfo GetProjectAssetsFile(this Project project)
+        {
+            if (project == null)
+                throw new ArgumentNullException(nameof(project));
+
+            string projectAssetsFile = project.GetPropertyValue(WellKnownPropertyNames.ProjectAssetsFile);
+            if (String.IsNullOrWhiteSpace(projectAssetsFile))
+                return null;
+
+            if (!Path.IsPathRooted(projectAssetsFile))
+                projectAssetsFile = Path.Combine(project.DirectoryPath, projectAssetsFile);
+
+            return new FileInfo(projectAssetsFile);
+        }
+
+        /// <summary>
+        ///     Get the actual versions of all NuGet packages referenced by by the specified project (via "project.assets.json").
+        /// </summary>
+        /// <param name="project">
+        ///     The MSBuild <see cref="Project"/>.
+        /// </param>
+        /// <returns>
+        ///     A dictionary of package semantic versions (keyed by package Id), or <c>null</c> if the project does not have a <see cref="WellKnownPropertyNames.ProjectAssetsFile"/> property (or the project assets file does not exist or has an invalid format).
+        /// </returns>
+        public static Dictionary<string, SemanticVersion> GetReferencedPackageVersions(this Project project)
+        {
+            if (project == null)
+                throw new ArgumentNullException(nameof(project));
+
+            FileInfo projectAssetsFile = project.GetProjectAssetsFile();
+            if (projectAssetsFile == null)
+                return null;
+
+            if (!projectAssetsFile.Exists)
+                return null;
+
+            JObject projectAssetsJson;
+            try
+            {
+                using (TextReader reader = projectAssetsFile.OpenText())
+                using (JsonReader jsonReader = new JsonTextReader(reader))
+                {
+                    projectAssetsJson = JObject.Load(jsonReader);
+                }
+            }
+            catch (Exception cannotLoadProjectAssetsJson)
+            {
+                Log.Error(cannotLoadProjectAssetsJson, "Unable to load project assets file {ProjectAssetsFile}.", projectAssetsFile);
+
+                return null;
+            }
+
+            JObject libraries = projectAssetsJson.Value<JObject>("libraries");
+            if (libraries == null)
+                return null;
+            
+            var referencedPackageVersions = new Dictionary<string, SemanticVersion>();
+
+            foreach (JProperty library in libraries.Properties())
+            {
+                // Property names should be in the format "libName/semVer".
+                string[] nameComponents = library.Name.Split(
+                    separator: new[] {'/'},
+                    count: 2
+                );
+                if (nameComponents.Length != 2)
+                    continue; // Invalid format.
+
+                string name = nameComponents[0];
+                SemanticVersion version;
+                if (!SemanticVersion.TryParse(nameComponents[1], out version))
+                    continue; // Not a valid semantic version.
+
+                referencedPackageVersions[name] = version;
+            }
+
+            return referencedPackageVersions;
+        }
+
+        /// <summary>
         ///     The names of well-known MSBuild properties.
         /// </summary>
         public static class WellKnownPropertyNames
@@ -301,6 +392,11 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
             ///     The "RoslynTargetsPath" property.
             /// </summary>
             public static readonly string RoslynTargetsPath = "RoslynTargetsPath";
+
+            /// <summary>
+            ///     The "ProjectAssetsFile" property.
+            /// </summary>
+            public static readonly string ProjectAssetsFile = "ProjectAssetsFile";
         }
     }
 }
