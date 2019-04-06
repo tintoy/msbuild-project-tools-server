@@ -249,7 +249,7 @@ namespace MSBuildProjectTools.LanguageServer.Documents
             {
                 using (await projectDocument.Lock.WriterLockAsync())
                 {
-                    projectDocument.Update(documentText);
+                    await projectDocument.Update(documentText);
                 }
             }
             catch (Exception updateError)

@@ -7,8 +7,10 @@ using NuGet.Versioning;
 using Serilog;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Collections.Immutable;
+using System.IO;
+using System.Threading.Tasks;
+using System.Threading;
 
 namespace MSBuildProjectTools.LanguageServer.Utilities
 {
@@ -280,15 +282,18 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         }
 
         /// <summary>
-        ///     Get the actual versions of all NuGet packages referenced by by the specified project (via "project.assets.json").
+        ///     Asynchronously scan the project's assets file ("project.asset.json") to determine the actual versions of all NuGet packages referenced by the project.
         /// </summary>
         /// <param name="project">
         ///     The MSBuild <see cref="Project"/>.
         /// </param>
+        /// <param name="cancellationToken">
+        ///     An optional <see cref="CancellationToken"/> that can be used to cancel the asynchronous operation.
+        /// </param>
         /// <returns>
         ///     A dictionary of package semantic versions (keyed by package Id), or <c>null</c> if the project does not have a <see cref="WellKnownPropertyNames.ProjectAssetsFile"/> property (or the project assets file does not exist or has an invalid format).
         /// </returns>
-        public static Dictionary<string, SemanticVersion> GetReferencedPackageVersions(this Project project)
+        public static async Task<Dictionary<string, SemanticVersion>> GetReferencedPackageVersions(this Project project, CancellationToken cancellationToken = default)
         {
             if (project == null)
                 throw new ArgumentNullException(nameof(project));
@@ -306,12 +311,12 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
                 using (TextReader reader = projectAssetsFile.OpenText())
                 using (JsonReader jsonReader = new JsonTextReader(reader))
                 {
-                    projectAssetsJson = JObject.Load(jsonReader);
+                    projectAssetsJson = await JObject.LoadAsync(jsonReader, cancellationToken);
                 }
             }
             catch (Exception cannotLoadProjectAssetsJson)
             {
-                Log.Error(cannotLoadProjectAssetsJson, "Unable to load project assets file {ProjectAssetsFile}.", projectAssetsFile);
+                Log.Error(cannotLoadProjectAssetsJson, "Unable to load project assets file {ProjectAssetsFile}.", projectAssetsFile.FullName);
 
                 return null;
             }

@@ -40,6 +40,11 @@ namespace MSBuildProjectTools.LanguageServer.Documents
         ///     The project's configured package sources.
         /// </summary>
         readonly List<PackageSource> _configuredPackageSources = new List<PackageSource>();
+
+        /// <summary>
+        ///     The project's referenced package versions, keyed by package Id.
+        /// </summary>
+        readonly Dictionary<string, SemanticVersion> _referencedPackageVersions = new Dictionary<string, SemanticVersion>();
         
         /// <summary>
         ///     NuGet auto-complete APIs for configured package sources.
@@ -230,6 +235,11 @@ namespace MSBuildProjectTools.LanguageServer.Documents
         public IReadOnlyList<PackageSource> ConfiguredPackageSources => _configuredPackageSources;
 
         /// <summary>
+        ///     The project's referenced package versions, keyed by package Id.
+        /// </summary>
+        public IReadOnlyDictionary<string, SemanticVersion> ReferencedPackageVersions => _referencedPackageVersions;
+
+        /// <summary>
         ///     The document's logger.
         /// </summary>
         protected ILogger Log { get; set; }
@@ -291,6 +301,8 @@ namespace MSBuildProjectTools.LanguageServer.Documents
                 MSBuildLocator = null;
 
             IsMSBuildProjectCached = !loaded;
+
+            await UpdatePackageReferences(cancellationToken);
         }
 
         /// <summary>
@@ -299,7 +311,13 @@ namespace MSBuildProjectTools.LanguageServer.Documents
         /// <param name="xml">
         ///     The project XML.
         /// </param>
-        public virtual void Update(string xml)
+        /// <param name="cancellationToken">
+        ///     An optional <see cref="CancellationToken"/> that can be used to cancel the operation.
+        /// </param>
+        /// <returns>
+        ///     A task representing the update operation.
+        /// </returns>
+        public virtual async Task Update(string xml, CancellationToken cancellationToken = default)
         {
             if (xml == null)
                 throw new ArgumentNullException(nameof(xml));
@@ -318,6 +336,8 @@ namespace MSBuildProjectTools.LanguageServer.Documents
                 MSBuildLocator = null;
 
             IsMSBuildProjectCached = !loaded;
+
+            await UpdatePackageReferences(cancellationToken);
         }
 
         /// <summary>
@@ -378,6 +398,41 @@ namespace MSBuildProjectTools.LanguageServer.Documents
             catch (Exception packageSourceLoadError)
             {
                 Log.Error(packageSourceLoadError, "Error configuring NuGet package sources for MSBuild project '{ProjectFileName}'.", ProjectFile.FullName);
+
+                return false;
+            }
+        }
+
+        /// <summary>
+        ///     Re-scan referenced packages for the current project.
+        /// </summary>
+        /// <param name="cancellationToken">
+        ///     An optional <see cref="CancellationToken"/> that can be used to cancel the operation.
+        /// </param>
+        /// <returns>
+        ///     <c>true</c>, if the package references were successfully scanned and updated; otherwise, <c>false</c>.
+        /// </returns>
+        public virtual async Task<bool> UpdatePackageReferences(CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                _referencedPackageVersions.Clear();
+
+                if (!HasMSBuildProject)
+                {
+                    Log.Debug("Not scanning package references (although existing references have been cleared) for MSBuild project {ProjectFileName} because the project is not currently loaded.", ProjectFile.FullName);
+
+                    return false;
+                }
+
+                Dictionary<string, SemanticVersion> referencedPackageVersions = await MSBuildProject.GetReferencedPackageVersions(cancellationToken);
+                _referencedPackageVersions.AddRange(referencedPackageVersions);
+
+                return true;
+            }
+            catch (Exception packageReferenceUpdateError)
+            {
+                Log.Error(packageReferenceUpdateError, "Error scanning NuGet package references for MSBuild project '{ProjectFileName}'.", ProjectFile.FullName);
 
                 return false;
             }

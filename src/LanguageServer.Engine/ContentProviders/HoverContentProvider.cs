@@ -1,6 +1,7 @@
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using Microsoft.Build.Evaluation;
 using Microsoft.Language.Xml;
+using NuGet.Versioning;
+using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -21,6 +22,9 @@ namespace MSBuildProjectTools.LanguageServer.ContentProviders
         /// <summary>
         ///     The project document for which hover content is provided.
         /// </summary>
+        /// <remarks>
+        ///     Because async-friendly locks are not re-entrant, the provider assumes that the project document's state lock is already held by any callers of its public methods.
+        /// </remarks>
         readonly ProjectDocument _projectDocument;
 
         /// <summary>
@@ -29,6 +33,9 @@ namespace MSBuildProjectTools.LanguageServer.ContentProviders
         /// <param name="projectDocument">
         ///     The project document for which hover content is provided.
         /// </param>
+        /// <remarks>
+        ///     Because async-friendly locks are not re-entrant, the provider assumes that the project document's state lock is already held by any callers of its public methods.
+        /// </remarks>
         public HoverContentProvider(ProjectDocument projectDocument)
         {
             if (projectDocument == null)
@@ -170,13 +177,24 @@ namespace MSBuildProjectTools.LanguageServer.ContentProviders
 
             if (itemGroup.Name == "PackageReference")
             {
-                string packageVersion = itemGroup.GetFirstMetadataValue("Version");
-                
+                string packageId = itemGroup.FirstInclude;
+                string packageRequestedVersion = itemGroup.GetFirstMetadataValue("Version");
+                SemanticVersion packageActualVersion;
+                if (!_projectDocument.ReferencedPackageVersions.TryGetValue(packageId, out packageActualVersion))
+                {
+                    return new MarkedStringContainer(
+                        $"NuGet Package: {itemGroup.FirstInclude}",
+                        $"Requested Version: {packageRequestedVersion}`",
+                        "State: Not restored"
+                    );
+                }
+
                 // TODO: Verify package is from NuGet (later, we can also recognise MyGet)
 
                 return new MarkedStringContainer(
-                    $"NuGet Package: [{itemGroup.FirstInclude}](https://nuget.org/packages/{itemGroup.FirstInclude}/{packageVersion})",
-                    $"Version: {packageVersion}"
+                    $"NuGet Package: [{itemGroup.FirstInclude}](https://nuget.org/packages/{itemGroup.FirstInclude}/{packageActualVersion})",
+                    $"Requested Version: `{packageRequestedVersion}`\nActual Version: `{packageActualVersion}`",
+                    "State: Restored"
                 );
             }
 
