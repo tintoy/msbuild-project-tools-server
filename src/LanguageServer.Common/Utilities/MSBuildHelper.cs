@@ -329,7 +329,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
                 return null;
             }
             
-            var referencedPackageVersions = new Dictionary<string, SemanticVersion>();
+            var referencedPackageVersions = new Dictionary<string, SemanticVersion>(StringComparer.OrdinalIgnoreCase);
 
             foreach (JProperty library in libraries.Properties())
             {
