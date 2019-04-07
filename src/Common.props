@@ -1,6 +1,7 @@
 <Project>
     <PropertyGroup>
         <AssetTargetFallback>dnxcore50</AssetTargetFallback>
+        <LangVersion>latest</LangVersion>
         
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
         <NoWarn>IDE0016</NoWarn>
