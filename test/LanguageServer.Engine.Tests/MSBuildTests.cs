@@ -1,12 +1,15 @@
 using Microsoft.Build.Construction;
 using Microsoft.Build.Evaluation;
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace MSBuildProjectTools.LanguageServer.Tests
 {
+    using NuGet.Versioning;
     using SemanticModel;
     using Utilities;
 
@@ -75,6 +78,35 @@ namespace MSBuildProjectTools.LanguageServer.Tests
                         project.ExpandString(usingTaskElement.TaskFactory)
                     );
                 }
+            }
+        }
+
+        /// <summary>
+        ///     Get all referenced package versions from the current test project.
+        /// </summary>
+        [InlineData("Autofac", "4.6.1")]
+        [Theory(DisplayName = "Get referenced package version from the current test project ")]
+        public async Task GetReferencedPackageVersion(string packageId, string expectedPackageVersion)
+        {
+            var projectFile = new FileInfo(
+                Path.Combine(TestDirectory.FullName, @"..\..\..\LanguageServer.Engine.Tests.csproj")
+            );
+            Assert.True(projectFile.Exists,
+                $"Cannot find project file {projectFile.FullName}"
+            );
+
+            Project project = LoadTestProject(projectFile.FullName);
+            using (project.ProjectCollection)
+            {
+                Dictionary<string, SemanticVersion> referencedPackageVersions = await project.GetReferencedPackageVersions();
+                Assert.NotNull(referencedPackageVersions);
+                Assert.NotEmpty(referencedPackageVersions);
+
+                SemanticVersion referencedPackageVersion;
+                Assert.True(referencedPackageVersions.TryGetValue(packageId, out referencedPackageVersion),
+                    $"Cannot find referenced version for package '{packageId}'."
+                );
+                Assert.Equal(expectedPackageVersion, referencedPackageVersion.ToString());
             }
         }
 

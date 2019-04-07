@@ -323,7 +323,11 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
 
             JObject libraries = projectAssetsJson.Value<JObject>("libraries");
             if (libraries == null)
+            {
+                Log.Warning("Project assets file {ProjectAssetsFile} has invalid format (missing 'libraries' property on root object).", projectAssetsFile.FullName);
+
                 return null;
+            }
             
             var referencedPackageVersions = new Dictionary<string, SemanticVersion>();
 
