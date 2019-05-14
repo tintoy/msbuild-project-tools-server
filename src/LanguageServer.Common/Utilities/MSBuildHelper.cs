@@ -38,6 +38,11 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
             );
 
         /// <summary>
+        ///     The last .NET Core SDK version that had a "15.0" sub-folder for "Microsoft.Common.props" (later versions have a "Current" sub-folder instead).
+        /// </summary>
+        static readonly SemanticVersion NetCoreLastSdkVersionFor150Folder = new SemanticVersion(major: 2, minor: 1, patch: 510);
+
+        /// <summary>
         ///     Create an MSBuild project collection.
         /// </summary>
         /// <param name="solutionDirectory">
@@ -92,8 +97,8 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
             if (!SemanticVersion.TryParse(runtimeInfo.Version, out netcoreVersion))
                 throw new FormatException($"Cannot parse .NET Core version '{runtimeInfo.Version}' (does not appear to be a valid semantic version).");
 
-            // For .NET Core 3.0 and newer, toolset version is simply "Current" instead of "15.0" (tintoy/msbuild-project-tools-vscode#46).
-            string toolsVersion = netcoreVersion.Major < 3 ? "15.0" : "Current";
+            // Newer versions of the .NET Core SDK use the toolset version "Current" instead of "15.0" (tintoy/msbuild-project-tools-vscode#46).
+            string toolsVersion = netcoreVersion <= NetCoreLastSdkVersionFor150Folder ? "15.0" : "Current";
 
             // Override toolset paths (for some reason these point to the main directory where the dotnet executable lives).
             Toolset toolset = projectCollection.GetToolset(toolsVersion);
