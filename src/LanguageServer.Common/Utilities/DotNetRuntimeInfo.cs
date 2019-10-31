@@ -32,11 +32,17 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         /// <param name="baseDirectory">
         ///     An optional base directory where dotnet.exe should be run (this may affect the version it reports due to global.json).
         /// </param>
+        /// <param name="logger">
+        ///     An optional <see cref="ILogger"/> to use for diagnostic purposes (if not specified, the static <see cref="Log.Logger"/> will be used).
+        /// </param>
         /// <returns>
         ///     A <see cref="DotNetRuntimeInfo"/> containing the runtime information.
         /// </returns>
-        public static DotNetRuntimeInfo GetCurrent(string baseDirectory = null)
+        public static DotNetRuntimeInfo GetCurrent(string baseDirectory = null, ILogger logger = null)
         {
+            if (logger == null)
+                logger = Log.Logger;
+
             DotNetRuntimeInfo runtimeInfo = new DotNetRuntimeInfo();
 
             Process dotnetInfoProcess = new Process
@@ -74,11 +80,11 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
                     }
                 };
 
-                Log.Debug("Launching {Command}...", command);
+                logger.Debug("Launching {Command}...", command);
 
                 dotnetInfoProcess.Start();
 
-                Log.Debug("Launched {Command}. Waiting for process {TargetProcessId} to terminate...", command, dotnetInfoProcess.Id);
+                logger.Debug("Launched {Command}. Waiting for process {TargetProcessId} to terminate...", command, dotnetInfoProcess.Id);
 
                 // Asynchronously start reading from STDOUT / STDERR.
                 dotnetInfoProcess.BeginOutputReadLine();
@@ -90,12 +96,12 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
                 }
                 catch (TimeoutException exitTimedOut)
                 {
-                    Log.Error(exitTimedOut, "Timed out after waiting 5 seconds for {Command} to exit.", command);
+                    logger.Error(exitTimedOut, "Timed out after waiting 5 seconds for {Command} to exit.", command);
 
                     throw new TimeoutException($"Timed out after waiting 5 seconds for '{command}' to exit.", exitTimedOut);
                 }
 
-                Log.Debug("{Command} terminated with exit code {ExitCode}.", command, dotnetInfoProcess.ExitCode);
+                logger.Debug("{Command} terminated with exit code {ExitCode}.", command, dotnetInfoProcess.ExitCode);
 
                 string processOutput;
                 lock (localOutputBuffer)
@@ -103,12 +109,12 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
                     processOutput = localOutputBuffer.ToString();
                 }
 
-                if ( Log.IsEnabled(Serilog.Events.LogEventLevel.Verbose) )
+                if ( dotnetInfoProcess.ExitCode != 0 || logger.IsEnabled(Serilog.Events.LogEventLevel.Verbose) )
                 {
                     if (!String.IsNullOrWhiteSpace(processOutput))
-                        Log.Debug("{Command} returned the following text on STDOUT / STDERR.\n\n{DotNetInfoOutput:l}", command, processOutput);
+                        logger.Debug("{Command} returned the following text on STDOUT / STDERR.\n\n{DotNetInfoOutput:l}", command, processOutput);
                     else
-                        Log.Debug("{Command} returned no output on STDOUT / STDERR.");
+                        logger.Debug("{Command} returned no output on STDOUT / STDERR.");
                 }
 
                 using (StringReader bufferReader = new StringReader(processOutput))

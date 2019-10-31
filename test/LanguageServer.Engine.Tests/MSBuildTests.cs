@@ -35,6 +35,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests
         public MSBuildTests(ITestOutputHelper testOutput)
             : base(testOutput)
         {
+            LogLevelSwitch.MinimumLevel = Serilog.Events.LogEventLevel.Verbose;
         }
 
         // TODO: More realistic tests for working with MSBuild evaluation projects.
@@ -112,12 +113,12 @@ namespace MSBuildProjectTools.LanguageServer.Tests
         /// <returns>
         ///     The project.
         /// </returns>
-        static Project LoadTestProject(params string[] relativePathSegments)
+        Project LoadTestProject(params string[] relativePathSegments)
         {
             if (relativePathSegments == null)
                 throw new ArgumentNullException(nameof(relativePathSegments));
 
-            return MSBuildHelper.CreateProjectCollection(TestDirectory.FullName).LoadProject(
+            return MSBuildHelper.CreateProjectCollection(TestDirectory.FullName, logger: Log).LoadProject(
                 Path.Combine(TestDirectory.FullName,
                     "TestProjects",
                     Path.Combine(relativePathSegments)

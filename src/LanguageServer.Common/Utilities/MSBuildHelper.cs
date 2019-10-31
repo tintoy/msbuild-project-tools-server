@@ -51,13 +51,19 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         /// <param name="globalPropertyOverrides">
         ///     An optional dictionary containing property values to override.
         /// </param>
+        /// <param name="logger">
+        ///     An optional <see cref="ILogger"/> to use for diagnostic purposes (if not specified, the static <see cref="Log.Logger"/> will be used).
+        /// </param>
         /// <returns>
         ///     The project collection.
         /// </returns>
-        public static ProjectCollection CreateProjectCollection(string solutionDirectory, Dictionary<string, string> globalPropertyOverrides = null)
+        public static ProjectCollection CreateProjectCollection(string solutionDirectory, Dictionary<string, string> globalPropertyOverrides = null, ILogger logger = null)
         {
+            if (logger == null)
+                logger = Log.Logger;
+
             return CreateProjectCollection(solutionDirectory,
-                DotNetRuntimeInfo.GetCurrent(solutionDirectory),
+                DotNetRuntimeInfo.GetCurrent(solutionDirectory, logger),
                 globalPropertyOverrides
             );
         }

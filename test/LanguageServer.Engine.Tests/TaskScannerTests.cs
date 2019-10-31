@@ -17,6 +17,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests
     ///     Tests for <see cref="MSBuildTaskScanner"/>.
     /// </summary>
     public class TaskScannerTests
+        : TestBase
     {
         /// <summary>
         ///     Create a new <see cref="MSBuildTaskScanner"/> test suite.
@@ -25,17 +26,10 @@ namespace MSBuildProjectTools.LanguageServer.Tests
         ///     Output for the current test.
         /// </param>
         public TaskScannerTests(ITestOutputHelper testOutput)
+            : base(testOutput)
         {
-            if (testOutput == null)
-                throw new System.ArgumentNullException(nameof(testOutput));
-
-            TestOutput = testOutput;
+            LogLevelSwitch.MinimumLevel = Serilog.Events.LogEventLevel.Verbose;
         }
-
-        /// <summary>
-        ///     Output for the current test.
-        /// </summary>
-        ITestOutputHelper TestOutput { get; }
 
         /// <summary>
         ///     Verify that the task scanner can retrieve task metadata from an assembly.
@@ -72,12 +66,14 @@ namespace MSBuildProjectTools.LanguageServer.Tests
         /// <returns>
         ///     The full path of the task assembly.
         /// </returns>
-        static string GetFrameworkTaskAssemblyFile(string assemblyFileName)
+        string GetFrameworkTaskAssemblyFile(string assemblyFileName)
         {
             if (string.IsNullOrWhiteSpace(assemblyFileName))
                 throw new System.ArgumentException($"Argument cannot be null, empty, or entirely composed of whitespace: {nameof(assemblyFileName)}.", nameof(assemblyFileName));
 
-            var runtimeInfo = DotNetRuntimeInfo.GetCurrent();
+            var runtimeInfo = DotNetRuntimeInfo.GetCurrent(logger: Log);
+
+            Assert.NotNull(runtimeInfo.BaseDirectory);
 
             return Path.Combine(runtimeInfo.BaseDirectory,
                 assemblyFileName.Replace('/', Path.DirectorySeparatorChar)
