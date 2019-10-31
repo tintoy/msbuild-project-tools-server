@@ -17,6 +17,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests
     ///     Tests for MSBuild integration.
     /// </summary>
     public class MSBuildTests
+        : TestBase
     {
         /// <summary>
         ///     The directory for test files.
@@ -32,17 +33,9 @@ namespace MSBuildProjectTools.LanguageServer.Tests
         ///     Output for the current test.
         /// </param>
         public MSBuildTests(ITestOutputHelper testOutput)
+            : base(testOutput)
         {
-            if (testOutput == null)
-                throw new ArgumentNullException(nameof(testOutput));
-
-            TestOutput = testOutput;
         }
-
-        /// <summary>
-        ///     Output for the current test.
-        /// </summary>
-        public ITestOutputHelper TestOutput { get; }
 
         // TODO: More realistic tests for working with MSBuild evaluation projects.
 

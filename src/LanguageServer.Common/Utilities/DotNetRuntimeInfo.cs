@@ -103,13 +103,12 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
                     processOutput = localOutputBuffer.ToString();
                 }
 
-                // Only log output if there's a problem.
-                if (dotnetInfoProcess.ExitCode != 0)
+                if ( Log.IsEnabled(Serilog.Events.LogEventLevel.Verbose) )
                 {
                     if (!String.IsNullOrWhiteSpace(processOutput))
-                    Log.Debug("{Command} returned the following text on STDOUT / STDERR.\n\n{DotNetInfoOutput:l}", command, processOutput);
-                else
-                    Log.Debug("{Command} returned no output on STDOUT / STDERR.");
+                        Log.Debug("{Command} returned the following text on STDOUT / STDERR.\n\n{DotNetInfoOutput:l}", command, processOutput);
+                    else
+                        Log.Debug("{Command} returned no output on STDOUT / STDERR.");
                 }
 
                 using (StringReader bufferReader = new StringReader(processOutput))
