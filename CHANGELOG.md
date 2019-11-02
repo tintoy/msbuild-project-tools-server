@@ -1,5 +1,9 @@
 # Change Log
 
+## v0.3.2
+
+* Language service now supports "--probe" switch to aid in diagnostics (tintoy/msbuild-project-tools-server#17).
+
 ## v0.3.1
 
 * Language service now targets .NET Core 3.0 (tintoy/msbuild-project-tools-server#17).

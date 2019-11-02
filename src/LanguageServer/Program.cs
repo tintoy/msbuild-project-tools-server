@@ -24,7 +24,10 @@ namespace MSBuildProjectTools.LanguageServer
         /// <summary>
         ///     The main program entry-point.
         /// </summary>
-        static void Main()
+        /// <returns>
+        ///     The process exit code.
+        /// </returns>
+        static int Main()
         {
             SynchronizationContext.SetSynchronizationContext(
                 new SynchronizationContext()
@@ -34,18 +37,20 @@ namespace MSBuildProjectTools.LanguageServer
             {
                 AutoDetectExtensionDirectory();
 
-                AsyncMain().Wait();
+                return AsyncMain().GetAwaiter().GetResult();
             }
             catch (AggregateException aggregateError)
             {
                 foreach (Exception unexpectedError in aggregateError.Flatten().InnerExceptions)
-                {
-                    Console.WriteLine(unexpectedError);
-                }
+                    Console.Error.WriteLine(unexpectedError);
+
+                return 1;
             }
             catch (Exception unexpectedError)
             {
-                Console.WriteLine(unexpectedError);
+                Console.Error.WriteLine(unexpectedError);
+
+                return 1;
             }
             finally
             {
@@ -57,9 +62,9 @@ namespace MSBuildProjectTools.LanguageServer
         ///     The asynchronous program entry-point.
         /// </summary>
         /// <returns>
-        ///     A <see cref="Task"/> representing program execution.
+        ///     The process exit code.
         /// </returns>
-        static async Task AsyncMain()
+        static async Task<int> AsyncMain()
         {
             using (ActivityCorrelationManager.BeginActivityScope())
             using (Terminator terminator = new Terminator())
@@ -74,7 +79,25 @@ namespace MSBuildProjectTools.LanguageServer
 
                 log.Debug("Waiting for client to initialise language server...");
 
-                await server.Initialize();
+                Task initializeTask = server.Initialize();
+
+                // Special case for probing whether language server is startable given current runtime environment.
+                string[] commandLineArguments = Environment.GetCommandLineArgs();
+                if (commandLineArguments.Length == 2 && commandLineArguments[1] == "--probe")
+                {
+                    // Give the language server a chance to start.
+                    await Task.Yield();
+
+                    // Show any exception encountered while starting the language server.
+                    if (initializeTask.IsFaulted || initializeTask.IsCanceled)
+                        await initializeTask;
+
+                    Console.Error.WriteLine("PROBE: Yes, the language server can start.");
+
+                    return 0;
+                }
+
+                await initializeTask;
 
                 log.Debug("Language server initialised by client.");
 
@@ -94,6 +117,8 @@ namespace MSBuildProjectTools.LanguageServer
                 );
 
                 log.Debug("Server process is ready to terminate.");
+
+                return 0;
             }
         }
 
