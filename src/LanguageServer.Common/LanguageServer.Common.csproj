@@ -1,26 +1,27 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
-    <AssemblyName>MSBuildProjectTools.LanguageServer.Common</AssemblyName>
-    <RootNamespace>MSBuildProjectTools.LanguageServer</RootNamespace>
-  </PropertyGroup>
+    <PropertyGroup>
+        <TargetFramework>netcoreapp3.0</TargetFramework>
+        <AssemblyName>MSBuildProjectTools.LanguageServer.Common</AssemblyName>
+        <RootNamespace>MSBuildProjectTools.LanguageServer</RootNamespace>
+    </PropertyGroup>
 
-  <Import Project="../Common.props" />
+    <Import Project="../Common.props" />
 
-  <ItemGroup>
-    <PackageReference Include="Microsoft.Build" Version="15.9.20" />
-    <PackageReference Include="Microsoft.Language.Xml" Version="1.1.14" />
-    <PackageReference Include="Newtonsoft.Json" Version="10.0.3" />
-    <PackageReference Include="NuGet.Client" Version="4.0.0" />
-    <PackageReference Include="NuGet.Configuration" Version="4.6.2" />
-    <PackageReference Include="NuGet.PackageManagement" Version="4.0.0" NoWarn="NU1701" />
-    <PackageReference Include="NuGet.Packaging" Version="4.0.0" NoWarn="NU1701" />
-    <PackageReference Include="NuGet.Protocol.Core.Types" Version="4.0.0" NoWarn="NU1701" />
-    <PackageReference Include="NuGet.Protocol.Core.V2" Version="4.0.0-rtm-2265" NoWarn="NU1701" />
-    <PackageReference Include="NuGet.Protocol.Core.V3" Version="4.0.0" NoWarn="NU1701" />
-    <PackageReference Include="NuGet.Versioning" Version="4.0.0" />
-    <PackageReference Include="Serilog" Version="2.5.0" />
-  </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="Microsoft.Build" Version="16.4.0" />
+        <PackageReference Include="Microsoft.Language.Xml" Version="1.1.14" />
+        <PackageReference Include="Newtonsoft.Json" Version="10.0.3" />
+        <PackageReference Include="NuGet.Client" Version="4.0.0" />
+        <PackageReference Include="NuGet.Configuration" Version="4.6.2" />
+        <PackageReference Include="NuGet.PackageManagement" Version="4.0.0" NoWarn="NU1701" />
+        <PackageReference Include="NuGet.Packaging" Version="4.0.0" NoWarn="NU1701" />
+        <PackageReference Include="NuGet.Protocol.Core.Types" Version="4.0.0" NoWarn="NU1701" />
+        <PackageReference Include="NuGet.Protocol.Core.V2" Version="4.0.0-rtm-2265" NoWarn="NU1701" />
+        <PackageReference Include="NuGet.Protocol.Core.V3" Version="4.0.0" NoWarn="NU1701" />
+        <PackageReference Include="NuGet.Versioning" Version="4.0.0" />
+        <PackageReference Include="Serilog" Version="2.5.0" />
+        <PackageReference Include="System.Collections.Immutable" Version="1.7.0" />
+    </ItemGroup>
 
 </Project>

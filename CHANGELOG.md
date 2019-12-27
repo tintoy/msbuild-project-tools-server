@@ -1,5 +1,9 @@
 # Change Log
 
+## v0.3.3
+
+* Use v16.4.0 of the MSBuild engine (tintoy/msbuild-project-tools-vscode#59).
+
 ## v0.3.2
 
 * Language service now supports "--probe" switch to aid in diagnostics (tintoy/msbuild-project-tools-server#17).
