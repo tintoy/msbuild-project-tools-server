@@ -40,7 +40,10 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         /// <summary>
         ///     The last .NET Core SDK version that had a "15.0" sub-folder for "Microsoft.Common.props" (later versions have a "Current" sub-folder instead).
         /// </summary>
-        static readonly SemanticVersion NetCoreLastSdkVersionFor150Folder = new SemanticVersion(major: 2, minor: 1, patch: 510);
+        /// <remarks>
+        ///     2.1.599 is the theoretical highest version number of the 2.1.5xx feature band, which is the last .NET Core SDK that ships .NET Core 2.1 (LTS).
+        /// </remarks>
+        static readonly SemanticVersion NetCoreLastSdkVersionFor150Folder = new SemanticVersion(major: 2, minor: 1, patch: 599);
 
         /// <summary>
         ///     Create an MSBuild project collection.
@@ -113,7 +116,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
                 projectCollection: projectCollection,
                 msbuildOverrideTasksPath: ""
             );
-            
+
             // Other toolset versions won't be supported by the .NET Core SDK
             projectCollection.RemoveAllToolsets();
 
@@ -339,7 +342,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
 
                 return null;
             }
-            
+
             var referencedPackageVersions = new Dictionary<string, SemanticVersion>(StringComparer.OrdinalIgnoreCase);
 
             foreach (JProperty library in libraries.Properties())
