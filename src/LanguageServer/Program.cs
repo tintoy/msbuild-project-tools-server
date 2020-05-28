@@ -109,6 +109,12 @@ namespace MSBuildProjectTools.LanguageServer
 
                 log.Debug("Server has shut down. Preparing to terminate server process...");
 
+                // TODO: Once the server has been initialised (see if we can hook this), watch the parent process for exit
+                //       and, if it does, then we should exit too.
+                //
+                // TODO: Consider whether we want to use polling or event-driven design,
+                //       and whether Akka or Rx might help keep the design clean?
+
                 // AF: Temporary fix for tintoy/msbuild-project-tools-vscode#36
                 //
                 //     The server hangs while waiting for LSP's ProcessScheduler thread to terminate so, after a timeout has elapsed, we forcibly terminate this process.
