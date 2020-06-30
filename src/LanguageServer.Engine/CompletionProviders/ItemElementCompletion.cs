@@ -92,6 +92,13 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
                 {
                     replaceRange = location.Position.ToEmptyRange();
 
+                    // Handle replacement of existing "<" if one was typed.
+                    if (projectDocument.IsMSBuildProjectCached)
+                    {
+                        // Project XML is currently invalid; assume it's because they've typed a "<" character and attempt to compensate.
+                        replaceRange = projectDocument.XmlPositions.ExtendLeft(replaceRange, byCharCount: 1);
+                    }
+
                     Log.Verbose("Offering completions to create element @ {ReplaceRange:l}",
                         replaceRange
                     );

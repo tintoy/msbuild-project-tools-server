@@ -168,6 +168,47 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         }
 
         /// <summary>
+        ///     Move the specified position closer to the start of the document by the specified number of characters.
+        /// </summary>
+        /// <param name="position">
+        ///     The position.
+        /// </param>
+        /// <param name="byCharCount">
+        ///     The number of characters.
+        /// </param>
+        /// <returns>
+        ///     The updated position. If <paramref name="byCharCount"/> would take the position past the start of the document, this becomes (1,1).
+        /// </returns>
+        public Position MoveLeft(Position position, int byCharCount)
+        {
+            int absolutePosition = GetAbsolutePosition(position);
+            absolutePosition -= byCharCount;
+            if (absolutePosition < 0)
+                absolutePosition = 0;
+
+            return GetPosition(absolutePosition);
+        }
+
+        /// <summary>
+        ///     Extend the specified range closer to the start of the document by the specified number of characters.
+        /// </summary>
+        /// <param name="range">
+        ///     The range.
+        /// </param>
+        /// <param name="byCharCount">
+        ///     The number of characters.
+        /// </param>
+        /// <returns>
+        ///     The updated range. If <paramref name="byCharCount"/> would take the range start past the start of the document, this becomes (1,1).
+        /// </returns>
+        public Range ExtendLeft(Range range, int byCharCount)
+        {
+            return range.WithStart(
+                MoveLeft(range.Start, byCharCount)
+            );
+        }
+
+        /// <summary>
         ///     Calculate the start position for each line in the text.
         /// </summary>
         /// <param name="text">
