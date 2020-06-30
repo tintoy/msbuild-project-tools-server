@@ -1,5 +1,13 @@
 # Change Log
 
+## v0.3.7
+
+* Explicitly watch parent process for termination (tintoy/msbuild-project-tools-vscode#53).
+
+## v0.3.6
+
+* Update MSBuild engine packages to v16.5.0 (tintoy/msbuild-project-tools-vscode#66).
+
 ## v0.3.4
 
 * Add IntelliSense for `GenerateDocumentationFile` property (tintoy/msbuild-project-tools-vscode#60).

@@ -98,8 +98,19 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
                 }
                 else if (location.CanCompleteElement(out XSElement replaceElement, parentPath: WellKnownElementPaths.ItemGroup))
                 {
+                    Range replaceRange;
+
                     if (replaceElement != null)
                     {
+                        replaceRange = replaceElement.Range;
+
+                        // Handle replacement of existing "<" if one was typed.
+                        if (projectDocument.IsMSBuildProjectCached)
+                        {
+                            // Project XML is currently invalid; assume it's because they've typed a "<" character and attempt to compensate.
+                            replaceRange = projectDocument.XmlPositions.ExtendLeft(replaceRange, byCharCount: 1);
+                        }
+
                         Log.Verbose("Offering completions to replace child element @ {ReplaceRange} of {ElementName} @ {Position:l}",
                             replaceElement.Range,
                             "ItemGroup",
@@ -108,13 +119,15 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
                     }
                     else
                     {
+                        replaceRange = location.Position.ToEmptyRange();
+                        
                         Log.Verbose("Offering completions for new child element of {ElementName} @ {Position:l}",
                             "ItemGroup",
-                            location.Position
+                            replaceRange
                         );
                     }
 
-                    List<CompletionItem> elementCompletions = HandlePackageReferenceElementCompletion(location, projectDocument, replaceElement);
+                    List<CompletionItem> elementCompletions = HandlePackageReferenceElementCompletion(location, projectDocument, replaceRange);
                     if (elementCompletions != null)
                         completions.AddRange(elementCompletions);
                 }
@@ -216,21 +229,19 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
         /// <param name="projectDocument">
         ///     The current project document.
         /// </param>
-        /// <param name="replaceElement">
-        ///     The element (if any) that will be replaced by the completion.
+        /// <param name="replaceRange">
+        ///     The range of text that will be replaced by the completion.
         /// </param>
         /// <returns>
         ///     The completion list or <c>null</c> if no completions are provided.
         /// </returns>
-        List<CompletionItem> HandlePackageReferenceElementCompletion(XmlLocation location, ProjectDocument projectDocument, XSElement replaceElement)
+        List<CompletionItem> HandlePackageReferenceElementCompletion(XmlLocation location, ProjectDocument projectDocument, Range replaceRange)
         {
             if (projectDocument == null)
                 throw new ArgumentNullException(nameof(projectDocument));
 
             if (location == null)
                 throw new ArgumentNullException(nameof(location));
-
-            Range replaceRange = replaceElement?.Range ?? location.Position.ToEmptyRange();
 
             return new List<CompletionItem>
             {

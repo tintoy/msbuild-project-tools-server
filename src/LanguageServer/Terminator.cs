@@ -1,5 +1,5 @@
 using System;
-using System.Threading;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using Serilog;
 
@@ -17,12 +17,23 @@ namespace MSBuildProjectTools.LanguageServer
         /// <summary>
         ///     The delay, after the timeout has elapsed, before 
         /// </summary>
-        public static readonly TimeSpan TerminationDelay = TimeSpan.FromSeconds(1);
+        public static readonly int CurrentProcessId;
 
         /// <summary>
-        ///     The source for cancellation tokens used to abort process termination.
+        ///     Type initialiser for <see cref="Terminator"/>.
         /// </summary>
-        readonly CancellationTokenSource _cancellation = new CancellationTokenSource();
+        static Terminator()
+        {
+            using (Process currentProcess = Process.GetCurrentProcess())
+            {
+                CurrentProcessId = currentProcess.Id;
+            }
+        }
+
+        /// <summary>
+        ///     A <see cref="Process"/> representing the parent process.
+        /// </summary>
+        Process _parentProcess;
 
         /// <summary>
         ///     Create a new <see cref="Terminator"/>.
@@ -35,7 +46,14 @@ namespace MSBuildProjectTools.LanguageServer
         /// <summary>
         ///     Dispose of resources being used by the terminator.
         /// </summary>
-        public void Dispose() => _cancellation.Dispose();
+        public void Dispose()
+        {
+            if (_parentProcess != null)
+            {
+                _parentProcess.Dispose();
+                _parentProcess = null;
+            }
+        }
 
         /// <summary>
         ///     The terminator's logger.
@@ -43,40 +61,57 @@ namespace MSBuildProjectTools.LanguageServer
         ILogger Log { get; }
 
         /// <summary>
-        ///     Terminate the current process after the specified timeout has elapsed.
+        /// Initialise the process terminator.
         /// </summary>
-        /// <param name="timeout">
-        ///     The minimum span of time that should elapse before the process is terminated.
+        /// <param name="parentProcessId">
+        ///     The process Id (PID) of the parent process that launched the language server.
         /// </param>
-        public async void TerminateAfter(TimeSpan timeout)
+        public void Initialize(int parentProcessId)
         {
-            Log.Debug("Language server process will be forcibly terminated in {Timeout} seconds.", timeout.TotalSeconds);
-
-            CancellationToken cancellationToken = _cancellation.Token;
-            _cancellation.CancelAfter(timeout);
-
-            try
+            if (_parentProcess != null)
             {
-                await Task.Delay(timeout, cancellationToken);
+                Log.Warning("The language server process (PID:{PID}) is now watching its parent process (PID:{ParentPID}) and will automatically terminate if the parent process exits.", CurrentProcessId, _parentProcess.Id);
 
-                Log.Debug("Timed out after waiting {Timeout} seconds; the language server process will now be forcibly terminated within {TerminationDelay} second(s).",
-                    timeout.TotalSeconds,
-                    TerminationDelay.TotalSeconds
-                );
-
-                // Last-ditch effort to flush pending log entries.
-                (Log as IDisposable)?.Dispose();
-                Serilog.Log.CloseAndFlush();
-                await Task.Delay(
-                    TimeSpan.FromSeconds(1)
-                );
-
-                Terminate();
+                _parentProcess.EnableRaisingEvents = false;
+                _parentProcess.Exited -= ParentProcess_Exit;
+                _parentProcess.Dispose();
+                _parentProcess = null;
             }
-            catch (OperationCanceledException)
-            {
-                Log.Verbose("Termination of the language server process has been cancelled.");
-            }
+
+            _parentProcess = Process.GetProcessById(parentProcessId);
+            _parentProcess.Exited += ParentProcess_Exit;
+            _parentProcess.EnableRaisingEvents = true;
+
+            Log.Information("The language server (PID:{PID}) is now watching its parent process (PID:{ParentPID}) and will automatically terminate if the parent process exits.", CurrentProcessId, _parentProcess.Id);
+
+            // Handle the case where the parent process has already exited.
+            if (_parentProcess.HasExited)
+                ParentProcess_Exit(_parentProcess, EventArgs.Empty);
+        }
+
+        /// <summary>
+        ///     Called when the language server's parent process has exited.
+        /// </summary>
+        /// <param name="sender">
+        ///     The event sender.
+        /// </param>
+        /// <param name="args">
+        ///     The event arguments.
+        /// </param>
+        async void ParentProcess_Exit(object sender, EventArgs args)
+        {
+            Log.Warning("Parent process (PID:{ParentPID}) has exited; the language server (PID:{PID}) will immediately self-terminate.", _parentProcess.Id, CurrentProcessId);
+
+            // Last-ditch effort to flush pending log entries.
+            (Log as IDisposable)?.Dispose();
+            Serilog.Log.CloseAndFlush();
+
+            // Wait for log flush.
+            await Task.Delay(
+                TimeSpan.FromSeconds(1)
+            );
+
+            Terminate();
         }
 
         /// <summary>

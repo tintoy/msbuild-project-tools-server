@@ -101,6 +101,13 @@ namespace MSBuildProjectTools.LanguageServer
 
                 log.Debug("Language server initialised by client.");
 
+                if (server.Client.ProcessId != null)
+                {
+                    terminator.Initialize(
+                        (int)server.Client.ProcessId.Value
+                    );
+                }
+                
                 await server.WasShutDown;
 
                 log.Debug("Language server is shutting down...");
@@ -108,13 +115,6 @@ namespace MSBuildProjectTools.LanguageServer
                 await server.WaitForExit;
 
                 log.Debug("Server has shut down. Preparing to terminate server process...");
-
-                // AF: Temporary fix for tintoy/msbuild-project-tools-vscode#36
-                //
-                //     The server hangs while waiting for LSP's ProcessScheduler thread to terminate so, after a timeout has elapsed, we forcibly terminate this process.
-                terminator.TerminateAfter(
-                    TimeSpan.FromSeconds(3)
-                );
 
                 log.Debug("Server process is ready to terminate.");
 

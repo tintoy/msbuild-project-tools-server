@@ -16,8 +16,8 @@
         <PackageReference Include="OmniSharp.Extensions.JsonRpc" Version="0.7.9" />
         <PackageReference Include="OmniSharp.Extensions.LanguageProtocol" Version="0.7.9" />
         <PackageReference Include="OmniSharp.Extensions.LanguageServer" Version="0.7.9" />
-        <PackageReference Include="Microsoft.Build" Version="16.4.0" />
-        <PackageReference Include="Microsoft.Build.Runtime" Version="16.4.0" />
+        <PackageReference Include="Microsoft.Build" Version="16.5.0" />
+        <PackageReference Include="Microsoft.Build.Runtime" Version="16.5.0" />
         <PackageReference Include="Microsoft.Language.Xml" Version="1.1.14" />
         <PackageReference Include="Nito.AsyncEx.Tasks" Version="1.0.1" />
         <PackageReference Include="Nito.AsyncEx.Coordination" Version="1.0.1" />
