@@ -76,10 +76,12 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
                     return null;
                 }
             
-                Range targetRange = replaceElement.Range;
+                Range targetRange;
 
                 if (replaceElement != null)
                 {
+                    targetRange = replaceElement.Range;
+
                     Log.Verbose("Offering completions to replace element {ElementName} @ {ReplaceRange:l}",
                         replaceElement.Name,
                         targetRange
@@ -87,6 +89,8 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
                 }
                 else
                 {
+                    targetRange = location.Position.ToEmptyRange();
+
                     Log.Verbose("Offering completions to insert element @ {InsertPosition:l}",
                         location.Position
                     );
