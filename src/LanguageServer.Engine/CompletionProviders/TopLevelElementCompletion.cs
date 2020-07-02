@@ -76,37 +76,37 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
                     return null;
                 }
 
-                Range replaceRange;
+                Range targetRange;
 
                 if (replaceElement != null)
                 {
-                    replaceRange = replaceElement.Range;
+                    targetRange = replaceElement.Range;
 
                     Log.Verbose("Offering completions to replace element {ElementName} @ {ReplaceRange:l}",
                         replaceElement.Name,
-                        replaceRange
-                    );
-
-                    // Replace any characters that were typed to trigger the completion.
-                    if (triggerCharacters != null)
-                        replaceRange = projectDocument.XmlPositions.ExtendLeft(replaceRange, byCharCount: triggerCharacters.Length);
-
-                    completions.AddRange(
-                        GetCompletionItems(replaceRange)
+                        targetRange
                     );
                 }
                 else
                 {
-                    replaceRange = location.Position.ToEmptyRange();
+                    targetRange = location.Position.ToEmptyRange();
 
                     Log.Verbose("Offering completions to insert element @ {InsertPosition:l}",
                         location.Position
                     );
-
-                    completions.AddRange(
-                        GetCompletionItems(replaceRange)
-                    );
                 }
+
+                // Replace any characters that were typed to trigger the completion.
+                if (triggerCharacters != null)
+                {
+                    targetRange = projectDocument.XmlPositions.ExtendLeft(targetRange, byCharCount: triggerCharacters.Length);
+
+                    Log.Verbose("Completion was triggered by typing one or more characters; target range will be extended by {TriggerCharacterCount} characters toward start of document (now: {TargetRange}).", triggerCharacters.Length, targetRange);
+                }
+
+                completions.AddRange(
+                    GetCompletionItems(targetRange)
+                );
             }
 
             Log.Verbose("Offering {CompletionCount} completion(s) for {XmlLocation:l}", completions.Count, location);

@@ -101,21 +101,25 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
                 
                 if (replaceElement != null)
                 {
-                    Range replaceRange = replaceElement.Range;
+                    Range targetRange = replaceElement.Range;
 
                     // Replace any characters that were typed to trigger the completion.
                     if (triggerCharacters != null)
-                        replaceRange = projectDocument.XmlPositions.ExtendLeft(replaceRange, byCharCount: triggerCharacters.Length);
+                    {
+                        targetRange = projectDocument.XmlPositions.ExtendLeft(targetRange, byCharCount: triggerCharacters.Length);
+
+                        Log.Verbose("Completion was triggered by typing one or more characters; target range will be extended by {TriggerCharacterCount} characters toward start of document (now: {TargetRange}).", triggerCharacters.Length, targetRange);
+                    }
 
                     Log.Verbose("Offering completions to replace element {ElementName} @ {ReplaceRange:l}",
                         replaceElement.Name,
-                        replaceRange
+                        targetRange
                     );
 
                     Dictionary<string, MSBuildTaskMetadata> projectTasks = await GetProjectTasks(projectDocument);
 
                     completions.AddRange(
-                        GetCompletionItems(projectDocument, projectTasks, replaceRange)
+                        GetCompletionItems(projectDocument, projectTasks, targetRange)
                     );
                 }
                 else

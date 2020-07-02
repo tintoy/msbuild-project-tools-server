@@ -101,33 +101,37 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
                 }
                 else if (location.CanCompleteElement(out XSElement replaceElement, parentPath: WellKnownElementPaths.ItemGroup))
                 {
-                    Range replaceRange;
+                    Range targetRange;
 
                     if (replaceElement != null)
                     {
-                        replaceRange = replaceElement.Range;
-
-                        // Replace any characters that were typed to trigger the completion.
-                        if (triggerCharacters != null)
-                            replaceRange = projectDocument.XmlPositions.ExtendLeft(replaceRange, byCharCount: triggerCharacters.Length);
+                        targetRange = replaceElement.Range;
 
                         Log.Verbose("Offering completions to replace child element @ {ReplaceRange} of {ElementName} @ {Position:l}",
-                            replaceRange,
+                            targetRange,
                             "ItemGroup",
                             location.Position
                         );
                     }
                     else
                     {
-                        replaceRange = location.Position.ToEmptyRange();
+                        targetRange = location.Position.ToEmptyRange();
                         
                         Log.Verbose("Offering completions for new child element of {ElementName} @ {Position:l}",
                             "ItemGroup",
-                            replaceRange
+                            targetRange
                         );
                     }
 
-                    List<CompletionItem> elementCompletions = HandlePackageReferenceElementCompletion(location, projectDocument, replaceRange);
+                    // Replace any characters that were typed to trigger the completion.
+                    if (triggerCharacters != null)
+                    {
+                        targetRange = projectDocument.XmlPositions.ExtendLeft(targetRange, byCharCount: triggerCharacters.Length);
+
+                        Log.Verbose("Completion was triggered by typing one or more characters; target range will be extended by {TriggerCharacterCount} characters toward start of document (now: {TargetRange}).", triggerCharacters.Length, targetRange);
+                    }
+
+                    List<CompletionItem> elementCompletions = HandlePackageReferenceElementCompletion(location, projectDocument, targetRange);
                     if (elementCompletions != null)
                         completions.AddRange(elementCompletions);
                 }

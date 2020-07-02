@@ -217,23 +217,26 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
                 yield break;
             }
 
-            Range replaceRange;
+            Range targetRange;
 
             string itemType;
             if (replaceElement != null)
             {
-                replaceRange = replaceElement.Range;
-
-                // Replace any characters that were typed to trigger the completion.
-                if (triggerCharacters != null)
-                    replaceRange = projectDocument.XmlPositions.ExtendLeft(replaceRange, byCharCount: triggerCharacters.Length);
-
+                targetRange = replaceElement.Range;
                 itemType = replaceElement.ParentElement?.Name;
             }
             else
             {
-                replaceRange = location.Position.ToEmptyRange();
+                targetRange = location.Position.ToEmptyRange();
                 itemType = location.Node.Path.Parent.Name;
+            }
+
+            // Replace any characters that were typed to trigger the completion.
+            if (triggerCharacters != null)
+            {
+                targetRange = projectDocument.XmlPositions.ExtendLeft(targetRange, byCharCount: triggerCharacters.Length);
+
+                Log.Verbose("Completion was triggered by typing one or more characters; target range will be extended by {TriggerCharacterCount} characters toward start of document (now: {TargetRange}).", triggerCharacters.Length, targetRange);
             }
 
             // These items are handled by PackageReferenceCompletion.
@@ -264,7 +267,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
                     GetExistingMetadataNames(replaceElement)
                 );
 
-                Log.Verbose("Will offer completions to replace item metadata element spanning {Range:l}", replaceRange);
+                Log.Verbose("Will offer completions to replace item metadata element spanning {Range:l}", targetRange);
             }
             else
                 Log.Verbose("Will offer completions to create item metadata element at {Position:l}", location.Position);
@@ -289,7 +292,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
                     TextEdit = new TextEdit
                     {
                         NewText = $"<{metadataName}>$0</{metadataName}>",
-                        Range = replaceRange.ToLsp()
+                        Range = targetRange.ToLsp()
                     },
                     InsertTextFormat = InsertTextFormat.Snippet
                 };
