@@ -16,6 +16,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
 {
     using CompletionProviders;
     using Documents;
+    using LanguageServer.CustomProtocol;
     using SemanticModel;
     using Utilities;
 
@@ -25,7 +26,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
     ///     Handler for completion requests.
     /// </summary>
     public sealed class CompletionHandler
-        : Handler, ICompletionHandler
+        : Handler, ICustomCompletionHandler
     {
         /// <summary>
         ///     Create a new <see cref="CompletionHandler"/>.
@@ -151,7 +152,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         /// <returns>
         ///     A <see cref="Task"/> representing the operation whose result is the completion list or <c>null</c> if no completions are provided.
         /// </returns>
-        async Task<CompletionList> OnCompletion(TextDocumentPositionParams parameters, CancellationToken cancellationToken)
+        async Task<CompletionList> OnCompletion(CompletionParams parameters, CancellationToken cancellationToken)
         {
             ProjectDocument projectDocument = await Workspace.GetProjectDocument(parameters.TextDocument.Uri);
 
@@ -181,9 +182,13 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
 
                 Log.Verbose("Completion will target {XmlLocation:l}", location);
 
+                string triggerCharacters = null;
+                if (parameters.Context != null && parameters.Context.TriggerKind == CompletionTriggerKind.TriggerCharacter)
+                    triggerCharacters = parameters.Context.TriggerCharacter;
+
                 List<Task<CompletionList>> allProviderCompletions =
                     Providers.Select(
-                        provider => provider.ProvideCompletions(location, projectDocument, cancellationToken)
+                        provider => provider.ProvideCompletions(location, projectDocument, triggerCharacters, cancellationToken)
                     )
                     .ToList();
 
@@ -240,7 +245,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         /// <returns>
         ///     A <see cref="Task"/> representing the operation whose result is the completion list or <c>null</c> if no completions are provided.
         /// </returns>
-        async Task<CompletionList> IRequestHandler<TextDocumentPositionParams, CompletionList>.Handle(TextDocumentPositionParams parameters, CancellationToken cancellationToken)
+        async Task<CompletionList> IRequestHandler<CompletionParams, CompletionList>.Handle(CompletionParams parameters, CancellationToken cancellationToken)
         {
             if (parameters == null)
                 throw new ArgumentNullException(nameof(parameters));

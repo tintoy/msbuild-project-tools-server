@@ -45,13 +45,16 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
         /// <param name="projectDocument">
         ///     The <see cref="ProjectDocument"/> that contains the <paramref name="location"/>.
         /// </param>
+        /// <param name="triggerCharacters">
+        ///     The character(s), if any, that triggered completion.
+        /// </param>
         /// <param name="cancellationToken">
         ///     A <see cref="CancellationToken"/> that can be used to cancel the operation.
         /// </param>
         /// <returns>
         ///     A <see cref="Task{TResult}"/> that resolves either a <see cref="CompletionList"/>s, or <c>null</c> if no completions are provided.
         /// </returns>
-        public override async Task<CompletionList> ProvideCompletions(XmlLocation location, ProjectDocument projectDocument, CancellationToken cancellationToken = default(CancellationToken))
+        public override async Task<CompletionList> ProvideCompletions(XmlLocation location, ProjectDocument projectDocument, string triggerCharacters, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (location == null)
                 throw new ArgumentNullException(nameof(location));
@@ -61,7 +64,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
 
             List<CompletionItem> completions = new List<CompletionItem>();
 
-            Log.Verbose("Evaluate completions for {XmlLocation:l}", location);
+            Log.Verbose("Evaluate completions for {XmlLocation:l} (trigger characters = {TriggerCharacters}", location, triggerCharacters);
 
             using (await projectDocument.Lock.ReaderLockAsync())
             {
@@ -73,27 +76,35 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
                     return null;
                 }
 
+                Range replaceRange;
+
                 if (replaceElement != null)
                 {
+                    replaceRange = replaceElement.Range;
+
                     Log.Verbose("Offering completions to replace element {ElementName} @ {ReplaceRange:l}",
                         replaceElement.Name,
-                        replaceElement.Range
+                        replaceRange
                     );
 
+                    // Replace any characters that were typed to trigger the completion.
+                    if (triggerCharacters != null)
+                        replaceRange = projectDocument.XmlPositions.ExtendLeft(replaceRange, byCharCount: triggerCharacters.Length);
+
                     completions.AddRange(
-                        GetCompletionItems(replaceElement.Range)
+                        GetCompletionItems(replaceRange)
                     );
                 }
                 else
                 {
+                    replaceRange = location.Position.ToEmptyRange();
+
                     Log.Verbose("Offering completions to insert element @ {InsertPosition:l}",
                         location.Position
                     );
 
                     completions.AddRange(
-                        GetCompletionItems(
-                            replaceRange: location.Position.ToEmptyRange()
-                        )
+                        GetCompletionItems(replaceRange)
                     );
                 }
             }

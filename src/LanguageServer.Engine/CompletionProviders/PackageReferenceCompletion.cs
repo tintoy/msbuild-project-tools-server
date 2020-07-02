@@ -60,13 +60,16 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
         /// <param name="projectDocument">
         ///     The <see cref="ProjectDocument"/> that contains the <paramref name="location"/>.
         /// </param>
+        /// <param name="triggerCharacters">
+        ///     The character(s), if any, that triggered completion.
+        /// </param>
         /// <param name="cancellationToken">
         ///     A <see cref="CancellationToken"/> that can be used to cancel the operation.
         /// </param>
         /// <returns>
         ///     A <see cref="Task{TResult}"/> that resolves either a <see cref="CompletionList"/>s, or <c>null</c> if no completions are provided.
         /// </returns>
-        public override async Task<CompletionList> ProvideCompletions(XmlLocation location, ProjectDocument projectDocument, CancellationToken cancellationToken = default(CancellationToken))
+        public override async Task<CompletionList> ProvideCompletions(XmlLocation location, ProjectDocument projectDocument, string triggerCharacters, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (location == null)
                 throw new ArgumentNullException(nameof(location));
@@ -104,15 +107,12 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
                     {
                         replaceRange = replaceElement.Range;
 
-                        // Handle replacement of existing "<" if one was typed.
-                        if (projectDocument.IsMSBuildProjectCached)
-                        {
-                            // Project XML is currently invalid; assume it's because they've typed a "<" character and attempt to compensate.
-                            replaceRange = projectDocument.XmlPositions.ExtendLeft(replaceRange, byCharCount: 1);
-                        }
+                        // Replace any characters that were typed to trigger the completion.
+                        if (triggerCharacters != null)
+                            replaceRange = projectDocument.XmlPositions.ExtendLeft(replaceRange, byCharCount: triggerCharacters.Length);
 
                         Log.Verbose("Offering completions to replace child element @ {ReplaceRange} of {ElementName} @ {Position:l}",
-                            replaceElement.Range,
+                            replaceRange,
                             "ItemGroup",
                             location.Position
                         );

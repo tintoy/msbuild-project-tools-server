@@ -45,6 +45,9 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
         /// <param name="location">
         ///     The <see cref="XmlLocation"/> where completions are requested.
         /// </param>
+        /// <param name="triggerCharacters">
+        ///     The character(s), if any, that triggered completion.
+        /// </param>
         /// <param name="projectDocument">
         ///     The <see cref="ProjectDocument"/> that contains the <paramref name="location"/>.
         /// </param>
@@ -54,7 +57,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
         /// <returns>
         ///     A <see cref="Task{TResult}"/> that resolves either a <see cref="CompletionList"/>s, or <c>null</c> if no completions are provided.
         /// </returns>
-        public override async Task<CompletionList> ProvideCompletions(XmlLocation location, ProjectDocument projectDocument, CancellationToken cancellationToken = default(CancellationToken))
+        public override async Task<CompletionList> ProvideCompletions(XmlLocation location, ProjectDocument projectDocument, string triggerCharacters, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (location == null)
                 throw new ArgumentNullException(nameof(location));

@@ -45,13 +45,16 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
         /// <param name="projectDocument">
         ///     The <see cref="ProjectDocument"/> that contains the <paramref name="location"/>.
         /// </param>
+        /// <param name="triggerCharacters">
+        ///     The character(s), if any, that triggered completion.
+        /// </param>
         /// <param name="cancellationToken">
         ///     A <see cref="CancellationToken"/> that can be used to cancel the operation.
         /// </param>
         /// <returns>
         ///     A <see cref="Task{TResult}"/> that resolves either a <see cref="CompletionList"/>s, or <c>null</c> if no completions are provided.
         /// </returns>
-        public override async Task<CompletionList> ProvideCompletions(XmlLocation location, ProjectDocument projectDocument, CancellationToken cancellationToken = default(CancellationToken))
+        public override async Task<CompletionList> ProvideCompletions(XmlLocation location, ProjectDocument projectDocument, string triggerCharacters, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (location == null)
                 throw new ArgumentNullException(nameof(location));
@@ -72,15 +75,22 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
 
                     return null;
                 }
-            if (replaceElement != null)
+            
+                if (replaceElement != null)
                 {
+                    Range replaceRange = replaceElement.Range;
+
+                    // Replace any characters that were typed to trigger the completion.
+                    if (triggerCharacters != null)
+                        replaceRange = projectDocument.XmlPositions.ExtendLeft(replaceRange, byCharCount: triggerCharacters.Length);
+
                     Log.Verbose("Offering completions to replace element {ElementName} @ {ReplaceRange:l}",
                         replaceElement.Name,
-                        replaceElement.Range
+                        replaceRange
                     );
 
                     completions.AddRange(
-                        GetCompletionItems(replaceElement.Range)
+                        GetCompletionItems(replaceRange)
                     );
                 }
                 else
