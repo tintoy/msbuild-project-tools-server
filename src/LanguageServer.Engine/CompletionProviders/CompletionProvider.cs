@@ -97,6 +97,9 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
         /// </returns>
         protected virtual bool HandleTriggerCharacters(string triggerCharacters, ProjectDocument projectDocument, ref Range targetRange)
         {
+            if (projectDocument == null)
+                throw new ArgumentNullException(nameof(projectDocument));
+
             // Replace any characters that were typed to trigger the completion.
             if (triggerCharacters != null)
             {
