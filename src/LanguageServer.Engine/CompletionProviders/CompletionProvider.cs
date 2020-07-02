@@ -84,7 +84,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
         ///     Handle characters (if any) that triggered the completion.
         /// </summary>
         /// <param name="projectDocument">
-        ///     The <see cref="ProjectDocument"/> that contains the <paramref name="location"/>.
+        ///     The <see cref="ProjectDocument"/> that contains the <paramref name="targetRange"/>.
         /// </param>
         /// <param name="triggerCharacters">
         ///     The character(s), if any, that triggered completion.
