@@ -64,7 +64,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
 
             List<CompletionItem> completions = new List<CompletionItem>();
 
-            Log.Verbose("Evaluate completions for {XmlLocation:l} (trigger characters = {TriggerCharacters}", location, triggerCharacters);
+            Log.Verbose("Evaluate completions for {XmlLocation:l} (trigger characters = {TriggerCharacters})", location, triggerCharacters);
 
             using (await projectDocument.Lock.ReaderLockAsync())
             {
