@@ -79,5 +79,35 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
         ///     The sort text.
         /// </returns>
         protected virtual string GetItemSortText(string completionLabel, int? priority = null) => $"{priority ?? Priority:0000}{completionLabel}";
+
+        /// <summary>
+        ///     Handle characters (if any) that triggered the completion.
+        /// </summary>
+        /// <param name="projectDocument">
+        ///     The <see cref="ProjectDocument"/> that contains the <paramref name="location"/>.
+        /// </param>
+        /// <param name="triggerCharacters">
+        ///     The character(s), if any, that triggered completion.
+        /// </param>
+        /// <param name="targetRange">
+        ///     The target <see cref="Range"/> for completions.
+        /// </param>
+        /// <returns>
+        ///     <c>true</c>, if any trigger characters were handled (i.e. the selection was extended); otherwise, <c>false</c>.
+        /// </returns>
+        protected virtual bool HandleTriggerCharacters(string triggerCharacters, ProjectDocument projectDocument, ref Range targetRange)
+        {
+            // Replace any characters that were typed to trigger the completion.
+            if (triggerCharacters != null)
+            {
+                targetRange = projectDocument.XmlPositions.ExtendLeft(targetRange, byCharCount: triggerCharacters.Length);
+
+                Log.Verbose("Completion was triggered by typing one or more characters; target range will be extended by {TriggerCharacterCount} characters toward start of document (now: {TargetRange}).", triggerCharacters.Length, targetRange);
+
+                return true;
+            }
+
+            return false;
+        }
     }
 }

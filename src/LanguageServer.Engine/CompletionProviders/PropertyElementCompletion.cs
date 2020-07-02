@@ -98,12 +98,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
                 }
 
                 // Replace any characters that were typed to trigger the completion.
-                if (triggerCharacters != null)
-                {
-                    targetRange = projectDocument.XmlPositions.ExtendLeft(targetRange, byCharCount: triggerCharacters.Length);
-
-                    Log.Verbose("Completion was triggered by typing one or more characters; target range will be extended by {TriggerCharacterCount} characters toward start of document (now: {TargetRange}).", triggerCharacters.Length, targetRange);
-                }
+                HandleTriggerCharacters(triggerCharacters, projectDocument, ref targetRange);
 
                 completions.AddRange(
                     GetCompletionItems(projectDocument, targetRange)
