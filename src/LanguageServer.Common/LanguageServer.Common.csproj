@@ -9,7 +9,7 @@
     <Import Project="../Common.props" />
 
     <ItemGroup>
-        <PackageReference Include="Microsoft.Build" Version="16.5.0" />
+        <PackageReference Include="Microsoft.Build" Version="16.7.0" />
         <PackageReference Include="Microsoft.Language.Xml" Version="1.1.14" />
         <PackageReference Include="Newtonsoft.Json" Version="10.0.3" />
         <PackageReference Include="NuGet.Client" Version="4.0.0" />
