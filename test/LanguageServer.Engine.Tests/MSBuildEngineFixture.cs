@@ -47,7 +47,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests
     ///     The collection-fixture binding for <see cref="MSBuildEngineFixture"/>.
     /// </summary>
     [CollectionDefinition("MSBuild Engine")]
-    sealed class MSBuildEngineFixtureCollection
+    public sealed class MSBuildEngineFixtureCollection
         : ICollectionFixture<MSBuildEngineFixture>
     {
     }
