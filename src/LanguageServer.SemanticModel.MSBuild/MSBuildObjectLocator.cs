@@ -12,7 +12,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
     /// <summary>
     ///     A facility for looking up MSBuild project members by textual location.
     /// </summary>
-    public class MSBuildLocator
+    public class MSBuildObjectLocator
     {
         /// <summary>
         ///     The ranges for all XML objects in the document with positional annotations.
@@ -51,7 +51,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
         readonly TextPositions _xmlPositions;
 
         /// <summary>
-        ///     Create a new <see cref="MSBuildLocator"/>.
+        ///     Create a new <see cref="MSBuildObjectLocator"/>.
         /// </summary>
         /// <param name="project">
         ///     The MSBuild project.
@@ -62,7 +62,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
         /// <param name="xmlPositions">
         ///     The position-lookup for the project XML.
         /// </param>
-        public MSBuildLocator(Project project, XmlLocator projectXmlLocator, TextPositions xmlPositions)
+        public MSBuildObjectLocator(Project project, XmlLocator projectXmlLocator, TextPositions xmlPositions)
         {
             if (project == null)
                 throw new ArgumentNullException(nameof(project));

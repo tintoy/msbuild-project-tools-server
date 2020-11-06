@@ -207,7 +207,7 @@ namespace MSBuildProjectTools.LanguageServer.Documents
         /// <summary>
         ///     The project MSBuild object-lookup facility.
         /// </summary>
-        protected MSBuildLocator MSBuildLocator { get; private set; }
+        protected MSBuildObjectLocator MSBuildLocator { get; private set; }
 
         /// <summary>
         ///     MSBuild objects in the project that correspond to locations in the file.
@@ -296,7 +296,7 @@ namespace MSBuildProjectTools.LanguageServer.Documents
 
             bool loaded = TryLoadMSBuildProject();
             if (loaded)
-                MSBuildLocator = new MSBuildLocator(MSBuildProject, XmlLocator, XmlPositions);
+                MSBuildLocator = new MSBuildObjectLocator(MSBuildProject, XmlLocator, XmlPositions);
             else
                 MSBuildLocator = null;
 
@@ -331,7 +331,7 @@ namespace MSBuildProjectTools.LanguageServer.Documents
 
             bool loaded = TryLoadMSBuildProject();
             if (loaded)
-                MSBuildLocator = new MSBuildLocator(MSBuildProject, XmlLocator, XmlPositions);
+                MSBuildLocator = new MSBuildObjectLocator(MSBuildProject, XmlLocator, XmlPositions);
             else
                 MSBuildLocator = null;
 
@@ -700,6 +700,8 @@ namespace MSBuildProjectTools.LanguageServer.Documents
             List<MSBuildTaskAssemblyMetadata> metadata = new List<MSBuildTaskAssemblyMetadata>();
             foreach (string taskAssemblyFile in taskAssemblyFiles)
             {
+                Log.Verbose("Scanning assembly {TaskAssemblyFile} for task metadata...", taskAssemblyFile);
+
                 if (!File.Exists(taskAssemblyFile))
                 {
                     Log.Information("Skipped scan of task metadata for assembly {TaskAssemblyFile} (file not found).", taskAssemblyFile);
@@ -711,6 +713,8 @@ namespace MSBuildProjectTools.LanguageServer.Documents
 
                 MSBuildTaskAssemblyMetadata assemblyMetadata = await Workspace.TaskMetadataCache.GetAssemblyMetadata(taskAssemblyFile);
                 metadata.Add(assemblyMetadata);
+
+                Log.Verbose("Completed scanning of assembly {TaskAssemblyFile} for task metadata ({DiscoveredTaskCount} tasks discovered).", taskAssemblyFile, assemblyMetadata.Tasks.Count);
             }
 
             // Persist any changes to cached metadata.

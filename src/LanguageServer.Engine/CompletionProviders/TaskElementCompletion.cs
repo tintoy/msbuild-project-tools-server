@@ -99,30 +99,30 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
                     return null;
                 }
                 
+                Range targetRange = replaceElement?.Range ?? location.Position.ToEmptyRange();
+                
+                // Replace any characters that were typed to trigger the completion.
+                HandleTriggerCharacters(triggerCharacters, projectDocument, ref targetRange);
+
                 if (replaceElement != null)
                 {
-                    Range targetRange = replaceElement.Range;
-
-                    // Replace any characters that were typed to trigger the completion.
-                    HandleTriggerCharacters(triggerCharacters, projectDocument, ref targetRange);
-
                     Log.Verbose("Offering completions to replace element {ElementName} @ {ReplaceRange:l}",
                         replaceElement.Name,
                         targetRange
                     );
-
-                    Dictionary<string, MSBuildTaskMetadata> projectTasks = await GetProjectTasks(projectDocument);
-
-                    completions.AddRange(
-                        GetCompletionItems(projectDocument, projectTasks, targetRange)
-                    );
                 }
                 else
                 {
-                    Log.Verbose("Not offering any completions for {XmlLocation:l} (no element to replace at this position).", location);
-
-                    return null;
+                    Log.Verbose("Offering completions to create task element @ {ReplaceRange:l}",
+                        targetRange
+                    );
                 }
+
+                Dictionary<string, MSBuildTaskMetadata> projectTasks = await GetProjectTasks(projectDocument);
+
+                completions.AddRange(
+                    GetCompletionItems(projectDocument, projectTasks, targetRange)
+                );
             }
 
             Log.Verbose("Offering {CompletionCount} completion(s) for {XmlLocation:l}", completions.Count, location);

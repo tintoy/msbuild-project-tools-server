@@ -1,8 +1,9 @@
 ﻿using Autofac;
+using Microsoft.Build.Locator;
 using OmniSharp.Extensions.LanguageServer;
 using Serilog;
 using System;
-using System.Collections.Generic;
+using System.Linq;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -36,6 +37,8 @@ namespace MSBuildProjectTools.LanguageServer
             try
             {
                 AutoDetectExtensionDirectory();
+
+                DiscoverMSBuildEngine();
 
                 return AsyncMain().GetAwaiter().GetResult();
             }
@@ -152,6 +155,28 @@ namespace MSBuildProjectTools.LanguageServer
             }
             extensionDir = Path.GetFullPath(extensionDir);
             Environment.SetEnvironmentVariable("MSBUILD_PROJECT_TOOLS_DIR", extensionDir);
+        }
+
+        /// <summary>
+        ///     Find and use the latest version of the MSBuild engine.
+        /// </summary>
+        static void DiscoverMSBuildEngine()
+        {
+            var queryOptions = new VisualStudioInstanceQueryOptions
+            {
+                // We can only load the .NET Core MSBuild engine
+                DiscoveryTypes = DiscoveryType.DotNetSdk
+            };
+
+            VisualStudioInstance latestInstance = MSBuildLocator
+                .QueryVisualStudioInstances(queryOptions)
+                .OrderBy(instance => instance.Version)
+                .FirstOrDefault();
+
+            if (latestInstance == null)
+                throw new Exception("Cannot locate MSBuild engine.");
+
+            MSBuildLocator.RegisterInstance(latestInstance);
         }
     }
 }

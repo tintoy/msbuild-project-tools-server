@@ -16,6 +16,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests
     /// <summary>
     ///     Tests for MSBuild integration.
     /// </summary>
+    [Collection("MSBuild Engine")]
     public class MSBuildTests
         : TestBase
     {
