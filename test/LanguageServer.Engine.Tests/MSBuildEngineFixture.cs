@@ -33,8 +33,11 @@ namespace MSBuildProjectTools.LanguageServer.Tests
                 DiscoveryTypes = DiscoveryType.DotNetSdk
             };
 
-            VisualStudioInstance latestInstance = MSBuildLocator
+            VisualStudioInstance[] allInstances = MSBuildLocator
                 .QueryVisualStudioInstances(queryOptions)
+                .ToArray();
+
+            VisualStudioInstance latestInstance = allInstances
                 .OrderByDescending(instance => instance.Version)
                 .FirstOrDefault(instance =>
                     // The tests that depend on this fixture only work with the .NET Core 3.1 SDK
@@ -44,7 +47,11 @@ namespace MSBuildProjectTools.LanguageServer.Tests
                 );
 
             if (latestInstance == null)
-                throw new Exception($"Cannot locate MSBuild engine for .NET Core {TargetSdkMinVersion.Major}.{TargetSdkMinVersion.Minor} SDK ({TargetSdkMinVersion} <= SDK version <= {TargetSdkMaxVersion}).");
+            {
+                string foundVersions = String.Join(", ", allInstances.Select(instance => instance.Version));
+
+                throw new Exception($"Cannot locate MSBuild engine for .NET Core {TargetSdkMinVersion.Major}.{TargetSdkMinVersion.Minor} SDK ({TargetSdkMinVersion} <= SDK version <= {TargetSdkMaxVersion}). Found versions: [{foundVersions}].");   
+            }
 
             MSBuildLocator.RegisterInstance(latestInstance);
         }
