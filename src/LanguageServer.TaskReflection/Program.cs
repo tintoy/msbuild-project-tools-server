@@ -92,8 +92,10 @@ namespace MSBuildProjectTools.LanguageServer.TaskReflection
                 }
 
                 taskTypes =
-                    taskTypes.Where(
-                        type => !type.IsNested && type.IsClass && !type.IsAbstract && type.GetInterfaces().Any(interfaceType => interfaceType.FullName == "Microsoft.Build.Framework.ITask")
+                    taskTypes.Where(type =>
+                        type != null // Type could not be loaded (see typeLoadError.LoaderExceptions above)
+                        &&
+                        !type.IsNested && type.IsClass && !type.IsAbstract && type.GetInterfaces().Any(interfaceType => interfaceType.FullName == "Microsoft.Build.Framework.ITask")
                     )
                     .ToArray();
 
