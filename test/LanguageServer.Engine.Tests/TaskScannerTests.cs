@@ -92,7 +92,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests
             MSBuildTaskScanner.TaskReflectorAssemblyFile = new FileInfo(
                 Path.Combine(
                     Path.GetDirectoryName(typeof(TaskScannerTests).Assembly.Location),
-                    "..", "..", "..", "..", "..", "src", "LanguageServer.TaskReflection", "bin", "debug", "netcoreapp3.0",
+                    "..", "..", "..", "..", "..", "src", "LanguageServer.TaskReflection", "bin", "debug", "netcoreapp3.1",
                     "MSBuildProjectTools.LanguageServer.TaskReflection.dll"
                 )
             );

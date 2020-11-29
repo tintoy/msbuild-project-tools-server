@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
-        <TargetFramework>netcoreapp3.0</TargetFramework>
+        <TargetFramework>netcoreapp3.1</TargetFramework>
         <AssemblyName>MSBuildProjectTools.LanguageServer.SemanticModel.MSBuild</AssemblyName>
         <RootNamespace>MSBuildProjectTools.LanguageServer.SemanticModel</RootNamespace>
     </PropertyGroup>

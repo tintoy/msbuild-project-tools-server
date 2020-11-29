@@ -165,7 +165,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
                 SortText = Priority + "<TargetFramework>",
                 TextEdit = new TextEdit
                 {
-                    NewText = "<TargetFramework>${1|netstandard1.0,netstandard1.1,netstandard1.2,netstandard1.3,netstandard1.4,netstandard1.5,netstandard1.6,netstandard2.0,netcoreapp1.0,netcoreapp1.1,netcoreapp3.0,net4,net451,net452,net46,net461,net462,net47|}</TargetFramework>",
+                    NewText = "<TargetFramework>${1|netstandard1.0,netstandard1.1,netstandard1.2,netstandard1.3,netstandard1.4,netstandard1.5,netstandard1.6,netstandard2.0,netcoreapp1.0,netcoreapp1.1,netcoreapp3.0,netcoreapp3.1,net4,net451,net452,net46,net461,net462,net47,net5|}</TargetFramework>",
                     Range = replaceRangeLsp
                 },
                 InsertTextFormat = InsertTextFormat.Snippet
