@@ -150,12 +150,6 @@ namespace MSBuildProjectTools.LanguageServer
         }
 
         /// <summary>
-        ///     Disable the language service?
-        /// </summary>
-        [JsonProperty("useClassicProvider")]
-        public bool DisableLanguageService { get; set; } = false;
-
-        /// <summary>
         ///     Language service features (if any) to disable.
         /// </summary>
         [JsonProperty("disable", ObjectCreationHandling = ObjectCreationHandling.Reuse)]
