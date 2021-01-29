@@ -50,7 +50,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests
             {
                 string foundVersions = String.Join(", ", allInstances.Select(instance => instance.Version));
 
-                throw new Exception($"Cannot locate MSBuild engine for .NET Core {TargetSdkMinVersion.Major}.{TargetSdkMinVersion.Minor} SDK ({TargetSdkMinVersion} <= SDK version <= {TargetSdkMaxVersion}). Found versions: [{foundVersions}].");   
+                throw new Exception($"Cannot locate MSBuild engine for .NET SDK v{TargetSdkMinVersion.Major}.{TargetSdkMinVersion.Minor} ({TargetSdkMinVersion} <= SDK version <= {TargetSdkMaxVersion}). Found version(s): [{foundVersions}].");
             }
 
             MSBuildLocator.RegisterInstance(latestInstance);

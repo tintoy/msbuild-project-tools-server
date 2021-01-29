@@ -23,6 +23,16 @@ namespace MSBuildProjectTools.LanguageServer
     static class Program
     {
         /// <summary>
+        /// The minimum version of the .NET Core SDK supported by the language server.
+        /// </summary>
+        static readonly Version TargetSdkMinVersion = new Version("5.0.102");
+
+        /// <summary>
+        /// The maximum version of the .NET Core SDK supported by the language server.
+        /// </summary>
+        static readonly Version TargetSdkMaxVersion = new Version("5.0.999");
+        
+        /// <summary>
         ///     The main program entry-point.
         /// </summary>
         /// <returns>
@@ -168,13 +178,25 @@ namespace MSBuildProjectTools.LanguageServer
                 DiscoveryTypes = DiscoveryType.DotNetSdk
             };
 
-            VisualStudioInstance latestInstance = MSBuildLocator
+            VisualStudioInstance[] allInstances = MSBuildLocator
                 .QueryVisualStudioInstances(queryOptions)
-                .OrderBy(instance => instance.Version)
-                .FirstOrDefault();
+                .ToArray();
+
+            VisualStudioInstance latestInstance = allInstances
+                .OrderByDescending(instance => instance.Version)
+                .FirstOrDefault(instance =>
+                    // We need a version of MSBuild for the currently-supported SDK
+                    instance.Version >= TargetSdkMinVersion
+                    &&
+                    instance.Version <= TargetSdkMaxVersion
+                );
 
             if (latestInstance == null)
-                throw new Exception("Cannot locate MSBuild engine.");
+            {
+                string foundVersions = String.Join(", ", allInstances.Select(instance => instance.Version));
+
+                throw new Exception($"Cannot locate MSBuild engine for .NET SDK v{TargetSdkMinVersion.Major}.{TargetSdkMinVersion.Minor} ({TargetSdkMinVersion} <= SDK version <= {TargetSdkMaxVersion}). Found version(s): [{foundVersions}].");
+            }
 
             MSBuildLocator.RegisterInstance(latestInstance);
         }
