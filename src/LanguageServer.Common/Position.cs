@@ -126,9 +126,6 @@ namespace MSBuildProjectTools.LanguageServer
         /// </returns>
         public Position RelativeTo(Position position)
         {
-            if (position == null)
-                throw new ArgumentNullException(nameof(position));
-
             if (IsOneBased)
                 position = position.ToOneBased();
             else if (IsZeroBased)
@@ -156,9 +153,6 @@ namespace MSBuildProjectTools.LanguageServer
         /// </remarks>
         public Position WithOrigin(Position position)
         {
-            if (position == null)
-                throw new ArgumentNullException(nameof(position));
-
             if (IsOneBased)
                 position = position.ToOneBased();
             else if (IsZeroBased)
@@ -230,9 +224,6 @@ namespace MSBuildProjectTools.LanguageServer
         /// </returns>
         public bool Equals(Position other)
         {
-            if (other == null)
-                return false;
-
             if (IsOneBased)
                 other = other.ToOneBased();
             else if (IsZeroBased)
@@ -252,9 +243,6 @@ namespace MSBuildProjectTools.LanguageServer
         /// </returns>
         public int CompareTo(Position other)
         {
-            if (other == null)
-                throw new ArgumentNullException(nameof(other));
-
             if (IsOneBased)
                 other = other.ToOneBased();
             else if (IsZeroBased)
@@ -278,9 +266,6 @@ namespace MSBuildProjectTools.LanguageServer
         /// </returns>
         public int CompareTo(Range range)
         {
-            if (range == null)
-                throw new ArgumentNullException(nameof(range));
-            
             int comparison = CompareTo(range.Start);
             if (comparison < 0)
                 return comparison;
@@ -364,14 +349,6 @@ namespace MSBuildProjectTools.LanguageServer
         /// </returns>
         public static bool operator==(Position position1, Position position2)
         {
-            bool isPosition1Null = ReferenceEquals(position1, null);
-            bool isPosition2Null = ReferenceEquals(position2, null);
-            if (isPosition1Null && isPosition2Null)
-                return true;
-
-            if (isPosition1Null || isPosition2Null)
-                return false;
-
             return position1.Equals(position2);
         }
 
@@ -389,14 +366,6 @@ namespace MSBuildProjectTools.LanguageServer
         /// </returns>
         public static bool operator!=(Position position1, Position position2)
         {
-            bool isPosition1Null = ReferenceEquals(position1, null);
-            bool isPosition2Null = ReferenceEquals(position2, null);
-            if (isPosition1Null && isPosition2Null)
-                return false;
-
-            if (isPosition1Null || isPosition2Null)
-                return true;
-
             return !position1.Equals(position2);
         }
 
@@ -414,12 +383,6 @@ namespace MSBuildProjectTools.LanguageServer
         /// </returns>
         public static bool operator>(Position position1, Position position2)
         {
-            if (position1 == null)
-                throw new ArgumentNullException(nameof(position1));
-
-            if (position2 == null)
-                throw new ArgumentNullException(nameof(position2));
-            
             return position1.CompareTo(position2) > 0;
         }
 
@@ -437,12 +400,6 @@ namespace MSBuildProjectTools.LanguageServer
         /// </returns>
         public static bool operator>=(Position position1, Position position2)
         {
-            if (position1 == null)
-                throw new ArgumentNullException(nameof(position1));
-
-            if (position2 == null)
-                throw new ArgumentNullException(nameof(position2));
-            
             return position1.CompareTo(position2) >= 0;
         }
 
@@ -460,12 +417,6 @@ namespace MSBuildProjectTools.LanguageServer
         /// </returns>
         public static bool operator<(Position position1, Position position2)
         {
-            if (position1 == null)
-                throw new ArgumentNullException(nameof(position1));
-
-            if (position2 == null)
-                throw new ArgumentNullException(nameof(position2));
-            
             return position1.CompareTo(position2) < 0;
         }
 
@@ -483,12 +434,6 @@ namespace MSBuildProjectTools.LanguageServer
         /// </returns>
         public static bool operator<=(Position position1, Position position2)
         {
-            if (position1 == null)
-                throw new ArgumentNullException(nameof(position1));
-
-            if (position2 == null)
-                throw new ArgumentNullException(nameof(position2));
-            
             return position1.CompareTo(position2) <= 0;
         }
 
@@ -506,12 +451,6 @@ namespace MSBuildProjectTools.LanguageServer
         /// </returns>
         public static bool operator>(Position position, Range range)
         {
-            if (position == null)
-                throw new ArgumentNullException(nameof(position));
-
-            if (range == null)
-                throw new ArgumentNullException(nameof(range));
-            
             return position.CompareTo(range) > 0;
         }
 
@@ -529,12 +468,6 @@ namespace MSBuildProjectTools.LanguageServer
         /// </returns>
         public static bool operator>=(Position position, Range range)
         {
-            if (position == null)
-                throw new ArgumentNullException(nameof(position));
-
-            if (range == null)
-                throw new ArgumentNullException(nameof(range));
-            
             return position.CompareTo(range) >= 0;
         }
 
@@ -552,12 +485,6 @@ namespace MSBuildProjectTools.LanguageServer
         /// </returns>
         public static bool operator<(Position position, Range range)
         {
-            if (position == null)
-                throw new ArgumentNullException(nameof(position));
-
-            if (range == null)
-                throw new ArgumentNullException(nameof(range));
-            
             return position.CompareTo(range) < 0;
         }
 
@@ -575,12 +502,6 @@ namespace MSBuildProjectTools.LanguageServer
         /// </returns>
         public static bool operator<=(Position position, Range range)
         {
-            if (position == null)
-                throw new ArgumentNullException(nameof(position));
-
-            if (range == null)
-                throw new ArgumentNullException(nameof(range));
-            
             return position.CompareTo(range) <= 0;
         }
     }

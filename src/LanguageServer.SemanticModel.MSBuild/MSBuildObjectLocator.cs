@@ -102,9 +102,6 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
         /// </returns>
         public MSBuildObject Find(Position position)
         {
-            if (position == null)
-                throw new ArgumentNullException(nameof(position));
-
             // Internally, we always use 1-based indexing because this is what the System.Xml APIs use (and I'd rather keep things simple).
             position = position.ToOneBased();
 

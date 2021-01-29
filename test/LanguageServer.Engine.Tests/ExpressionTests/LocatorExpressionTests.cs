@@ -23,7 +23,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests.ExpressionTests
         ///     The directory for test files.
         /// </summary>
         static readonly DirectoryInfo TestDirectory = new DirectoryInfo(Path.GetDirectoryName(
-            new Uri(typeof(XmlLocatorTests).Assembly.CodeBase).LocalPath
+            typeof(XmlLocatorTests).Assembly.Location
         ));
 
         /// <summary>

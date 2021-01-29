@@ -263,9 +263,6 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
             if (syntaxNode == null)
                 throw new ArgumentNullException(nameof(syntaxNode));
 
-            if (position == null)
-                throw new ArgumentNullException(nameof(position));
-
             if (xmlPositions == null)
                 throw new ArgumentNullException(nameof(xmlPositions));
 
@@ -320,9 +317,6 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
             if (element == null)
                 throw new ArgumentNullException(nameof(element));
 
-            if (position == null)
-                throw new ArgumentNullException(nameof(position));
-
             if (xmlPositions == null)
                 throw new ArgumentNullException(nameof(xmlPositions));
 
@@ -356,9 +350,6 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
         {
             if (element == null)
                 throw new ArgumentNullException(nameof(element));
-
-            if (position == null)
-                throw new ArgumentNullException(nameof(position));
 
             if (xmlPositions == null)
                 throw new ArgumentNullException(nameof(xmlPositions));

@@ -39,7 +39,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests
         /// </param>
         [InlineData("NuGet.Build.Tasks.dll")]
         [InlineData("Microsoft.Build.Tasks.Core.dll")]
-        [InlineData("Sdks/Microsoft.NET.Sdk/tools/netcoreapp2.1/Microsoft.NET.Build.Tasks.dll")]
+        [InlineData("Sdks/Microsoft.NET.Sdk/tools/net5.0/Microsoft.NET.Build.Tasks.dll")]
         [Theory(DisplayName = "TaskScanner can get tasks from framework task assembly ")]
         public async Task Scan_FrameworkTaskAssembly_Success(string fileName)
         {
@@ -92,7 +92,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests
             MSBuildTaskScanner.TaskReflectorAssemblyFile = new FileInfo(
                 Path.Combine(
                     Path.GetDirectoryName(typeof(TaskScannerTests).Assembly.Location),
-                    "..", "..", "..", "..", "..", "src", "LanguageServer.TaskReflection", "bin", "debug", "netcoreapp3.1",
+                    "..", "..", "..", "..", "..", "src", "LanguageServer.TaskReflection", "bin", "debug", "net5.0",
                     "MSBuildProjectTools.LanguageServer.TaskReflection.dll"
                 )
             );

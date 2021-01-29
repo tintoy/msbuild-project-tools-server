@@ -27,9 +27,6 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
         /// </param>
         public XmlLocation(Position position, int absolutePosition, XSNode node, XmlLocationFlags flags)
         {
-            if (position == null)
-                throw new ArgumentNullException(nameof(position));
-
             if (node == null)
                 throw new ArgumentNullException(nameof(node));
             

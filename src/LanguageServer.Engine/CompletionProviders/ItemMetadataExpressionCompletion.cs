@@ -177,9 +177,6 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
             if (projectDocument == null)
                 throw new ArgumentNullException(nameof(projectDocument));
 
-            if (replaceRange == null)
-                throw new ArgumentNullException(nameof(replaceRange));
-
             LspModels.Range replaceRangeLsp = replaceRange.ToLsp();
 
             int priority = Priority;

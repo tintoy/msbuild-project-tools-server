@@ -125,9 +125,6 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
         /// </returns>
         public IEnumerable<CompletionItem> GetCompletionItems(Range replaceRange)
         {
-            if (replaceRange == null)
-                throw new ArgumentNullException(nameof(replaceRange));
-
             LspModels.Range completionRange = replaceRange.ToLsp();
             
             // <!--  -->

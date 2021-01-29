@@ -1,4 +1,4 @@
-version: 0.3.11.{build}
+version: 0.3.12.{build}
 image: Visual Studio 2019
 build_script:
 - ps: >-
@@ -12,9 +12,9 @@ build_script:
 
     & $dotnet pack -o "$PWD\out\packages" /p:Version="$env:APPVEYOR_BUILD_VERSION"
 
-    & $dotnet publish "$PWD\src\LanguageServer\LanguageServer.csproj" -f netcoreapp3.1 -o "$PWD\out\language-server" /p:Version="$env:APPVEYOR_BUILD_VERSION"
+    & $dotnet publish "$PWD\src\LanguageServer\LanguageServer.csproj" -f net5.0 -o "$PWD\out\language-server" /p:Version="$env:APPVEYOR_BUILD_VERSION"
 
-    & $dotnet publish "$PWD\src\LanguageServer.TaskReflection\LanguageServer.TaskReflection.csproj" -f netcoreapp3.1 -o "$PWD\out\task-reflection" /p:Version="$env:APPVEYOR_BUILD_VERSION"
+    & $dotnet publish "$PWD\src\LanguageServer.TaskReflection\LanguageServer.TaskReflection.csproj" -f net5.0 -o "$PWD\out\task-reflection" /p:Version="$env:APPVEYOR_BUILD_VERSION"
 test_script:
 - ps: >-
     $dotnet = Get-Command 'dotnet'

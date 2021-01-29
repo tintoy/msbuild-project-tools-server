@@ -20,7 +20,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests
         ///     The directory for test files.
         /// </summary>
         static readonly DirectoryInfo TestDirectory = new DirectoryInfo(Path.GetDirectoryName(
-            new Uri(typeof(XSParserTests).Assembly.CodeBase).LocalPath
+            typeof(XSParserTests).Assembly.Location
         ));
 
         /// <summary>

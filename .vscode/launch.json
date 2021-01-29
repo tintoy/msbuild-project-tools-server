@@ -9,7 +9,7 @@
            "type": "coreclr",
            "request": "launch",
            "preLaunchTask": "build",
-           "program": "${workspaceRoot}/src/LanguageServer/bin/Debug/netcoreapp3.1/MSBuildProjectTools.LanguageServer.Host.dll",
+           "program": "${workspaceRoot}/src/LanguageServer/bin/Debug/net5.0/MSBuildProjectTools.LanguageServer.Host.dll",
            "args": [],
            "cwd": "${workspaceRoot}",
            "stopAtEntry": true,
@@ -25,7 +25,7 @@
             "request": "launch",
             "preLaunchTask": "build",
             // If you have changed target frameworks, make sure to update the program path.
-            "program": "${workspaceFolder}/test/LanguageServer.Engine.Tests/bin/Debug/netcoreapp3.1/MSBuildProjectTools.LanguageServer.Engine.Tests.dll",
+            "program": "${workspaceFolder}/test/LanguageServer.Engine.Tests/bin/Debug/net5.0/MSBuildProjectTools.LanguageServer.Engine.Tests.dll",
             "args": [],
             "cwd": "${workspaceFolder}/test/LanguageServer.Engine.Tests",
             // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window

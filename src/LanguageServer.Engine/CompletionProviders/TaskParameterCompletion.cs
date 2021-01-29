@@ -169,9 +169,6 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
         /// </returns>
         public IEnumerable<CompletionItem> GetCompletionItems(ProjectDocument projectDocument, MSBuildTaskMetadata taskMetadata, HashSet<string> existingAttributeNames, Range replaceRange, PaddingType needsPadding)
         {
-            if (replaceRange == null)
-                throw new ArgumentNullException(nameof(replaceRange));
-
             LspModels.Range replaceRangeLsp = replaceRange.ToLsp();
 
             foreach (MSBuildTaskParameterMetadata taskParameter in taskMetadata.Parameters.OrderBy(parameter => parameter.Name))

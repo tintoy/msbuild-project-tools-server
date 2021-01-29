@@ -139,9 +139,6 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
         /// </returns>
         public IEnumerable<CompletionItem> GetCompletionItems(ProjectDocument projectDocument, Range replaceRange, HashSet<string> excludeTargetNames)
         {
-            if (replaceRange == null)
-                throw new ArgumentNullException(nameof(replaceRange));
-
             HashSet<string> offeredTargetNames = new HashSet<string>(excludeTargetNames);
             LspModels.Range replaceRangeLsp = replaceRange.ToLsp();
 

@@ -4,7 +4,7 @@ An [LSP](https://github.com/Microsoft/language-server-protocol)-compatible langu
 
 For more information, see [msbuild-project-tools-vscode](https://github.com/tintoy/msbuild-project-tools-vscode).
 
-**Note**: You will need the .NET Core **runtime v3.1.3 (or SDK v3.1.1xx) or newer** installed to use the language service (but your projects can target any version you have installed).
+**Note**: You will need the .NET Core **runtime v5.0.2 (or SDK v5.0.102) or newer** installed to use the language service (but your projects can target any version you have installed).
 
 ## Building from source
 

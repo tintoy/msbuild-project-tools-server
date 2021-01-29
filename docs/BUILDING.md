@@ -7,6 +7,6 @@ You'll need:
 To build:
 
 1. `dotnet restore`
-3. `dotnet publish src/LanguageServer/LanguageServer.csproj -f netcoreapp3.1 -o $PWD/out/language-server`
-3. `dotnet publish src/LanguageServer.TaskReflection/LanguageServer.TaskReflection.csproj -f netcoreapp3.1 -o $PWD/out/task-reflection`
+3. `dotnet publish src/LanguageServer/LanguageServer.csproj -f net5.0 -o $PWD/out/language-server`
+3. `dotnet publish src/LanguageServer.TaskReflection/LanguageServer.TaskReflection.csproj -f net5.0 -o $PWD/out/task-reflection`
 

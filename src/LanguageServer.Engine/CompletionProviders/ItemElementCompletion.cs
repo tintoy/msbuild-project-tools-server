@@ -133,9 +133,6 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
         /// </returns>
         public IEnumerable<CompletionItem> GetCompletionItems(ProjectDocument projectDocument, Range replaceRange)
         {
-            if (replaceRange == null)
-                throw new ArgumentNullException(nameof(replaceRange));
-
             LspModels.Range replaceRangeLsp = replaceRange.ToLsp();
 
             HashSet<string> offeredItemNames = new HashSet<string>

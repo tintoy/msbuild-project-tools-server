@@ -69,9 +69,6 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
         /// </returns>
         public bool XmlContains(Position position)
         {
-            if (position == null)
-                throw new ArgumentNullException(nameof(position));
-            
             return XmlRange.Contains(position);
         }
     }

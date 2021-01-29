@@ -51,9 +51,6 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         /// </returns>
         public int GetAbsolutePosition(Position position)
         {
-            if (position == null)
-                throw new ArgumentNullException(nameof(position));
-
             position = position.ToZeroBased();
 
             return GetAbsolutePosition(position.LineNumber, position.ColumnNumber);
@@ -138,9 +135,6 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         /// </returns>
         public int GetLength(Range range)
         {
-            if (range == null)
-                throw new ArgumentNullException(nameof(range));
-            
             return GetDistance(range.Start, range.End);
         }
 
@@ -158,12 +152,6 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         /// </returns>
         public int GetDistance(Position position1, Position position2)
         {
-            if (position1 == null)
-                throw new ArgumentNullException(nameof(position1));
-            
-            if (position2 == null)
-                throw new ArgumentNullException(nameof(position2));
-            
             return GetAbsolutePosition(position2) - GetAbsolutePosition(position1);
         }
 

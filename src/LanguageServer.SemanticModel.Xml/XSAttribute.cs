@@ -35,12 +35,6 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
         public XSAttribute(XmlAttributeSyntax attribute, XSElement element, Range attributeRange, Range nameRange, Range valueRange)
             : base(attribute, attributeRange)
         {
-            if (nameRange == null)
-                throw new ArgumentNullException(nameof(nameRange));
-
-            if (valueRange == null)
-                throw new ArgumentNullException(nameof(valueRange));
-                
             if (element == null)
                 throw new ArgumentNullException(nameof(element));
 

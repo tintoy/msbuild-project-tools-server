@@ -15,12 +15,12 @@ namespace MSBuildProjectTools.LanguageServer.Tests
         /// <summary>
         /// The minimum version of the .NET Core SDK supported by tests that depend on this fixture.
         /// </summary>
-        static readonly Version TargetSdkMinVersion = new Version("3.1.201");
+        static readonly Version TargetSdkMinVersion = new Version("5.0.102");
 
         /// <summary>
         /// The maximum version of the .NET Core SDK supported by tests that depend on this fixture.
         /// </summary>
-        static readonly Version TargetSdkMaxVersion = new Version("3.1.999");
+        static readonly Version TargetSdkMaxVersion = new Version("5.0.999");
 
         /// <summary>
         ///     Create a new <see cref="MSBuildEngineFixture"/>.

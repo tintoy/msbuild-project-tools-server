@@ -38,12 +38,6 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
         protected XSElement(XmlElementSyntaxBase element, Range range, Range nameRange, Range attributesRange, XSElement parent)
             : base(element, range)
         {
-            if (nameRange == null)
-                throw new ArgumentNullException(nameof(nameRange));
-
-            if (nameRange == null)
-                throw new ArgumentNullException(nameof(nameRange));
-
             NameRange = nameRange;
             AttributesRange = attributesRange;
             ParentElement = parent;

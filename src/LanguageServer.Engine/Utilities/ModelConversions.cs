@@ -22,9 +22,6 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         /// </returns>
         public static LspModels.Position ToLsp(this Position position)
         {
-            if (position == null)
-                return null;
-
             position = position.ToZeroBased(); // LSP is zero-based.
 
             return new LspModels.Position(
@@ -44,9 +41,6 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         /// </returns>
         public static Position ToNative(this LspModels.Position position)
         {
-            if (position == null)
-                return Position.Zero;
-
             // LSP is zero-based.
             return Position.FromZeroBased(
                 position.Line,
@@ -65,9 +59,6 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         /// </returns>
         public static LspModels.Range ToLsp(this Range range)
         {
-            if (range == null)
-                return null;
-
             return new LspModels.Range(
                 range.Start.ToLsp(),
                 range.End.ToLsp()
@@ -85,9 +76,6 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         /// </returns>
         public static Range ToNative(this LspModels.Range range)
         {
-            if (range == null)
-                throw new ArgumentNullException(nameof(range));
-
             return new Range(
                 range.Start.ToNative(),
                 range.End.ToNative()

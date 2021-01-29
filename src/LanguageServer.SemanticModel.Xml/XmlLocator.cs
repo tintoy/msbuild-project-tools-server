@@ -78,9 +78,6 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
         /// </returns>
         public XmlLocation Inspect(Position position)
         {
-            if (position == null)
-                throw new ArgumentNullException(nameof(position));
-
             // Internally, we always use 1-based indexing because this is what the System.Xml APIs (and I'd rather keep things simple).
             position = position.ToOneBased();
 
@@ -142,9 +139,6 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
         /// </returns>
         public XSNode FindNode(Position position)
         {
-            if (position == null)
-                throw new ArgumentNullException(nameof(position));
-
             // Internally, we always use 1-based indexing because this is what the MSBuild APIs use (and I'd rather keep things simple).
             position = position.ToOneBased();
 

@@ -255,9 +255,6 @@ namespace MSBuildProjectTools.LanguageServer.Documents
         /// </returns>
         public XmlLocation InspectXml(Position position)
         {
-            if (position == null)
-                throw new ArgumentNullException(nameof(position));
-
             if (!HasXml)
                 throw new InvalidOperationException($"XML for project '{ProjectFile.FullName}' is not loaded.");
 
@@ -554,9 +551,6 @@ namespace MSBuildProjectTools.LanguageServer.Documents
         /// </returns>
         public SyntaxNode GetXmlAtPosition(Position position)
         {
-            if (position == null)
-                throw new ArgumentNullException(nameof(position));
-
             if (!HasXml)
                 throw new InvalidOperationException($"XML for project '{ProjectFile.FullName}' is not loaded.");
 
@@ -642,9 +636,6 @@ namespace MSBuildProjectTools.LanguageServer.Documents
         {
             if (expression == null)
                 throw new ArgumentNullException(nameof(expression));
-
-            if (relativeToPosition == null)
-                throw new ArgumentNullException(nameof(relativeToPosition));
 
             if (!HasXml)
                 throw new InvalidOperationException($"XML for project '{ProjectFile.FullName}' is not loaded.");

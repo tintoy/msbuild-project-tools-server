@@ -152,9 +152,6 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
         /// </returns>
         public IEnumerable<CompletionItem> GetCompletionItems(ProjectDocument projectDocument, Dictionary<string, MSBuildTaskMetadata> projectTasks, Range replaceRange)
         {
-            if (replaceRange == null)
-                throw new ArgumentNullException(nameof(replaceRange));
-
             LspModels.Range replaceRangeLsp = replaceRange.ToLsp();
 
             foreach (string taskName in projectTasks.Keys.OrderBy(name => name))

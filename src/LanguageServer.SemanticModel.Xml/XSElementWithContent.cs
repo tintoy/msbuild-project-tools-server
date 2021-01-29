@@ -41,15 +41,6 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
         public XSElementWithContent(XmlElementSyntax element, Range range, Range nameRange, Range openingTagRange, Range attributesRange, Range contentRange, Range closingTagRange, XSElement parent)
             : base(element, range, nameRange, attributesRange, parent)
         {
-            if (openingTagRange == null)
-                throw new ArgumentNullException(nameof(openingTagRange));
-
-            if (contentRange == null)
-                throw new ArgumentNullException(nameof(contentRange));
-
-            if (closingTagRange == null)
-                throw new ArgumentNullException(nameof(closingTagRange));
-
             OpeningTagRange = openingTagRange;
             ContentRange = contentRange;
             ClosingTagRange = closingTagRange;
