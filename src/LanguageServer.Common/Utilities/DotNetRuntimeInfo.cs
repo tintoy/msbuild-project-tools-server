@@ -12,9 +12,14 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
     public class DotNetRuntimeInfo
     {
         /// <summary>
-        ///     The .NET Core version.
+        ///     The .NET runtime (host) version.
         /// </summary>
-        public string Version { get; set; }
+        public string RuntimeVersion { get; set; }
+
+        /// <summary>
+        ///     The .NET SDK version.
+        /// </summary>
+        public string SdkVersion { get; set; }
 
         /// <summary>
         ///     The .NET Core base directory.
@@ -173,7 +178,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
                         {
                             case "Version":
                             {
-                                runtimeInfo.Version = property[1];
+                                runtimeInfo.SdkVersion = property[1];
 
                                 break;
                             }
@@ -188,6 +193,26 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
                             case "Base Path":
                             {
                                 runtimeInfo.BaseDirectory = property[1];
+
+                                break;
+                            }
+                            case "RID":
+                            {
+                                runtimeInfo.RID = property[1];
+
+                                break;
+                            }
+                        }
+
+                        break;
+                    }
+                    case DotnetInfoSection.Host:
+                    {
+                        switch (property[0])
+                        {
+                            case "Version":
+                            {
+                                runtimeInfo.RuntimeVersion = property[1];
 
                                 break;
                             }

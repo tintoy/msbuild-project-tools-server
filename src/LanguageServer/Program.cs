@@ -172,6 +172,20 @@ namespace MSBuildProjectTools.LanguageServer
         /// </summary>
         static void DiscoverMSBuildEngine()
         {
+            // Assume working directory is VS code's current working directory (i.e. the workspace root).
+            //
+            // Really, until we figure out a way to change the version of MSBuild we're using after the server has started,
+            // we're still going to have problems here.
+            //
+            // In the end we will probably wind up having to move all the MSBuild stuff out to a separate process, and use something like GRPC (or even Akka.NET's remoting) to communicate with it.
+            // It can be stopped and restarted by the language server (even having different instances for different SDK / MSBuild versions).
+            //
+            // This will also ensure that the language server's model doesn't expose any MSBuild objects anywhere.
+            //
+            // For now, though, let's choose the dumb option.
+            DotNetRuntimeInfo runtimeInfo = DotNetRuntimeInfo.GetCurrent();
+            Version targetSdkVersion = new Version(runtimeInfo.SdkVersion);
+
             var queryOptions = new VisualStudioInstanceQueryOptions
             {
                 // We can only load the .NET Core MSBuild engine
@@ -186,16 +200,14 @@ namespace MSBuildProjectTools.LanguageServer
                 .OrderByDescending(instance => instance.Version)
                 .FirstOrDefault(instance =>
                     // We need a version of MSBuild for the currently-supported SDK
-                    instance.Version >= TargetSdkMinVersion
-                    &&
-                    instance.Version <= TargetSdkMaxVersion
+                    instance.Version == targetSdkVersion
                 );
 
             if (latestInstance == null)
             {
                 string foundVersions = String.Join(", ", allInstances.Select(instance => instance.Version));
 
-                throw new Exception($"Cannot locate MSBuild engine for .NET SDK v{TargetSdkMinVersion.Major}.{TargetSdkMinVersion.Minor} ({TargetSdkMinVersion} <= SDK version <= {TargetSdkMaxVersion}). Found version(s): [{foundVersions}].");
+                throw new Exception($"Cannot locate MSBuild engine for .NET SDK v{targetSdkVersion}. This probably means that MSBuild Project Tools cannot find the MSBuild for the current project instance. It did find the following version(s), though: [{foundVersions}].");
             }
 
             MSBuildLocator.RegisterInstance(latestInstance);

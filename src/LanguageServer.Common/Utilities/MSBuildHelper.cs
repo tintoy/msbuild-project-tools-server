@@ -1,6 +1,5 @@
 using Microsoft.Build.Construction;
 using Microsoft.Build.Evaluation;
-using Microsoft.Build.Exceptions;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NuGet.Versioning;
@@ -38,10 +37,10 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
             );
 
         /// <summary>
-        ///     The last .NET Core SDK version that had a "15.0" sub-folder for "Microsoft.Common.props" (later versions have a "Current" sub-folder instead).
+        ///     The last .NET SDK version that had a "15.0" sub-folder for "Microsoft.Common.props" (later versions have a "Current" sub-folder instead).
         /// </summary>
         /// <remarks>
-        ///     2.1.599 is the theoretical highest version number of the 2.1.5xx feature band, which is the last .NET Core SDK that ships .NET Core 2.1 (LTS).
+        ///     2.1.599 is the theoretical highest version number of the 2.1.5xx feature band, which is the last .NET SDK that ships .NET 2.1 (LTS).
         /// </remarks>
         static readonly SemanticVersion NetCoreLastSdkVersionFor150Folder = new SemanticVersion(major: 2, minor: 1, patch: 599);
 
@@ -78,7 +77,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         ///     The base (i.e. solution) directory.
         /// </param>
         /// <param name="runtimeInfo">
-        ///     Information about the current .NET Core runtime.
+        ///     Information about the current .NET runtime.
         /// </param>
         /// <param name="globalPropertyOverrides">
         ///     An optional dictionary containing property values to override.
@@ -95,7 +94,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
                 throw new ArgumentNullException(nameof(runtimeInfo));
 
             if (String.IsNullOrWhiteSpace(runtimeInfo.BaseDirectory))
-                throw new InvalidOperationException("Cannot determine base directory for .NET Core (check the output of 'dotnet --info').");
+                throw new InvalidOperationException("Cannot determine base directory for .NET (check the output of 'dotnet --info').");
 
             Dictionary<string, string> globalProperties = CreateGlobalMSBuildProperties(runtimeInfo, solutionDirectory, globalPropertyOverrides);
             EnsureMSBuildEnvironment(globalProperties);
@@ -103,10 +102,10 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
             ProjectCollection projectCollection = new ProjectCollection(globalProperties) { IsBuildEnabled = false };
 
             SemanticVersion netcoreVersion;
-            if (!SemanticVersion.TryParse(runtimeInfo.Version, out netcoreVersion))
-                throw new FormatException($"Cannot parse .NET Core version '{runtimeInfo.Version}' (does not appear to be a valid semantic version).");
+            if (!SemanticVersion.TryParse(runtimeInfo.SdkVersion, out netcoreVersion))
+                throw new FormatException($"Cannot parse .NET SDK version '{runtimeInfo.SdkVersion}' (does not appear to be a valid semantic version).");
 
-            // Newer versions of the .NET Core SDK use the toolset version "Current" instead of "15.0" (tintoy/msbuild-project-tools-vscode#46).
+            // Newer versions of the .NET SDK use the toolset version "Current" instead of "15.0" (tintoy/msbuild-project-tools-vscode#46).
             string toolsVersion = netcoreVersion <= NetCoreLastSdkVersionFor150Folder ? "15.0" : "Current";
 
             // Override toolset paths (for some reason these point to the main directory where the dotnet executable lives).
@@ -117,7 +116,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
                 msbuildOverrideTasksPath: ""
             );
 
-            // Other toolset versions won't be supported by the .NET Core SDK
+            // Other toolset versions won't be supported by the .NET SDK
             projectCollection.RemoveAllToolsets();
 
             // TODO: Add configuration setting that enables user to configure custom toolsets.
@@ -132,7 +131,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         ///     Create global properties for MSBuild.
         /// </summary>
         /// <param name="runtimeInfo">
-        ///     Information about the current .NET Core runtime.
+        ///     Information about the current .NET runtime.
         /// </param>
         /// <param name="solutionDirectory">
         ///     The base (i.e. solution) directory.
