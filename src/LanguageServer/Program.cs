@@ -1,6 +1,6 @@
 ﻿using Autofac;
 using Microsoft.Build.Locator;
-using OmniSharp.Extensions.LanguageServer;
+using NuGet.Credentials;
 using Serilog;
 using System;
 using System.Linq;
@@ -9,12 +9,10 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using LSP = OmniSharp.Extensions.LanguageServer;
+using NuGetNullLogger = NuGet.Common.NullLogger;
 
 namespace MSBuildProjectTools.LanguageServer
 {
-    using Documents;
-    using Handlers;
-    using Logging;
     using Utilities;
 
     /// <summary>
@@ -49,6 +47,7 @@ namespace MSBuildProjectTools.LanguageServer
                 AutoDetectExtensionDirectory();
 
                 DiscoverMSBuildEngine();
+                ConfigureNuGetCredentialProviders();
 
                 return AsyncMain().GetAwaiter().GetResult();
             }
@@ -211,6 +210,17 @@ namespace MSBuildProjectTools.LanguageServer
             }
 
             MSBuildLocator.RegisterInstance(latestInstance);
+        }
+
+        /// <summary>
+        ///     Configure NuGet's credential providers (i.e. support for authenticated package feeds).
+        /// </summary>
+        static void ConfigureNuGetCredentialProviders()
+        {
+            DefaultCredentialServiceUtility.SetupDefaultCredentialService(
+                logger: NuGetNullLogger.Instance,
+                nonInteractive: true
+            );
         }
     }
 }

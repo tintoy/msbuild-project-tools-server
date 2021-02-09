@@ -2,13 +2,13 @@ using NuGet.Common;
 using NuGet.Configuration;
 using NuGet.Protocol;
 using NuGet.Protocol.Core.Types;
-using NuGet.Protocol.Core.v2;
 using NuGet.Versioning;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Linq;
 using System.Threading;
+using NuGet.Credentials;
 
 namespace MSBuildProjectTools.LanguageServer.Utilities
 {
@@ -30,7 +30,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         {
             if (String.IsNullOrWhiteSpace(workspaceRootDirectory))
                 throw new ArgumentException("Argument cannot be null, empty, or entirely composed of whitespace: 'workspaceRootDirectory'.", nameof(workspaceRootDirectory));
-            
+
             return new List<PackageSource>(
                 new PackageSourceProvider(
                     Settings.LoadDefaultSettings(workspaceRootDirectory)
@@ -91,12 +91,9 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
             List<AutoCompleteResource> autoCompleteResources = new List<AutoCompleteResource>();
 
             var providers = new List<Lazy<INuGetResourceProvider>>();
-            
+
             // Add v3 API support
             providers.AddRange(Repository.Provider.GetCoreV3());
-
-            // Add v2 API support
-            providers.AddRange(Repository.Provider.GetCoreV2());
             
             foreach (PackageSource packageSource in packageSources)
             {
@@ -184,7 +181,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
 
             IEnumerable<NuGetVersion>[] results = await Task.WhenAll(
                 autoCompleteResources.Select(
-                    autoCompleteResource => autoCompleteResource.VersionStartsWith(packageId, versionPrefix, includePrerelease, logger ?? NullLogger.Instance, cancellationToken)
+                    autoCompleteResource => autoCompleteResource.VersionStartsWith(packageId, versionPrefix, includePrerelease, null, logger ?? NullLogger.Instance, cancellationToken)
                 )
             );
 

@@ -1,12 +1,11 @@
 using Microsoft.Build.Evaluation;
-using Microsoft.Build.Exceptions;
-using Microsoft.Build.Execution;
 using Microsoft.Language.Xml;
 using Nito.AsyncEx;
 using NuGet.Configuration;
+using NuGet.Credentials;
+using NuGet.Protocol;
 using NuGet.Protocol.Core.Types;
 using NuGet.Versioning;
-using Microsoft.Build.Construction;
 using Serilog;
 using System;
 using System.Collections.Generic;
@@ -14,15 +13,14 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Xml;
 
+using NuGetNullLogger = NuGet.Common.NullLogger;
 using LspModels = OmniSharp.Extensions.LanguageServer.Protocol.Models;
 
 namespace MSBuildProjectTools.LanguageServer.Documents
 {
     using SemanticModel;
     using SemanticModel.MSBuildExpressions;
-    using Serilog.Events;
     using Utilities;
 
     /// <summary>
