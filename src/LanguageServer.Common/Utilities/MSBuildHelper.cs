@@ -1,5 +1,6 @@
 using Microsoft.Build.Construction;
 using Microsoft.Build.Evaluation;
+using Microsoft.Build.Locator;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NuGet.Versioning;
@@ -8,8 +9,9 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
-using System.Threading.Tasks;
+using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace MSBuildProjectTools.LanguageServer.Utilities
 {
@@ -43,6 +45,85 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         ///     2.1.599 is the theoretical highest version number of the 2.1.5xx feature band, which is the last .NET SDK that ships .NET 2.1 (LTS).
         /// </remarks>
         static readonly SemanticVersion NetCoreLastSdkVersionFor150Folder = new SemanticVersion(major: 2, minor: 1, patch: 599);
+
+        /// <summary>
+        ///     A <see cref="VisualStudioInstance"/> representing the currently-registered instance of MSBuild.
+        /// </summary>
+        static VisualStudioInstance _registeredMSBuildInstance;
+
+        /// <summary>
+        ///     Has a compatible (with the current .NET SDK) version of MSBuild been discovered?
+        /// </summary>
+        public static bool HaveMSBuild => _registeredMSBuildInstance != null;
+
+        /// <summary>
+        ///     The version of MSBuild currently in use (or <c>null</c> if no compatible version of MSBuild has been discovered).
+        /// </summary>
+        public static Version MSBuildVersion => _registeredMSBuildInstance?.Version;
+
+        /// <summary>
+        ///     The path to the version of MSBuild currently in use (or <c>null</c> if no compatible version of MSBuild has been discovered).
+        /// </summary>
+        public static string MSBuildPath => _registeredMSBuildInstance?.MSBuildPath;
+
+        /// <summary>
+        ///     Find and use the latest version of the MSBuild engine compatible with the current SDK.
+        /// </summary>
+        /// <param name="baseDirectory">
+        ///     An optional base directory where dotnet.exe should be run (this may affect the version it reports due to global.json).
+        /// </param>
+        /// <param name="logger">
+        ///     An optional <see cref="ILogger"/> to use for diagnostic purposes (if not specified, the static <see cref="Log.Logger"/> will be used).
+        /// </param>
+        public static void DiscoverMSBuildEngine(string baseDirectory = null, ILogger logger = null)
+        {
+            if (MSBuildLocator.IsRegistered)
+                MSBuildLocator.Unregister();
+
+            _registeredMSBuildInstance = null;
+
+            // Assume working directory is VS code's current working directory (i.e. the workspace root).
+            //
+            // Really, until we figure out a way to change the version of MSBuild we're using after the server has started,
+            // we're still going to have problems here.
+            //
+            // In the end we will probably wind up having to move all the MSBuild stuff out to a separate process, and use something like GRPC (or even Akka.NET's remoting) to communicate with it.
+            // It can be stopped and restarted by the language server (even having different instances for different SDK / MSBuild versions).
+            //
+            // This will also ensure that the language server's model doesn't expose any MSBuild objects anywhere.
+            //
+            // For now, though, let's choose the dumb option.
+            DotNetRuntimeInfo runtimeInfo = DotNetRuntimeInfo.GetCurrent(baseDirectory, logger);
+            Version targetSdkVersion = new Version(runtimeInfo.SdkVersion);
+
+            var queryOptions = new VisualStudioInstanceQueryOptions
+            {
+                // We can only load the .NET Core MSBuild engine
+                DiscoveryTypes = DiscoveryType.DotNetSdk
+            };
+
+            VisualStudioInstance[] allInstances = MSBuildLocator
+                .QueryVisualStudioInstances(queryOptions)
+                .ToArray();
+
+            VisualStudioInstance latestInstance = allInstances
+                .OrderByDescending(instance => instance.Version)
+                .FirstOrDefault(instance =>
+                    // We need a version of MSBuild for the currently-supported SDK
+                    instance.Version == targetSdkVersion
+                );
+
+            if (latestInstance == null)
+            {
+                string foundVersions = String.Join(", ", allInstances.Select(instance => instance.Version));
+
+                throw new Exception($"Cannot locate MSBuild engine for .NET SDK v{targetSdkVersion}. This probably means that MSBuild Project Tools cannot find the MSBuild for the current project instance. It did find the following version(s), though: [{foundVersions}].");
+            }
+
+            MSBuildLocator.RegisterInstance(latestInstance);
+
+            _registeredMSBuildInstance = latestInstance;
+        }
 
         /// <summary>
         ///     Create an MSBuild project collection.

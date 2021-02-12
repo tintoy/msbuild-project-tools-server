@@ -6,6 +6,8 @@ using Xunit;
 
 namespace MSBuildProjectTools.LanguageServer.Tests
 {
+    using Utilities;
+
     /// <summary>
     ///     An xUnit collection fixture that ensures the MSBuild Locator API is called to discover and use the latest version of the MSBuild engine before any tests are run that depend on it.
     /// </summary>
@@ -13,47 +15,11 @@ namespace MSBuildProjectTools.LanguageServer.Tests
         : IDisposable
     {
         /// <summary>
-        /// The minimum version of the .NET Core SDK supported by tests that depend on this fixture.
-        /// </summary>
-        static readonly Version TargetSdkMinVersion = new Version("5.0.102");
-
-        /// <summary>
-        /// The maximum version of the .NET Core SDK supported by tests that depend on this fixture.
-        /// </summary>
-        static readonly Version TargetSdkMaxVersion = new Version("5.0.999");
-
-        /// <summary>
         ///     Create a new <see cref="MSBuildEngineFixture"/>.
         /// </summary>
         public MSBuildEngineFixture()
         {
-            var queryOptions = new VisualStudioInstanceQueryOptions
-            {
-                // We can only load the .NET Core MSBuild engine
-                DiscoveryTypes = DiscoveryType.DotNetSdk
-            };
-
-            VisualStudioInstance[] allInstances = MSBuildLocator
-                .QueryVisualStudioInstances(queryOptions)
-                .ToArray();
-
-            VisualStudioInstance latestInstance = allInstances
-                .OrderByDescending(instance => instance.Version)
-                .FirstOrDefault(instance =>
-                    // The tests that depend on this fixture only work with the .NET Core 3.1 SDK
-                    instance.Version >= TargetSdkMinVersion
-                    &&
-                    instance.Version <= TargetSdkMaxVersion
-                );
-
-            if (latestInstance == null)
-            {
-                string foundVersions = String.Join(", ", allInstances.Select(instance => instance.Version));
-
-                throw new Exception($"Cannot locate MSBuild engine for .NET SDK v{TargetSdkMinVersion.Major}.{TargetSdkMinVersion.Minor} ({TargetSdkMinVersion} <= SDK version <= {TargetSdkMaxVersion}). Found version(s): [{foundVersions}].");
-            }
-
-            MSBuildLocator.RegisterInstance(latestInstance);
+            MSBuildHelper.DiscoverMSBuildEngine();
         }
 
         /// <summary>
