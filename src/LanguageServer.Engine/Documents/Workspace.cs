@@ -15,7 +15,6 @@ using System.Xml;
 namespace MSBuildProjectTools.LanguageServer.Documents
 {
     using Diagnostics;
-    using Help;
     using SemanticModel;
     using Utilities;
 
@@ -169,6 +168,11 @@ namespace MSBuildProjectTools.LanguageServer.Documents
         ILogger Log { get; }
 
         /// <summary>
+        ///     Has the version of MSBuild in use been logged?
+        /// </summary>
+        bool _msbuildVersionLogged;
+
+        /// <summary>
         ///     Try to retrieve the current state for the specified project document.
         /// </summary>
         /// <param name="documentUri">
@@ -197,6 +201,21 @@ namespace MSBuildProjectTools.LanguageServer.Documents
 
                 return subProject;
             });
+
+            if (!_msbuildVersionLogged)
+            {
+                if (MSBuildHelper.HaveMSBuild)
+                {
+                    Log.Information("Using MSBuild engine v{MSBuildVersion:l} from {MSBuildPath}.",
+                        MSBuildHelper.MSBuildVersion,
+                        MSBuildHelper.MSBuildPath
+                    );
+                }
+                else
+                    Log.Warning("Failed to find any version of MSBuild compatible with the current .NET SDK (respecting global.json).");
+
+                _msbuildVersionLogged = true;
+            }
 
             try
             {

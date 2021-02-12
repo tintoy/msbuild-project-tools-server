@@ -614,9 +614,6 @@ namespace MSBuildProjectTools.LanguageServer.Documents
             if (expression == null)
                 throw new ArgumentNullException(nameof(expression));
             
-            if (relativeTo == null)
-                throw new ArgumentNullException(nameof(relativeTo));
-            
             return GetRange(expression, relativeTo.Start);
         }
 
