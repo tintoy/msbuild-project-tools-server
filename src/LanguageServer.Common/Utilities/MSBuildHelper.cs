@@ -94,7 +94,18 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
             //
             // For now, though, let's choose the dumb option.
             DotNetRuntimeInfo runtimeInfo = DotNetRuntimeInfo.GetCurrent(baseDirectory, logger);
-            Version targetSdkVersion = new Version(runtimeInfo.SdkVersion);
+            
+            // SDK versions are in SemVer format...
+            SemanticVersion targetSdkSemanticVersion;
+            if (!SemanticVersion.TryParse(runtimeInfo.SdkVersion, out targetSdkSemanticVersion))
+                throw new Exception($"Cannot determine SDK version information for current .NET SDK (located at '{runtimeInfo.BaseDirectory}').");
+
+            // ...which MSBuildLocator does not understand.
+            Version targetSdkVersion = new Version(
+                major: targetSdkSemanticVersion.Major,
+                minor: targetSdkSemanticVersion.Minor,
+                build: targetSdkSemanticVersion.Patch
+            );
 
             var queryOptions = new VisualStudioInstanceQueryOptions
             {
