@@ -422,7 +422,30 @@ namespace MSBuildProjectTools.LanguageServer.Documents
                     return false;
                 }
 
+                FileInfo projectAssetsFile = MSBuildProject.GetProjectAssetsFile();
+                if (projectAssetsFile == null)
+                {
+                    Log.Debug("Not scanning package references for project {ProjectFileName} because it does not define a project assets file (Property:{PropertyName}).",
+                        ProjectFile.FullName,
+                        MSBuildHelper.WellKnownPropertyNames.ProjectAssetsFile
+                    );
+
+                    return false;
+                }
+                if (!projectAssetsFile.Exists)
+                {
+                    Log.Debug("Not scanning package references for project {ProjectFileName} because its project assets file ({ProjectAssetsFileName}) was not found.",
+                        ProjectFile.FullName,
+                        MSBuildHelper.WellKnownPropertyNames.ProjectAssetsFile
+                    );
+
+                    return false;
+                }
+
                 Dictionary<string, SemanticVersion> referencedPackageVersions = await MSBuildProject.GetReferencedPackageVersions(cancellationToken);
+                if (referencedPackageVersions == null)
+                    return false;
+
                 _referencedPackageVersions.AddRange(referencedPackageVersions);
 
                 return true;
