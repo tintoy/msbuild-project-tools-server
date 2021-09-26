@@ -1,6 +1,6 @@
+using System;
 using System.Collections.Generic;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using Serilog.Core;
 using Serilog.Events;
 
@@ -221,6 +221,12 @@ namespace MSBuildProjectTools.LanguageServer
         /// </summary>
         [JsonProperty("includeLocalSources", DefaultValueHandling = DefaultValueHandling.IgnoreAndPopulate)]
         public bool IncludeLocalSources { get; set; } = false;
+
+        /// <summary>
+        /// The names/URIs of configured NuGet package sources that should be ignored (i.e. not be used) by the language server.
+        /// </summary>
+        [JsonProperty("ignorePackageSources", ObjectCreationHandling = ObjectCreationHandling.Reuse)]
+        public HashSet<string> IgnorePackageSources { get; } = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
         /// <summary>
         ///     Sort package versions in descending order (i.e. newest versions first)?

@@ -40,6 +40,33 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         }
 
         /// <summary>
+        /// Create resource repositories for the specified package services.
+        /// </summary>
+        /// <param name="packageSources">The <see cref="PackageSource"/>s.</param>
+        /// <returns>A list of configured <see cref="SourceRepository"/> instances (one for each <see cref="PackageSource"/>).</returns>
+        public static List<SourceRepository> CreateResourceRepositories(this IEnumerable<PackageSource> packageSources)
+        {
+            if (packageSources == null)
+                throw new ArgumentNullException(nameof(packageSources));
+            
+            List<SourceRepository> sourceRepositories = new List<SourceRepository>();
+
+            var providers = new List<Lazy<INuGetResourceProvider>>();
+
+            // v3 API support
+            providers.AddRange(Repository.Provider.GetCoreV3());
+
+            foreach (PackageSource packageSource in packageSources)
+            {
+                SourceRepository sourceRepository = new SourceRepository(packageSource, providers);
+
+                sourceRepositories.Add(sourceRepository);
+            }
+
+            return sourceRepositories;
+        }
+
+        /// <summary>
         ///     Get NuGet AutoComplete APIs for the specified package source URLs.
         /// </summary>
         /// <param name="packageSourceUrls">
@@ -87,18 +114,12 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         {
             if (packageSources == null)
                 throw new ArgumentNullException(nameof(packageSources));
-            
+
             List<AutoCompleteResource> autoCompleteResources = new List<AutoCompleteResource>();
-
-            var providers = new List<Lazy<INuGetResourceProvider>>();
-
-            // Add v3 API support
-            providers.AddRange(Repository.Provider.GetCoreV3());
             
-            foreach (PackageSource packageSource in packageSources)
+            List<SourceRepository> sourceRepositories = packageSources.CreateResourceRepositories();
+            foreach (SourceRepository sourceRepository in sourceRepositories)
             {
-                SourceRepository sourceRepository = new SourceRepository(packageSource, providers);
-
                 AutoCompleteResource autoCompleteResource = await sourceRepository.GetResourceAsync<AutoCompleteResource>(cancellationToken);
                 if (autoCompleteResource != null)
                     autoCompleteResources.Add(autoCompleteResource);
