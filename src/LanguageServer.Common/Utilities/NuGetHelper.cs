@@ -1,8 +1,6 @@
 using NuGet.Common;
 using NuGet.Configuration;
-using NuGet.Protocol;
 using NuGet.Protocol.Core.Types;
-using NuGet.Protocol.Core.v2;
 using NuGet.Versioning;
 using System;
 using System.Collections.Generic;
@@ -30,13 +28,90 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         {
             if (String.IsNullOrWhiteSpace(workspaceRootDirectory))
                 throw new ArgumentException("Argument cannot be null, empty, or entirely composed of whitespace: 'workspaceRootDirectory'.", nameof(workspaceRootDirectory));
-            
+
             return new List<PackageSource>(
                 new PackageSourceProvider(
                     Settings.LoadDefaultSettings(workspaceRootDirectory)
                 )
                 .LoadPackageSources()
             );
+        }
+
+        /// <summary>
+        /// Create NuGet resource providers.
+        /// </summary>
+        /// <param name="providerVersions">The provider version(s) to create.</param>
+        /// <returns>A list of resource providers.</returns>
+        public static List<Lazy<INuGetResourceProvider>> CreateResourceProviders(NuGetResourceProviderVersions providerVersions = NuGetResourceProviderVersions.Current)
+        {
+            var providers = new List<Lazy<INuGetResourceProvider>>();
+
+            if ((providerVersions & NuGetResourceProviderVersions.V3) != 0)
+            {
+                // v3 API support
+                providers.AddRange(Repository.Provider.GetCoreV3());
+            }
+
+            return providers;
+        }
+
+        /// <summary>
+        /// Create resource repositories for the specified package source.
+        /// </summary>
+        /// <param name="packageSources">The <see cref="PackageSource"/>s.</param>
+        /// <param name="providerVersions">The NuGet provider version(s) to use.</param>
+        /// <returns>A list of configured <see cref="SourceRepository"/> instances (one for each <see cref="PackageSource"/>).</returns>
+        public static List<SourceRepository> CreateResourceRepositories(this IEnumerable<PackageSource> packageSources, NuGetResourceProviderVersions providerVersions = NuGetResourceProviderVersions.Current)
+        {
+            if (packageSources == null)
+                throw new ArgumentNullException(nameof(packageSources));
+
+            List<SourceRepository> sourceRepositories = new List<SourceRepository>();
+
+            List<Lazy<INuGetResourceProvider>> providers = CreateResourceProviders(providerVersions);
+
+            foreach (PackageSource packageSource in packageSources)
+            {
+                SourceRepository sourceRepository = new SourceRepository(packageSource, providers);
+
+                sourceRepositories.Add(sourceRepository);
+            }
+
+            return sourceRepositories;
+        }
+
+        /// <summary>
+        /// Create v3 resource repositories for the specified package source.
+        /// </summary>
+        /// <param name="packageSource">The <see cref="PackageSource"/>.</param>
+        /// <returns>The configured <see cref="SourceRepository"/> instance.</returns>
+        public static SourceRepository CreateResourceRepository(this PackageSource packageSource, NuGetResourceProviderVersions providerVersions = NuGetResourceProviderVersions.Current)
+        {
+            if (packageSource == null)
+                throw new ArgumentNullException(nameof(packageSource));
+
+            return packageSource.CreateResourceRepository(
+                providers: CreateResourceProviders(providerVersions)
+            );
+        }
+
+        /// <summary>
+        /// Create resource repositories for the specified package source.
+        /// </summary>
+        /// <param name="packageSource">The <see cref="PackageSource"/>.</param>
+        /// <param name="providers">The NuGet resource providers to be used by the repository.</param>
+        /// <returns>The configured <see cref="SourceRepository"/> instance.</returns>
+        public static SourceRepository CreateResourceRepository(this PackageSource packageSource, List<Lazy<INuGetResourceProvider>> providers)
+        {
+            if (packageSource == null)
+                throw new ArgumentNullException(nameof(packageSource));
+
+            if (providers == null)
+                throw new ArgumentNullException(nameof(providers));
+
+            SourceRepository sourceRepository = new SourceRepository(packageSource, providers);
+
+            return sourceRepository;
         }
 
         /// <summary>
@@ -87,21 +162,12 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         {
             if (packageSources == null)
                 throw new ArgumentNullException(nameof(packageSources));
-            
+
             List<AutoCompleteResource> autoCompleteResources = new List<AutoCompleteResource>();
 
-            var providers = new List<Lazy<INuGetResourceProvider>>();
-            
-            // Add v3 API support
-            providers.AddRange(Repository.Provider.GetCoreV3());
-
-            // Add v2 API support
-            providers.AddRange(Repository.Provider.GetCoreV2());
-            
-            foreach (PackageSource packageSource in packageSources)
+            List<SourceRepository> sourceRepositories = packageSources.CreateResourceRepositories();
+            foreach (SourceRepository sourceRepository in sourceRepositories)
             {
-                SourceRepository sourceRepository = new SourceRepository(packageSource, providers);
-
                 AutoCompleteResource autoCompleteResource = await sourceRepository.GetResourceAsync<AutoCompleteResource>(cancellationToken);
                 if (autoCompleteResource != null)
                     autoCompleteResources.Add(autoCompleteResource);
@@ -184,7 +250,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
 
             IEnumerable<NuGetVersion>[] results = await Task.WhenAll(
                 autoCompleteResources.Select(
-                    autoCompleteResource => autoCompleteResource.VersionStartsWith(packageId, versionPrefix, includePrerelease, logger ?? NullLogger.Instance, cancellationToken)
+                    autoCompleteResource => autoCompleteResource.VersionStartsWith(packageId, versionPrefix, includePrerelease, null, logger ?? NullLogger.Instance, cancellationToken)
                 )
             );
 

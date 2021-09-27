@@ -1,12 +1,11 @@
 using Microsoft.Build.Evaluation;
-using Microsoft.Build.Exceptions;
-using Microsoft.Build.Execution;
 using Microsoft.Language.Xml;
 using Nito.AsyncEx;
 using NuGet.Configuration;
+using NuGet.Credentials;
+using NuGet.Protocol;
 using NuGet.Protocol.Core.Types;
 using NuGet.Versioning;
-using Microsoft.Build.Construction;
 using Serilog;
 using System;
 using System.Collections.Generic;
@@ -14,7 +13,6 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Xml;
 
 using LspModels = OmniSharp.Extensions.LanguageServer.Protocol.Models;
 
@@ -22,7 +20,6 @@ namespace MSBuildProjectTools.LanguageServer.Documents
 {
     using SemanticModel;
     using SemanticModel.MSBuildExpressions;
-    using Serilog.Events;
     using Utilities;
 
     /// <summary>
@@ -354,13 +351,56 @@ namespace MSBuildProjectTools.LanguageServer.Documents
                 _autoCompleteResources.Clear();
 
                 bool includeLocalSources = Workspace.Configuration.NuGet.IncludeLocalSources;
-                
-                _configuredPackageSources.AddRange(
-                    NuGetHelper.GetWorkspacePackageSources(ProjectFile.Directory.FullName)
-                        .Where(
-                            packageSource => packageSource.IsHttp || (includeLocalSources && packageSource.TrySourceAsUri?.Scheme == Uri.UriSchemeFile)
-                        )
-                );
+                HashSet<string> ignoredPackageSources = Workspace.Configuration.NuGet.IgnorePackageSources;
+
+                foreach (PackageSource packageSource in NuGetHelper.GetWorkspacePackageSources(ProjectFile.Directory.FullName))
+                {
+                    // Exclude package sources explicitly ignored by name.
+                    string packageSourceName = packageSource.Name ?? "<unknown>";
+                    if (ignoredPackageSources.Contains(packageSourceName))
+                    {
+                        Log.Verbose("Ignoring package source named {PackageSourceName} (the language server has been explicitly configured to ignore it).", packageSourceName);
+
+                        continue;
+                    }
+
+                    // Exclude package sources explicitly ignored by URI.
+                    Uri packageSourceUri = packageSource.TrySourceAsUri ?? new Uri("unknown:/", UriKind.Absolute);
+                    if (ignoredPackageSources.Contains(packageSourceUri.AbsoluteUri))
+                    {
+                        Log.Verbose("Ignoring package source with URI {PackageSourceURI} (the language server has been explicitly configured to ignore it).", packageSourceUri.AbsoluteUri);
+
+                        continue;
+                    }
+
+                    // Exclude unsupported package-source types.
+                    if (!packageSource.IsHttp)
+                    {
+                        if (packageSourceUri.Scheme == Uri.UriSchemeFile)
+                        {
+                            if (!includeLocalSources)
+                            {
+                                Log.Verbose("Ignoring local package source {PackageSourceName} ({PackageSourcePath}) (the language server has not been configured to use local package sources).",
+                                    packageSourceName,
+                                    packageSourceUri.AbsolutePath
+                                );
+
+                                continue;
+                            }
+                        }
+                        else
+                        {
+                            Log.Verbose("Ignoring local package source {PackageSourceName} ({PackageSourceUri}) (the language server only supports local and HTTP-based package sources).",
+                                packageSourceName,
+                                packageSourceUri.AbsolutePath
+                            );
+
+                            continue;
+                        }
+                    }
+
+                    _configuredPackageSources.Add(packageSource);
+                }
 
                 Log.Information("{PackageSourceCount} package sources configured for project {ProjectFile}.",
                     _configuredPackageSources.Count,
@@ -386,9 +426,46 @@ namespace MSBuildProjectTools.LanguageServer.Documents
                     }
                 }
 
-                _autoCompleteResources.AddRange(
-                    await NuGetHelper.GetAutoCompleteResources(_configuredPackageSources, cancellationToken)
-                );
+                List<SourceRepository> sourceRepositories = _configuredPackageSources.CreateResourceRepositories();
+                foreach (SourceRepository sourceRepository in sourceRepositories)
+                {
+                    ServiceIndexResourceV3 serviceIndex = await sourceRepository.GetResourceAsync<ServiceIndexResourceV3>(cancellationToken);
+                    if (serviceIndex == null)
+                    {
+                        Log.Warning("    Ignoring configured package source {PackageSourceName} ({PackageSourceUri}) because the v3 service index cannot be found for this package source.",
+                            sourceRepository.PackageSource.Name ?? "<unknown>",
+                            sourceRepository.PackageSource.TrySourceAsUri?.AbsoluteUri ?? "unknown:/"
+                        );
+
+                        continue;
+                    }
+
+                    IReadOnlyList<ServiceIndexEntry> autoCompleteServices = serviceIndex.GetServiceEntries(ServiceTypes.SearchAutocompleteService);
+                    if (autoCompleteServices.Count == 0)
+                    {
+                        Log.Warning("    Ignoring configured package source {PackageSourceName} ({PackageSourceUri}) because it does not appear to support a compatible version of the NuGet auto-complete API.",
+                            sourceRepository.PackageSource.Name ?? "<unknown>",
+                            sourceRepository.PackageSource.TrySourceAsUri?.AbsoluteUri ?? "unknown:/"
+                        );
+
+                        continue;
+                    }
+
+                    AutoCompleteResource autoCompleteResource = await sourceRepository.GetResourceAsync<AutoCompleteResource>(cancellationToken);
+                    if (autoCompleteResource == null)
+                    {
+                        // Should not happen.
+                        Log.Error("Failed to retrieve {ServiceName} service instance for configured package source {PackageSourceName} ({PackageSourceUri}).",
+                            "AutoComplete",
+                            sourceRepository.PackageSource.Name ?? "<unknown>",
+                            sourceRepository.PackageSource.TrySourceAsUri?.AbsoluteUri ?? "unknown:/"
+                        );
+                        
+                        continue;
+                    }
+
+                    _autoCompleteResources.Add(autoCompleteResource);
+                }
 
                 return true;
             }
@@ -479,14 +556,16 @@ namespace MSBuildProjectTools.LanguageServer.Documents
             if (!HasXml)
                 throw new InvalidOperationException($"XML for project '{ProjectFile.FullName}' is not loaded.");
 
-            Log.Debug("Requesting suggestions for NuGet package Ids matching prefix {PackageIdPrefix} (include pre-release: {IncludePreRelease})...",
+            Log.Debug("Requesting suggestions from {PackageSourceCount} package source(s) for NuGet package Ids matching prefix {PackageIdPrefix} (include pre-release: {IncludePreRelease})...",
+                _autoCompleteResources.Count,
                 packageIdPrefix,
                 includePrerelease
             );
 
             SortedSet<string> packageIds = await _autoCompleteResources.SuggestPackageIds(packageIdPrefix, includePrerelease, cancellationToken: cancellationToken);
 
-            Log.Debug("Found {PackageIdSuggestionCount} suggestions for NuGet package Ids matching prefix {PackageIdPrefix} (include pre-release: {IncludePreRelease}).",
+            Log.Debug("Found {PackageIdSuggestionCount} suggestions from {PackageSourceCount} package source(s) for NuGet package Ids matching prefix {PackageIdPrefix} (include pre-release: {IncludePreRelease}).",
+                _autoCompleteResources.Count,
                 packageIds.Count,
                 packageIdPrefix,
                 includePrerelease
