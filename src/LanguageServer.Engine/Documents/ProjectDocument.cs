@@ -14,7 +14,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-using NuGetNullLogger = NuGet.Common.NullLogger;
 using LspModels = OmniSharp.Extensions.LanguageServer.Protocol.Models;
 
 namespace MSBuildProjectTools.LanguageServer.Documents
@@ -433,7 +432,7 @@ namespace MSBuildProjectTools.LanguageServer.Documents
                     ServiceIndexResourceV3 serviceIndex = await sourceRepository.GetResourceAsync<ServiceIndexResourceV3>(cancellationToken);
                     if (serviceIndex == null)
                     {
-                        Log.Warning("Ignoring configured package source {PackageSourceName} ({PackageSourceUri}) because the v3 service index cannot be found for this package source.",
+                        Log.Warning("    Ignoring configured package source {PackageSourceName} ({PackageSourceUri}) because the v3 service index cannot be found for this package source.",
                             sourceRepository.PackageSource.Name ?? "<unknown>",
                             sourceRepository.PackageSource.TrySourceAsUri?.AbsoluteUri ?? "unknown:/"
                         );
@@ -444,7 +443,7 @@ namespace MSBuildProjectTools.LanguageServer.Documents
                     IReadOnlyList<ServiceIndexEntry> autoCompleteServices = serviceIndex.GetServiceEntries(ServiceTypes.SearchAutocompleteService);
                     if (autoCompleteServices.Count == 0)
                     {
-                        Log.Warning("Ignoring configured package source {PackageSourceName} ({PackageSourceUri}) because it does not appear to support a compatible version of the NuGet auto-complete API.",
+                        Log.Warning("    Ignoring configured package source {PackageSourceName} ({PackageSourceUri}) because it does not appear to support a compatible version of the NuGet auto-complete API.",
                             sourceRepository.PackageSource.Name ?? "<unknown>",
                             sourceRepository.PackageSource.TrySourceAsUri?.AbsoluteUri ?? "unknown:/"
                         );
@@ -452,9 +451,20 @@ namespace MSBuildProjectTools.LanguageServer.Documents
                         continue;
                     }
 
-                    AutoCompleteResourceV3 autoCompleteResource = await sourceRepository.GetResourceAsync<AutoCompleteResourceV3>(cancellationToken);
-                    if (autoCompleteResource != null)
-                        _autoCompleteResources.Add(autoCompleteResource);
+                    AutoCompleteResource autoCompleteResource = await sourceRepository.GetResourceAsync<AutoCompleteResource>(cancellationToken);
+                    if (autoCompleteResource == null)
+                    {
+                        // Should not happen.
+                        Log.Error("Failed to retrieve {ServiceName} service instance for configured package source {PackageSourceName} ({PackageSourceUri}).",
+                            "AutoComplete",
+                            sourceRepository.PackageSource.Name ?? "<unknown>",
+                            sourceRepository.PackageSource.TrySourceAsUri?.AbsoluteUri ?? "unknown:/"
+                        );
+                        
+                        continue;
+                    }
+
+                    _autoCompleteResources.Add(autoCompleteResource);
                 }
 
                 return true;
@@ -546,14 +556,16 @@ namespace MSBuildProjectTools.LanguageServer.Documents
             if (!HasXml)
                 throw new InvalidOperationException($"XML for project '{ProjectFile.FullName}' is not loaded.");
 
-            Log.Debug("Requesting suggestions for NuGet package Ids matching prefix {PackageIdPrefix} (include pre-release: {IncludePreRelease})...",
+            Log.Debug("Requesting suggestions from {PackageSourceCount} package source(s) for NuGet package Ids matching prefix {PackageIdPrefix} (include pre-release: {IncludePreRelease})...",
+                _autoCompleteResources.Count,
                 packageIdPrefix,
                 includePrerelease
             );
 
             SortedSet<string> packageIds = await _autoCompleteResources.SuggestPackageIds(packageIdPrefix, includePrerelease, cancellationToken: cancellationToken);
 
-            Log.Debug("Found {PackageIdSuggestionCount} suggestions for NuGet package Ids matching prefix {PackageIdPrefix} (include pre-release: {IncludePreRelease}).",
+            Log.Debug("Found {PackageIdSuggestionCount} suggestions from {PackageSourceCount} package source(s) for NuGet package Ids matching prefix {PackageIdPrefix} (include pre-release: {IncludePreRelease}).",
+                _autoCompleteResources.Count,
                 packageIds.Count,
                 packageIdPrefix,
                 includePrerelease
