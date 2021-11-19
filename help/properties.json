@@ -718,5 +718,84 @@
     },
     "WarningsAsErrors": {
         "description": "Comma separated list of warning numbers to treat as errors"
+    },
+    "PublishReadyToRun": {
+        "description": "Compiles application assemblies as ReadyToRun (R2R) format. R2R is a form of ahead-of-time (AOT) compilation.",
+        "defaultValues": ["true", "false"]
+    },
+    "PublishSingleFile": {
+        "description": "Packages the app into a platform-specific single-file executable.",
+        "defaultValues": ["true", "false"]
+    },
+    "SelfContained": {
+        "description": "Determines whether the app will be self-contained or framework-dependent.",
+        "defaultValues": ["true", "false"]
+    },
+    "PublishTrimmed": {
+        "description": "Trims unused libraries to reduce the deployment size of an app when publishing a self-contained executable.",
+        "defaultValues": ["true", "false"]
+    },
+    "IsTrimmable": {
+        "description": "Control whether the given assembly is trimmable.",
+        "defaultValues": ["true", "false"]
+    },
+    "ManagedAssemblyToLink": {
+        "description": "Controls the trimming behavior per assembly. To set this metadata, you have to create a target that runs before the built-in PrepareForILLink target.",
+        "help": "https://docs.microsoft.com/en-us/dotnet/core/deploying/trimming-options#trimmed-assemblies"
+    },
+    "TrimMode": {
+        "description": "Control the trimming granularity of this assembly. This takes precedence over the global TrimMode. Setting TrimMode on an assembly implies <IsTrimmable>true</IsTrimmable>.",
+        "defaultValues": ["copyused", "link"]
+    },
+    "TrimmerRootAssembly": {
+        "description": "All assemblies that do not have <IsTrimmable>true</IsTrimmable> are considered roots for the analysis, which means that they and all of their statically understood dependencies will be kept.",
+        "help": "https://docs.microsoft.com/en-us/dotnet/core/deploying/trimming-options#root-assemblies"
+    },
+    "TrimmerRootDescriptor": {
+        "description": "Another way to specify roots for analysis is using an XML file that uses the linker descriptor format. This lets you root specific members instead of a whole assembly.",
+        "help": "https://docs.microsoft.com/en-us/dotnet/core/deploying/trimming-options#root-descriptors"
+    },
+    "SuppressTrimAnalysisWarnings": {
+        "description": "Enable trim analysis warnings.",
+        "defaultValues": ["true", "false"]
+    },
+    "ILLinkWarningLevel": {
+        "description": "Emit only warnings of the given level or lower. This can be 9999 to include all warning versions."
+    },
+    "ILLinkTreatWarningsAsErrors": {
+        "description": "Don't treat ILLink warnings as errors. This may be useful to avoid turning trim analysis warnings into errors when treating compiler warnings as errors globally.",
+        "defaultValues": ["true", "false"]
+    },
+    "TrimmerRemoveSymbols": {
+        "description": "Determines whether to keep or remove symbols from the trimmed application, including embedded PDBs and separate PDB files. This applies to both the application code and any dependencies that come with symbols",
+        "defaultValues": ["true", "false"]
+    },
+    "DebuggerSupport": {
+        "description": "Determines whether to keep or remove code that enables better debugging experiences. This will also remove symbols.",
+        "defaultValues": ["true", "false"]
+    },
+    "EnableUnsafeBinaryFormatterSerialization": {
+        "description": "Determines whether to keep or remove BinaryFormatter serialization support.",
+        "defaultValues": ["true", "false"]
+    },
+    "EnableUnsafeUTF7Encoding": {
+        "description": "Determines whether to keep or remove insecure UTF-7 encoding code.",
+        "defaultValues": ["true", "false"]
+    },
+    "EventSourceSupport": {
+        "description": "Determines whether to keep or remove EventSource related code or logic.",
+        "defaultValues": ["true", "false"]
+    },
+    "HttpActivityPropagationSupport": {
+        "description": "Determines whether to keep or remove code related to diagnostics support for System.Net.Http.",
+        "defaultValues": ["true", "false"]
+    },
+    "InvariantGlobalization": {
+        "description": "Determines whether to keep or remove globalization specific code and data.",
+        "defaultValues": ["true", "false"]
+    },
+    "UseSystemResourceKeys": {
+        "description": "Strip exception messages for System.* assemblies. When an exception is thrown from a System.* assembly, the message will be a simplified resource ID instead of the full message.",
+        "defaultValues": ["true", "false"]
     }
 }
