@@ -250,9 +250,13 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
                 throw new ArgumentNullException(nameof(packageId));
 
             IEnumerable<NuGetVersion>[] results = await Task.WhenAll(
-                autoCompleteResources.Select(
-                    autoCompleteResource => autoCompleteResource.VersionStartsWith(packageId, versionPrefix, includePrerelease, null, logger ?? NullLogger.Instance, cancellationToken)
-                )
+                autoCompleteResources.Select(async autoCompleteResource =>
+                {
+                    using (SourceCacheContext cacheContext = new SourceCacheContext())
+                    {
+                        return await autoCompleteResource.VersionStartsWith(packageId, versionPrefix, includePrerelease, cacheContext, logger ?? NullLogger.Instance, cancellationToken);
+                    }
+                })
             );
 
             return new SortedSet<NuGetVersion>(
