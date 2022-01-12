@@ -1,6 +1,10 @@
 # Change Log
 
-# 0.4.3
+# v0.4.4
+
+* Always roll forward to the latest (stable) installed version of the runtime (tintoy/msbuild-project-tools-vscode#90).
+
+# v0.4.3
 
 * Fix ArgumentNullException from NuGet client library when requesting package version completions (tintoy/msbuild-project-tools-vscode#91).
 
@@ -9,29 +13,29 @@
 * Support for manually ignoring configured package sources using the `msbuildProjectTools.nuget.ignorePackageSources` extension setting (tintoy/msbuild-project-tools-server#24).
 * Support for automatically ignoring configured package sources when the v3 service index indicates that they don't support the NuGet completion API (tintoy/msbuild-project-tools-server#24).
 
-## 0.3.15
+## v0.3.15
 
 * Improve error handling when project assets file was not found while updating NuGet package references for a project (tintoy/msbuild-project-tools-server#24).
 
-## 0.3.14
+## v0.3.14
 
 * Correctly handle preview versions of the .NET SDK when discovering MSBuild instances (tintoy/msbuild-project-tools-vscode#74).
 
-## 0.3.13
+## v0.3.13
 
 * Improve detection logic for .NET host version during extension startup (tintoy/msbuild-project-tools-vscode#73).
 
-## 0.3.12
+## v0.3.12
 
 * Remove legacy ("classic") completion provider.
 * Fix MSBuild-dependent tests that break in CI when the 5.0 SDK is also installed (tintoy/msbuild-project-tools-server#20).
 * Upgrade language server to target .NET 5.0 (tintoy/msbuild-project-tools-server#22).
 
-## 0.3.11
+## v0.3.11
 
 * Upgrade the language service to use the .NET Core 3.1 runtime (tintoy/msbuild-project-tools-server#20).
 
-## 0.3.10
+## v0.3.10
 
 * Always use the MSBuild engine from the newest version of the .NET Core SDK (tintoy/msbuild-project-tools-server#19).
 

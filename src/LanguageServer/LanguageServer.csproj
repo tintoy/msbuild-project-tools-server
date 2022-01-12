@@ -4,6 +4,9 @@
     <TargetFramework>net6.0</TargetFramework>
     <AssemblyName>MSBuildProjectTools.LanguageServer.Host</AssemblyName>
     <RootNamespace>MSBuildProjectTools.LanguageServer.Host</RootNamespace>
+
+    <!-- Roll forward to the latest (stable) installed version of the runtime -->
+    <RollForward>LatestMajor</RollForward>
   </PropertyGroup>
 
   <Import Project="../Common.props" />
