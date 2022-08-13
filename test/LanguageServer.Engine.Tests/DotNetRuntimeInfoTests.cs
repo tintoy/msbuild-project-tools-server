@@ -33,7 +33,6 @@ namespace MSBuildProjectTools.LanguageServer.Tests
             Assert.NotNull(parsedOutput);
             Assert.Equal(expectedVersion, parsedOutput.SdkVersion);
             Assert.Equal(expectedBaseDirectory, parsedOutput.BaseDirectory);
-            Assert.Equal(expectedRID, parsedOutput.RID);
         }
 
         /// <summary>

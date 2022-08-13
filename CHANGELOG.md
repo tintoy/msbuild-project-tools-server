@@ -1,5 +1,9 @@
 # Change Log
 
+# v0.4.6
+
+* Simplify logic for detecting .NET SDK/host/runtime versions (tintoy/msbuild-project-tools-vscode#99).
+
 # v0.4.4
 
 * Always roll forward to the latest (stable) installed version of the runtime (tintoy/msbuild-project-tools-vscode#90).

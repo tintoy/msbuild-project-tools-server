@@ -1,4 +1,4 @@
-﻿using Autofac;
+using Autofac;
 using Microsoft.Build.Locator;
 using NuGet.Credentials;
 using Serilog;
@@ -20,16 +20,6 @@ namespace MSBuildProjectTools.LanguageServer
     /// </summary>
     static class Program
     {
-        /// <summary>
-        /// The minimum version of the .NET Core SDK supported by the language server.
-        /// </summary>
-        static readonly Version TargetSdkMinVersion = new Version("5.0.102");
-
-        /// <summary>
-        /// The maximum version of the .NET Core SDK supported by the language server.
-        /// </summary>
-        static readonly Version TargetSdkMaxVersion = new Version("5.0.999");
-        
         /// <summary>
         ///     The main program entry-point.
         /// </summary>
