@@ -135,9 +135,16 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
             if (dotnetVersionOutput == null)
                 throw new ArgumentNullException(nameof(dotnetVersionOutput));
 
+            // Output of "dotnet --version" is expected to be a single line containing a valid semantic version (SemVer).
             string rawVersion = dotnetVersionOutput.ReadToEnd().Trim();
+            if (rawVersion.Length == 0)
+                throw new InvalidOperationException("The 'dotnet --version' command did not return any output.");
 
-            return SemanticVersion.Parse(rawVersion);
+            SemanticVersion parsedVersion;
+            if (!SemanticVersion.TryParse(rawVersion, out parsedVersion))
+                throw new FormatException($"The 'dotnet --version' command did not return valid version information ('{rawVersion}' is not a valid semantic version).");
+
+            return parsedVersion;
         }
 
         /// <summary>
