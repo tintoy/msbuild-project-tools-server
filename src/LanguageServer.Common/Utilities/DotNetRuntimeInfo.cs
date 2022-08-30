@@ -67,11 +67,14 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
             using (TextReader dotnetVersionOutput = InvokeDotNetHost("--version", baseDirectory, logger))
             {
                 sdkVersion = ParseDotNetVersionOutput(dotnetVersionOutput);
+
+                logger.Verbose("Discovered .NET SDK v{SdkVersion:l}.", sdkVersion);
             }
 
             if (sdkVersion >= Sdk60Version)
             {
                 // From .NET 6.x onwards, we can rely on "dotnet --list-sdks" and "dotnet --list-runtimes" to give us the information we need.
+                logger.Verbose("Using new SDK discovery logic because .NET SDK v{SdkVersion:l} is greater than or equal to the minimum required v6 SDK version (v{MinSdkVersion:l}).", sdkVersion, Sdk60Version);
 
                 DotnetSdkInfo targetSdk;
 
@@ -80,10 +83,10 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
                     List<DotnetSdkInfo> discoveredSdks = ParseDotNetListSdksOutput(dotnetListSdksOutput);
                     
                     targetSdk = discoveredSdks.Find(sdk => sdk.Version == sdkVersion);
-                    if (targetSdk == null)
-                    {
+                    if (targetSdk != null)
+                        logger.Verbose("Target .NET SDK is v{SdkVersion:l} in {SdkBaseDirectory}.", targetSdk.Version, targetSdk.BaseDirectory); 
+                    else
                         logger.Error("Cannot find SDK v{SdkVersion} via 'dotnet --list-sdks'.", sdkVersion);
-                    }
                 }
 
                 DotnetRuntimeInfo hostRuntime = null;
@@ -99,7 +102,9 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
                         .OrderByDescending(runtime => runtime.Version)
                         .FirstOrDefault();
                     
-                    if (hostRuntime == null)
+                    if (hostRuntime != null)
+                        logger.Verbose(".NET host runtime is v{RuntimeVersion:l} ({RuntimeName}).", hostRuntime.Version, hostRuntime.Name);
+                    else
                         logger.Error("Failed to discover any runtimes via 'dotnet --list-runtimes'.");
                 }
 
@@ -113,6 +118,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
             else
             {
                 // Fall back to legacy parser.
+                logger.Verbose("Using legacy (pre-v6) SDK discovery logic because .NET SDK v{SdkVersion:l} is less than the minimum required v6 SDK version (v{MinSdkVersion:l}).", sdkVersion, Sdk60Version);
 
                 using (TextReader dotnetInfoOutput = InvokeDotNetHost("--info", baseDirectory, logger))
                 {

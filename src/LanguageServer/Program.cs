@@ -36,7 +36,16 @@ namespace MSBuildProjectTools.LanguageServer
             {
                 AutoDetectExtensionDirectory();
 
-                MSBuildHelper.DiscoverMSBuildEngine();
+                // Ensure the initial MSBuild discovery process has a logger to work with.
+                ILogger msbuildDiscoveryLogger = LoggingModule.CreateDefaultLoggerConfiguration()
+                    .CreateLogger()
+                    .ForContext("Operation", "MSBuildDiscovery");
+
+                using (msbuildDiscoveryLogger as IDisposable)
+                {
+                    MSBuildHelper.DiscoverMSBuildEngine(logger: msbuildDiscoveryLogger);
+                }
+
                 ConfigureNuGetCredentialProviders();
 
                 return AsyncMain().GetAwaiter().GetResult();
