@@ -64,7 +64,11 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
 
             SemanticVersion sdkVersion;
 
-            using (TextReader dotnetVersionOutput = InvokeDotNetHost("--version", baseDirectory, logger, enableHostTracing: logger.IsEnabled(Serilog.Events.LogEventLevel.Verbose)))
+            bool enableDotnetHostDiagnostics = false;
+            if (Environment.GetEnvironmentVariable("MSBUILD_PROJECT_TOOLS_DOTNET_HOST_DIAGNOSTICS") == "1")
+                enableDotnetHostDiagnostics = true;
+
+            using (TextReader dotnetVersionOutput = InvokeDotNetHost("--version", baseDirectory, logger, enableHostTracing: enableDotnetHostDiagnostics))
             {
                 sdkVersion = ParseDotNetVersionOutput(dotnetVersionOutput);
 
