@@ -64,7 +64,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
 
             SemanticVersion sdkVersion;
 
-            using (TextReader dotnetVersionOutput = InvokeDotNetHost("--version", baseDirectory, logger))
+            using (TextReader dotnetVersionOutput = InvokeDotNetHost("--version", baseDirectory, logger, enableHostTracing: logger.IsEnabled(Serilog.Events.LogEventLevel.Verbose)))
             {
                 sdkVersion = ParseDotNetVersionOutput(dotnetVersionOutput);
 
@@ -239,10 +239,13 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         /// <param name="logger">
         ///     The logger for diagnostic messages.
         /// </param>
+        /// <param name="enableHostTracing">
+        ///     Enable host-level tracing?
+        /// </param>
         /// <returns>
         ///     A <see cref="TextReader"/> containing the program output (STDOUT and STDERR).
         /// </returns>
-        static TextReader InvokeDotNetHost(string commandLineArguments, string baseDirectory, ILogger logger)
+        static TextReader InvokeDotNetHost(string commandLineArguments, string baseDirectory, ILogger logger, bool enableHostTracing = false)
         {
             if (logger == null)
                 throw new ArgumentNullException(nameof(logger));
@@ -256,29 +259,35 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
                     Arguments = commandLineArguments,
                     UseShellExecute = false,
                     RedirectStandardOutput = true,
-                    RedirectStandardError = true
+                    RedirectStandardError = true,
+                    Environment =
+                    {
+                        ["COREHOST_TRACE"] = enableHostTracing ? "1" : "0",
+                    }
                 },
                 EnableRaisingEvents = true
             };
+
             using (dotnetInfoProcess)
             {
                 // For logging purposes.
                 string command = $"{dotnetInfoProcess.StartInfo.FileName} {dotnetInfoProcess.StartInfo.Arguments}";
 
                 // Buffer the output locally (otherwise, the process may hang if it fills up its STDOUT / STDERR buffer).
-                StringBuilder localOutputBuffer = new StringBuilder();
+                StringBuilder stdOutBuffer = new StringBuilder();
                 dotnetInfoProcess.OutputDataReceived += (sender, args) =>
                 {
-                    lock (localOutputBuffer)
+                    lock (stdOutBuffer)
                     {
-                        localOutputBuffer.AppendLine(args.Data);
+                        stdOutBuffer.AppendLine(args.Data);
                     }
                 };
+                StringBuilder stdErrBuffer = new StringBuilder();
                 dotnetInfoProcess.ErrorDataReceived += (sender, args) =>
                 {
-                    lock (localOutputBuffer)
+                    lock (stdErrBuffer)
                     {
-                        localOutputBuffer.AppendLine(args.Data);
+                        stdErrBuffer.AppendLine(args.Data);
                     }
                 };
 
@@ -305,21 +314,31 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
 
                 logger.Debug("{Command} terminated with exit code {ExitCode}.", command, dotnetInfoProcess.ExitCode);
 
-                string processOutput;
-                lock (localOutputBuffer)
+                string stdOut;
+                lock (stdOutBuffer)
                 {
-                    processOutput = localOutputBuffer.ToString();
+                    stdOut = stdOutBuffer.ToString();
+                }
+                string stdErr;
+                lock (stdErrBuffer)
+                {
+                    stdErr = stdErrBuffer.ToString();
                 }
 
                 if (dotnetInfoProcess.ExitCode != 0 || logger.IsEnabled(Serilog.Events.LogEventLevel.Verbose))
                 {
-                    if (!String.IsNullOrWhiteSpace(processOutput))
-                        logger.Debug("{Command} returned the following text on STDOUT / STDERR.\n\n{DotNetInfoOutput:l}", command, processOutput);
+                    if (!String.IsNullOrWhiteSpace(stdOut))
+                        logger.Debug("{Command} returned the following text on STDOUT:\n\n{DotNetOutput:l}", command, stdOut);
                     else
-                        logger.Debug("{Command} returned no output on STDOUT / STDERR.");
+                        logger.Debug("{Command} returned no output on STDOUT.");
+
+                    if (!String.IsNullOrWhiteSpace(stdErr))
+                        logger.Debug("{Command} returned the following text on STDERR:\n\n{DotNetOutput:l}", command, stdErr);
+                    else
+                        logger.Debug("{Command} returned no output on STDERR.");
                 }
 
-                return new StringReader(processOutput);
+                return new StringReader(stdOut);
             }
         }
 
