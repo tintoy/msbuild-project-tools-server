@@ -254,7 +254,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
             if (logger == null)
                 throw new ArgumentNullException(nameof(logger));
 
-            Process dotnetInfoProcess = new Process
+            Process dotnetHostProcess = new Process
             {
                 StartInfo = new ProcessStartInfo
                 {
@@ -272,14 +272,14 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
                 EnableRaisingEvents = true
             };
 
-            using (dotnetInfoProcess)
+            using (dotnetHostProcess)
             {
                 // For logging purposes.
-                string command = $"{dotnetInfoProcess.StartInfo.FileName} {dotnetInfoProcess.StartInfo.Arguments}";
+                string command = $"{dotnetHostProcess.StartInfo.FileName} {dotnetHostProcess.StartInfo.Arguments}";
 
                 // Buffer the output locally (otherwise, the process may hang if it fills up its STDOUT / STDERR buffer).
                 StringBuilder stdOutBuffer = new StringBuilder();
-                dotnetInfoProcess.OutputDataReceived += (sender, args) =>
+                dotnetHostProcess.OutputDataReceived += (sender, args) =>
                 {
                     lock (stdOutBuffer)
                     {
@@ -287,7 +287,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
                     }
                 };
                 StringBuilder stdErrBuffer = new StringBuilder();
-                dotnetInfoProcess.ErrorDataReceived += (sender, args) =>
+                dotnetHostProcess.ErrorDataReceived += (sender, args) =>
                 {
                     lock (stdErrBuffer)
                     {
@@ -297,26 +297,27 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
 
                 logger.Debug("Launching {Command}...", command);
 
-                dotnetInfoProcess.Start();
+                dotnetHostProcess.Start();
 
-                logger.Debug("Launched {Command}. Waiting for process {TargetProcessId} to terminate...", command, dotnetInfoProcess.Id);
+                logger.Debug("Launched {Command}. Waiting for process {TargetProcessId} to terminate...", command, dotnetHostProcess.Id);
 
                 // Asynchronously start reading from STDOUT / STDERR.
-                dotnetInfoProcess.BeginOutputReadLine();
-                dotnetInfoProcess.BeginErrorReadLine();
+                dotnetHostProcess.BeginOutputReadLine();
+                dotnetHostProcess.BeginErrorReadLine();
 
-                try
+                bool exited = dotnetHostProcess.WaitForExit(milliseconds: 5000);
+                if (!exited)
                 {
-                    dotnetInfoProcess.WaitForExit(milliseconds: 5000);
-                }
-                catch (TimeoutException exitTimedOut)
-                {
-                    logger.Error(exitTimedOut, "Timed out after waiting 5 seconds for {Command} to exit.", command);
+                    logger.Error("Timed out after waiting 5 seconds for {Command} to exit.", command);
 
-                    throw new TimeoutException($"Timed out after waiting 5 seconds for '{command}' to exit.", exitTimedOut);
+                    throw new TimeoutException($"Timed out after waiting 5 seconds for '{command}' to exit.");
                 }
 
-                logger.Debug("{Command} terminated with exit code {ExitCode}.", command, dotnetInfoProcess.ExitCode);
+                // Ensure redirected STDOUT and STDERROR have been flushed (tintoy/msbuild-project-tools-vscode#105).
+                logger.Debug("Waiting for redirected STDOUT/STDERR streams to complete for process {TargetProcessId}...", dotnetHostProcess.Id);
+                dotnetHostProcess.WaitForExit();
+
+                logger.Debug("{Command} terminated with exit code {ExitCode}.", command, dotnetHostProcess.ExitCode);
 
                 string stdOut;
                 lock (stdOutBuffer)
@@ -329,17 +330,17 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
                     stdErr = stdErrBuffer.ToString();
                 }
 
-                if (dotnetInfoProcess.ExitCode != 0 || logger.IsEnabled(Serilog.Events.LogEventLevel.Verbose))
+                if (dotnetHostProcess.ExitCode != 0 || logger.IsEnabled(Serilog.Events.LogEventLevel.Verbose))
                 {
                     if (!String.IsNullOrWhiteSpace(stdOut))
                         logger.Debug("{Command} returned the following text on STDOUT:\n\n{DotNetOutput:l}", command, stdOut);
                     else
-                        logger.Debug("{Command} returned no output on STDOUT.");
+                        logger.Debug("{Command} returned no output on STDOUT.", command);
 
                     if (!String.IsNullOrWhiteSpace(stdErr))
                         logger.Debug("{Command} returned the following text on STDERR:\n\n{DotNetOutput:l}", command, stdErr);
                     else
-                        logger.Debug("{Command} returned no output on STDERR.");
+                        logger.Debug("{Command} returned no output on STDERR.", command);
                 }
 
                 return new StringReader(stdOut);
