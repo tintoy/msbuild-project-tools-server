@@ -8,7 +8,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+        <PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
         <PackageReference Include="$(SomePackage)" Version="13.0.1" />
         <Foo Include="A;B;C;D;E;F" Diddly="Hello%(Identity)" />
         <Foo Include="G;H;I;J" Diddly="Dee" />
