@@ -16,6 +16,7 @@ steps:
 - task: gitversion/setup@0
   inputs:
    versionSpec: 5.x
+
 - task: gitversion/execute@0
   name: GitVersion
 
@@ -25,6 +26,7 @@ steps:
     command: 'restore'
     projects: './MSBuildProjectTools.sln'
     restoreArguments: '/p:VersionPrefix="$(GitVersion.MajorMinorPatch)" /p:VersionSuffix="$(GitVersion.PreReleaseTag)"'
+
 - task: DotNetCoreCLI@2
   displayName: 'Build solution'
   inputs:
@@ -33,6 +35,7 @@ steps:
     arguments: '--configuration "$(buildConfiguration)" /p:VersionPrefix="$(GitVersion.MajorMinorPatch)" /p:VersionSuffix="$(GitVersion.PreReleaseTag)"'
 
 - task: DotNetCoreCLI@2
+  displayName: 'Run tests'
   inputs:
     command: 'test'
     projects: './test/LanguageServer.Engine.Tests/LanguageServer.Engine.Tests.csproj'
