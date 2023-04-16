@@ -31,12 +31,19 @@ steps:
     command: 'build'
     projects: './MSBuildProjectTools.sln'
     arguments: '--configuration "$(buildConfiguration)" /p:VersionPrefix="$(GitVersion.MajorMinorPatch)" /p:VersionSuffix="$(GitVersion.PreReleaseTag)"'
+
+- task: DotNetCoreCLI@2
+  inputs:
+    command: 'test'
+    projects: './test/LanguageServer.Engine.Tests/LanguageServer.Engine.Tests.csproj'
+    arguments: '/p:VersionPrefix="$(GitVersion.MajorMinorPatch)" /p:VersionSuffix="$(GitVersion.PreReleaseTag)"'
+
 - task: DotNetCoreCLI@2
   displayName: 'Publish language server'
   inputs:
     command: 'publish'
     publishWebProjects: false
-    projects: './LanguageServer/LanguageServer.csproj'
+    projects: './src/LanguageServer/LanguageServer.csproj'
     arguments: '--framework net6.0 -o "./out/language-server" /p:VersionPrefix="$(GitVersion.MajorMinorPatch)" /p:VersionSuffix="$(GitVersion.PreReleaseTag)"'
     modifyOutputPath: false
 
@@ -45,6 +52,6 @@ steps:
   inputs:
     command: 'publish'
     publishWebProjects: false
-    projects: './LanguageServer.TaskReflection/LanguageServer.TaskReflection.csproj'
+    projects: './src/LanguageServer.TaskReflection/LanguageServer.TaskReflection.csproj'
     arguments: '--framework net6.0 -o "./out/task-reflection" /p:VersionPrefix="$(GitVersion.MajorMinorPatch)" /p:VersionSuffix="$(GitVersion.PreReleaseTag)"'
     modifyOutputPath: false
