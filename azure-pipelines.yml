@@ -50,6 +50,14 @@ steps:
     arguments: '--framework net6.0 -o "./out/language-server" /p:VersionPrefix="$(GitVersion.MajorMinorPatch)" /p:VersionSuffix="$(GitVersion.PreReleaseTag)"'
     modifyOutputPath: false
 
+- task: ArchiveFiles@2
+  inputs:
+    rootFolderOrFile: './out/language-server'
+    includeRootFolder: false
+    archiveType: 'zip'
+    archiveFile: '$(Build.ArtifactStagingDirectory)/language-server.zip'
+    replaceExistingArchive: true
+
 - task: DotNetCoreCLI@2
   displayName: 'Publish task reflector'
   inputs:
@@ -58,3 +66,22 @@ steps:
     projects: './src/LanguageServer.TaskReflection/LanguageServer.TaskReflection.csproj'
     arguments: '--framework net6.0 -o "./out/task-reflection" /p:VersionPrefix="$(GitVersion.MajorMinorPatch)" /p:VersionSuffix="$(GitVersion.PreReleaseTag)"'
     modifyOutputPath: false
+
+- task: ArchiveFiles@2
+  inputs:
+    rootFolderOrFile: './out/task-reflection'
+    includeRootFolder: false
+    archiveType: 'zip'
+    archiveFile: '$(Build.ArtifactStagingDirectory)/task-reflection.zip'
+    replaceExistingArchive: true
+
+- task: GitHubRelease@1
+  inputs:
+    gitHubConnection: 'github.com_tintoy'
+    repositoryName: '$(Build.Repository.Name)'
+    action: 'create'
+    target: '$(Build.SourceVersion)'
+    tagSource: 'gitTag'
+    tagPattern: '^v\d+\.\d+(-[A-Za-z0-9%\.]+)?$'
+    releaseNotesFilePath: './CHANGELOG.md'
+    addChangeLog: false
