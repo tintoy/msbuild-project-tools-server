@@ -39,7 +39,7 @@ steps:
   inputs:
     command: 'test'
     projects: './test/LanguageServer.Engine.Tests/LanguageServer.Engine.Tests.csproj'
-    arguments: '/p:VersionPrefix="$(GitVersion.MajorMinorPatch)" /p:VersionSuffix="$(GitVersion.PreReleaseTag)"'
+    arguments: '--configuration "$(buildConfiguration)" /p:VersionPrefix="$(GitVersion.MajorMinorPatch)" /p:VersionSuffix="$(GitVersion.PreReleaseTag)"'
 
 - task: DotNetCoreCLI@2
   displayName: 'Publish language server'
@@ -47,7 +47,7 @@ steps:
     command: 'publish'
     publishWebProjects: false
     projects: './src/LanguageServer/LanguageServer.csproj'
-    arguments: '--framework net6.0 -o "./out/language-server" /p:VersionPrefix="$(GitVersion.MajorMinorPatch)" /p:VersionSuffix="$(GitVersion.PreReleaseTag)"'
+    arguments: '--configuration "$(buildConfiguration)" --framework net6.0 -o "./out/language-server" /p:VersionPrefix="$(GitVersion.MajorMinorPatch)" /p:VersionSuffix="$(GitVersion.PreReleaseTag)"'
     modifyOutputPath: false
 
 - task: ArchiveFiles@2
