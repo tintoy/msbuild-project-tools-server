@@ -41,7 +41,11 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
             if (string.IsNullOrWhiteSpace(taskAssemblyPath))
                 throw new ArgumentException($"Argument cannot be null, empty, or entirely composed of whitespace: {nameof(taskAssemblyPath)}.", nameof(taskAssemblyPath));
 
+            taskAssemblyPath = taskAssemblyPath.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
             taskAssemblyPath = Path.GetFullPath(taskAssemblyPath);
+
+            if (!File.Exists(taskAssemblyPath))
+                throw new FileNotFoundException($"Cannot find task assembly file '{taskAssemblyPath}'.", taskAssemblyPath);
 
             ProcessStartInfo scannerStartInfo = new ProcessStartInfo("dotnet")
             {

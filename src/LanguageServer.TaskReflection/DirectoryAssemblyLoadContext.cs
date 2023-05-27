@@ -20,7 +20,10 @@ namespace MSBuildProjectTools.LanguageServer.TaskReflection
         /// <param name="fallbackDirectory">
         ///     An optional directory from which assemblies are loaded if they are not found in the base directory.
         /// </param>
-        public DirectoryAssemblyLoadContext(string baseDirectory, string fallbackDirectory = null)
+        /// <param name="fallbackAssemblyLoadContext">
+        ///     An optional <see cref="AssemblyLoadContext"/> from which assemblies are loaded if they are not found by the <see cref="DirectoryAssemblyLoadContext"/>.
+        /// </param>
+        public DirectoryAssemblyLoadContext(string baseDirectory, string fallbackDirectory = null, AssemblyLoadContext fallbackAssemblyLoadContext = null)
         {
             if (String.IsNullOrWhiteSpace(baseDirectory))
                 throw new ArgumentException($"Argument cannot be null, empty, or entirely composed of whitespace: {nameof(baseDirectory)}.", nameof(baseDirectory));
@@ -30,6 +33,8 @@ namespace MSBuildProjectTools.LanguageServer.TaskReflection
                 FallbackDirectory = new DirectoryInfo(fallbackDirectory);
             else
                 FallbackDirectory = BaseDirectory;
+
+            FallbackAssemblyLoadContext = fallbackAssemblyLoadContext;
         }
 
         /// <summary>
@@ -41,6 +46,11 @@ namespace MSBuildProjectTools.LanguageServer.TaskReflection
         ///     The directory from which assemblies are loaded if they are not found in the base directory.
         /// </summary>
         public DirectoryInfo FallbackDirectory { get; }
+
+        /// <summary>
+        ///     An optional <see cref="AssemblyLoadContext"/> from which assemblies are loaded if they are not found by the <see cref="DirectoryAssemblyLoadContext"/>.
+        /// </summary>
+        public AssemblyLoadContext FallbackAssemblyLoadContext { get; }
 
         /// <summary>
         ///     Load an assembly.
@@ -57,8 +67,12 @@ namespace MSBuildProjectTools.LanguageServer.TaskReflection
                 throw new ArgumentNullException(nameof(assemblyName));
 
             Assembly assembly = LoadFromDirectory(assemblyName, BaseDirectory);
+            
             if (assembly == null && FallbackDirectory != BaseDirectory)
                 assembly = LoadFromDirectory(assemblyName, FallbackDirectory);
+
+            if (assembly == null && FallbackAssemblyLoadContext != null)
+                assembly = FallbackAssemblyLoadContext.LoadFromAssemblyName(assemblyName);
 
             return assembly;
         }

@@ -7,6 +7,7 @@ using System.Reflection;
 
 namespace MSBuildProjectTools.LanguageServer.TaskReflection
 {
+    using System.Runtime.Loader;
     using LanguageServer.Utilities;
 
     /// <summary>
@@ -70,8 +71,9 @@ namespace MSBuildProjectTools.LanguageServer.TaskReflection
 
                 string fallbackDirectory = runtimeInfo.BaseDirectory;
                 string baseDirectory = tasksAssemblyFile.DirectoryName;
+                AssemblyLoadContext fallbackAssemblyLoadContext = AssemblyLoadContext.Default;
 
-                DirectoryAssemblyLoadContext loadContext = new DirectoryAssemblyLoadContext(baseDirectory, fallbackDirectory);
+                DirectoryAssemblyLoadContext loadContext = new DirectoryAssemblyLoadContext(baseDirectory, fallbackDirectory, fallbackAssemblyLoadContext);
 
                 Assembly tasksAssembly = loadContext.LoadFromAssemblyPath(tasksAssemblyFile.FullName);
                 if (tasksAssembly == null)

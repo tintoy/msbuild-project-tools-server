@@ -84,7 +84,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests
         public async Task GetReferencedPackageVersion(string packageId, string expectedPackageVersion)
         {
             var projectFile = new FileInfo(
-                Path.Combine(TestDirectory.FullName, @"..\..\..\LanguageServer.Engine.Tests.csproj")
+                Path.Combine(TestDirectory.FullName, "..", "..", "..", "LanguageServer.Engine.Tests.csproj")
             );
             Assert.True(projectFile.Exists,
                 $"Cannot find project file {projectFile.FullName}"
