@@ -1,5 +1,8 @@
 #!/bin/bash
 
+echo 'Restoring Nuget packages...'
+dotnet restore
+
 echo 'Building language server...'
 dotnet publish src/LanguageServer/LanguageServer.csproj -f net6.0 -o $PWD/out/language-server
 
