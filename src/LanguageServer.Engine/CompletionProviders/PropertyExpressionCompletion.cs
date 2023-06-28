@@ -85,7 +85,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
 
                     return null;
                 }
-                
+
                 Log.Verbose("Offering completions to replace Evaluate expression @ {ReplaceRange:l}",
                     expressionRange
                 );
@@ -133,7 +133,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
                     description: MSBuildSchemaHelp.ForProperty(wellKnownPropertyName)
                 );
             }
-            
+
             if (!projectDocument.HasMSBuildProject)
                 yield break; // Without a valid MSBuild project (even a cached one will do), we can't inspect existing MSBuild properties.
 

@@ -674,7 +674,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
         {
             if (location == null)
                 throw new ArgumentNullException(nameof(location));
-            
+
             targetAttribute = null;
 
             if (!location.IsAttributeValue(out XSAttribute attribute))

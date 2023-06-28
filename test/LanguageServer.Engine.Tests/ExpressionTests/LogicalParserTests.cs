@@ -102,8 +102,8 @@ namespace MSBuildProjectTools.LanguageServer.Tests.ExpressionTests
         /// <param name="expectedSymbol">
         ///     The expected name of the symbol.
         /// </param>
-        [InlineData("! ABC",   "ABC")]
-        [InlineData("!(ABC)",  "ABC")]
+        [InlineData("! ABC", "ABC")]
+        [InlineData("!(ABC)", "ABC")]
         [InlineData("! (ABC)", "ABC")]
         [Theory(DisplayName = "LogicalExpression parser succeeds with unary NOT of symbol ")]
         public void Parse_Unary_Not_Symbol_Success(string input, string expectedSymbol)

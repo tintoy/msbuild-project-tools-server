@@ -57,10 +57,10 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         {
             if (dictionary == null)
                 throw new ArgumentNullException(nameof(dictionary));
-            
+
             if (keyValuePairs == null)
                 throw new ArgumentNullException(nameof(keyValuePairs));
-            
+
             foreach (KeyValuePair<TKey, TValue> keyValuePair in keyValuePairs)
                 dictionary.Add(keyValuePair.Key, keyValuePair.Value);
         }
@@ -87,10 +87,10 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         {
             if (dictionary == null)
                 throw new ArgumentNullException(nameof(dictionary));
-            
+
             if (keyValuePairs == null)
                 throw new ArgumentNullException(nameof(keyValuePairs));
-            
+
             foreach (KeyValuePair<TKey, TValue> keyValuePair in keyValuePairs)
                 dictionary[keyValuePair.Key] = keyValuePair.Value;
         }

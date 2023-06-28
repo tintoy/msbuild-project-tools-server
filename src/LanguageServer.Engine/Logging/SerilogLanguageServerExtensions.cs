@@ -30,10 +30,10 @@ namespace MSBuildProjectTools.LanguageServer.Logging
         {
             if (loggerSinkConfiguration == null)
                 throw new ArgumentNullException(nameof(loggerSinkConfiguration));
-            
+
             if (languageServer == null)
                 throw new ArgumentNullException(nameof(languageServer));
-            
+
             if (levelSwitch == null)
                 throw new ArgumentNullException(nameof(levelSwitch));
 
@@ -55,7 +55,7 @@ namespace MSBuildProjectTools.LanguageServer.Logging
         {
             if (loggerEnrichmentConfiguration == null)
                 throw new ArgumentNullException(nameof(loggerEnrichmentConfiguration));
-            
+
             return loggerEnrichmentConfiguration.With<ActivityIdEnricher>();
         }
     }

@@ -42,11 +42,11 @@ namespace MSBuildProjectTools.LanguageServer.Tests.ExpressionTests
         /// <param name="expectedMetadataName">
         ///     The expected metadata name.
         /// </param>
-        [InlineData("%()",      ""   )]
-        [InlineData("%(Foo)",   "Foo")]
+        [InlineData("%()", "")]
+        [InlineData("%(Foo)", "Foo")]
         [InlineData("%( Foo )", "Foo")]
-        [InlineData("%( Foo)",  "Foo")]
-        [InlineData("%(Foo )",  "Foo")]
+        [InlineData("%( Foo)", "Foo")]
+        [InlineData("%(Foo )", "Foo")]
         [Theory(DisplayName = "ItemMetadata parser succeeds ")]
         public void Parse_Unqualified_Success(string input, string expectedMetadataName)
         {
@@ -72,12 +72,12 @@ namespace MSBuildProjectTools.LanguageServer.Tests.ExpressionTests
         /// <param name="expectedMetadataName">
         ///     The expected metadata name.
         /// </param>
-        [InlineData("%(Foo.Bar)",   "Foo", "Bar")]
+        [InlineData("%(Foo.Bar)", "Foo", "Bar")]
         [InlineData("%( Foo.Bar )", "Foo", "Bar")]
         [InlineData("%( Foo .Bar)", "Foo", "Bar")]
-        [InlineData("%(Foo.Bar )",  "Foo", "Bar")]
-        [InlineData("%(Foo.)",      "Foo",  ""  )]
-        [InlineData("%(Foo. )",     "Foo",  " " )]
+        [InlineData("%(Foo.Bar )", "Foo", "Bar")]
+        [InlineData("%(Foo.)", "Foo", "")]
+        [InlineData("%(Foo. )", "Foo", " ")]
         [Theory(DisplayName = "ItemMetadata parser succeeds ")]
         public void Parse_Qualified_Success(string input, string expectedItemType, string expectedMetadataName)
         {

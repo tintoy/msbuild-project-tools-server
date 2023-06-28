@@ -42,9 +42,9 @@ namespace MSBuildProjectTools.LanguageServer.Tests.ExpressionTests
         /// <param name="expectedContent">
         ///     The expected string content.
         /// </param>
-        [InlineData("'ABC'"  , "ABC"  )]
-        [InlineData("'ABC '" , "ABC " )]
-        [InlineData("' ABC'" , " ABC" )]
+        [InlineData("'ABC'", "ABC")]
+        [InlineData("'ABC '", "ABC ")]
+        [InlineData("' ABC'", " ABC")]
         [InlineData("' ABC '", " ABC ")]
         [Theory(DisplayName = "QuotedString parser succeeds for simple string ")]
         public void Parse_Success(string input, string expectedContent)
@@ -61,9 +61,9 @@ namespace MSBuildProjectTools.LanguageServer.Tests.ExpressionTests
         /// <param name="input">
         ///     The source text to parse.
         /// </param>
-        [InlineData("ABC"  )]
-        [InlineData("ABC " )]
-        [InlineData(" ABC" )]
+        [InlineData("ABC")]
+        [InlineData("ABC ")]
+        [InlineData(" ABC")]
         [InlineData(" ABC ")]
         [Theory(DisplayName = "QuotedString parser fails for unquoted string ")]
         public void Parse_Unquoted_Failure(string input)

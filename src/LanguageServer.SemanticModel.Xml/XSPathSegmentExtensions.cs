@@ -77,7 +77,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
 
             int index = segments.Count - 1;
             int ancestorIndex = otherSegments.Count - 1;
-            for ( ; index >= 0 && ancestorIndex >= 0; index--, ancestorIndex--)
+            for (; index >= 0 && ancestorIndex >= 0; index--, ancestorIndex--)
             {
                 XSPathSegment segment = segments[index];
                 XSPathSegment otherSegment = otherSegments[ancestorIndex];

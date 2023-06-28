@@ -60,7 +60,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests.ExpressionTests
                 "IsExpression"
             );
             Assert.NotNull(actualExpression);
-            
+
             Assert.Equal(expectedExpressionKind, actualExpression.Kind);
         }
 
@@ -77,7 +77,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests.ExpressionTests
         {
             if (relativePathSegments == null)
                 throw new ArgumentNullException(nameof(relativePathSegments));
-            
+
             return File.ReadAllText(
                 Path.Combine(
                     TestDirectory.FullName,

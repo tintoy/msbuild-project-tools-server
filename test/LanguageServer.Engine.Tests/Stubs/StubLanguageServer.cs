@@ -68,7 +68,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests.Stubs
         {
             if (string.IsNullOrWhiteSpace(method))
                 throw new ArgumentException("Argument cannot be null, empty, or entirely composed of whitespace: 'method'.", nameof(method));
-            
+
             if (handler == null)
                 throw new ArgumentNullException(nameof(handler));
 
@@ -88,7 +88,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests.Stubs
         {
             if (handlers == null)
                 throw new ArgumentNullException(nameof(handlers));
-            
+
             return Disposable.Empty;
         }
 
@@ -105,7 +105,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests.Stubs
         {
             if (handlers == null)
                 throw new ArgumentNullException(nameof(handlers));
-            
+
             return Disposable.Empty;
         }
 

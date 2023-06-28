@@ -116,7 +116,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
                     else
                     {
                         targetRange = location.Position.ToEmptyRange();
-                        
+
                         Log.Verbose("Offering completions for new child element of {ElementName} @ {Position:l}",
                             "ItemGroup",
                             targetRange

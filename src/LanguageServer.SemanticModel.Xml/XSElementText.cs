@@ -31,7 +31,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
         {
             if (element == null)
                 throw new ArgumentNullException(nameof(element));
-            
+
             Element = element;
             _path = Element.Path + Name;
         }

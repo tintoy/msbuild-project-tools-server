@@ -47,14 +47,14 @@ namespace MSBuildProjectTools.LanguageServer.Tests.ExpressionTests
         /// <param name="expectSeparator">
         ///     Expect the item group transform to have a separator.
         /// </param>
-        [InlineData("@(Foo->)",         "Foo", false, false)]
-        [InlineData("@(Foo->'')",       "Foo", true,  false)]
-        [InlineData("@(Foo ->'')",      "Foo", true,  false)]
-        [InlineData("@(Foo -> '')",     "Foo", true,  false)]
-        [InlineData("@(Foo->'','')",    "Foo", true,  true )]
-        [InlineData("@(Foo->'', '')",   "Foo", true,  true )]
-        [InlineData("@(Foo->'$(Bar)')", "Foo", true,  false)]
-        [InlineData("@(Foo->'%(Bar)')", "Foo", true,  false)]
+        [InlineData("@(Foo->)", "Foo", false, false)]
+        [InlineData("@(Foo->'')", "Foo", true, false)]
+        [InlineData("@(Foo ->'')", "Foo", true, false)]
+        [InlineData("@(Foo -> '')", "Foo", true, false)]
+        [InlineData("@(Foo->'','')", "Foo", true, true)]
+        [InlineData("@(Foo->'', '')", "Foo", true, true)]
+        [InlineData("@(Foo->'$(Bar)')", "Foo", true, false)]
+        [InlineData("@(Foo->'%(Bar)')", "Foo", true, false)]
         [Theory(DisplayName = "ItemGroupTransform parser succeeds ")]
         public void Parse_Success(string input, string expectedItemType, bool expectBody, bool expectSeparator)
         {

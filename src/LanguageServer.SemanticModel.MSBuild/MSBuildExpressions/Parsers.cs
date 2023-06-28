@@ -407,7 +407,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel.MSBuildExpressions
         /// </summary>
         public static readonly Parser<Symbol> QualifiedSymbol = Parse.Positioned(
             from identifiers in Tokens.Identifier.DelimitedBy(Tokens.Period).Array().Named("identifiers")
-            
+
             select new Symbol
             {
                 Name = identifiers[identifiers.Length - 1],

@@ -55,7 +55,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         {
             if (string.IsNullOrWhiteSpace(operationName))
                 throw new ArgumentException("Argument cannot be null, empty, or entirely composed of whitespace: 'operationName'.", nameof(operationName));
-            
+
             return new CompositeDisposable(
                 ActivityCorrelationManager.BeginActivityScope(),
                 Serilog.Context.LogContext.PushProperty("Operation", operationName)

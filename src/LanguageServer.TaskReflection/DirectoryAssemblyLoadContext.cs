@@ -67,7 +67,7 @@ namespace MSBuildProjectTools.LanguageServer.TaskReflection
                 throw new ArgumentNullException(nameof(assemblyName));
 
             Assembly assembly = LoadFromDirectory(assemblyName, BaseDirectory);
-            
+
             if (assembly == null && FallbackDirectory != BaseDirectory)
                 assembly = LoadFromDirectory(assemblyName, FallbackDirectory);
 

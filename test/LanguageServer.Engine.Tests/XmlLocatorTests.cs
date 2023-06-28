@@ -177,7 +177,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests
             XmlDocumentSyntax document = Parser.ParseText(testXml);
 
             XmlLocator locator = new XmlLocator(document, positions);
-            XmlLocation result = locator.Inspect(testPosition);        
+            XmlLocation result = locator.Inspect(testPosition);
             Assert.NotNull(result);
 
             Assert.True(result.IsAttribute(out XSAttribute attribute), "IsAttribute");
@@ -367,7 +367,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests
         {
             if (relativePathSegments == null)
                 throw new ArgumentNullException(nameof(relativePathSegments));
-            
+
             return File.ReadAllText(
                 Path.Combine(
                     TestDirectory.FullName,

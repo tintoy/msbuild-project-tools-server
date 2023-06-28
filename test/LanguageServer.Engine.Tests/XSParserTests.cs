@@ -248,7 +248,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests
 
             Assert.IsAssignableFrom<XSElement>(targetNode);
             XSElement targetElement = (XSElement)targetNode;
-            
+
             Range expectedRange = new Range(
                 start: new Position(startLine, startColumn),
                 end: new Position(endLine, endColumn)

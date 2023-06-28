@@ -78,7 +78,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
     public abstract class XSNode<TSyntax>
         : XSNode
         where TSyntax : SyntaxNode
-    {   
+    {
         /// <summary>
         ///     Create a new <see cref="XSNode{TSyntax}"/>.
         /// </summary>

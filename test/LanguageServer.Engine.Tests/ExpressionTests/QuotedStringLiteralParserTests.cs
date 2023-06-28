@@ -41,10 +41,10 @@ namespace MSBuildProjectTools.LanguageServer.Tests.ExpressionTests
         /// <param name="expectedContent">
         ///     The expected string content.
         /// </param>
-        [InlineData("''",      ""     )]
-        [InlineData("'ABC'",   "ABC"  )]
-        [InlineData("'ABC '", "ABC "  )]
-        [InlineData("' ABC'", " ABC"  )]
+        [InlineData("''", "")]
+        [InlineData("'ABC'", "ABC")]
+        [InlineData("'ABC '", "ABC ")]
+        [InlineData("' ABC'", " ABC")]
         [InlineData("' ABC '", " ABC ")]
         [Theory(DisplayName = "QuotedStringLiteral parser succeeds ")]
         public void Parse_Success(string input, string expectedContent)

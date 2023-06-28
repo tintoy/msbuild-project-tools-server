@@ -52,9 +52,9 @@ namespace MSBuildProjectTools.LanguageServer.Tests.ExpressionTests
         /// <param name="expectedRightSymbol">
         ///     The expected name of the left-hand symbol.
         /// </param>
-        [InlineData("ABC==XYZ",   ComparisonKind.Equality, "ABC", "XYZ")]
+        [InlineData("ABC==XYZ", ComparisonKind.Equality, "ABC", "XYZ")]
         [InlineData("ABC == XYZ", ComparisonKind.Equality, "ABC", "XYZ")]
-        [InlineData("ABC!=XYZ",   ComparisonKind.Inequality, "ABC", "XYZ")]
+        [InlineData("ABC!=XYZ", ComparisonKind.Inequality, "ABC", "XYZ")]
         [InlineData("ABC != XYZ", ComparisonKind.Inequality, "ABC", "XYZ")]
         [Theory(DisplayName = "Compare parser succeeds with symbols ")]
         public void Parse_Symbols_Success(string input, ComparisonKind expectedComparisonKind, string expectedLeftSymbol, string expectedRightSymbol)
@@ -139,7 +139,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests.ExpressionTests
                 Assert.NotNull(actualComparison.Left);
                 QuotedString left = Assert.IsType<QuotedString>(actualComparison.Left);
                 Assert.Equal(expectedLeftContent, left.StringContent);
-                
+
                 Assert.NotNull(actualComparison.Right);
                 QuotedString right = Assert.IsType<QuotedString>(actualComparison.Right);
                 Assert.Equal(expectedRightContent, right.StringContent);

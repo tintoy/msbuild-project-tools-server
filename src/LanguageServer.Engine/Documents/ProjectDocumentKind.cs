@@ -23,6 +23,6 @@ namespace MSBuildProjectTools.LanguageServer.Documents
         /// <summary>
         ///     Some other file type (*.*).
         /// </summary>
-        Other  = 4
+        Other = 4
     }
 }

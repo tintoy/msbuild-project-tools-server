@@ -30,7 +30,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests.Logging
         {
             if (loggerSinkConfiguration == null)
                 throw new ArgumentNullException(nameof(loggerSinkConfiguration));
-            
+
             if (testOutput == null)
                 throw new ArgumentNullException(nameof(testOutput));
 

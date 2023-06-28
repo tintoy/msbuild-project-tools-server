@@ -25,10 +25,10 @@ namespace MSBuildProjectTools.LanguageServer.Logging
         {
             if (logEvent == null)
                 throw new ArgumentNullException(nameof(logEvent));
-            
+
             if (propertyFactory == null)
                 throw new ArgumentNullException(nameof(propertyFactory));
-            
+
             Guid? activityId = ActivityCorrelationManager.CurrentActivityId;
             LogEventProperty activityIdProperty = propertyFactory.CreateProperty("ActivityId", activityId);
             logEvent.AddPropertyIfAbsent(activityIdProperty);

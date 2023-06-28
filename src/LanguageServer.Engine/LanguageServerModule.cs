@@ -41,7 +41,7 @@ namespace MSBuildProjectTools.LanguageServer
                 throw new ArgumentNullException(nameof(builder));
 
             builder.RegisterInstance(Configuration).AsSelf();
-            
+
             builder
                 .Register(componentContext => new LanguageServer(
                     input: Console.OpenStandardInput(),
@@ -54,7 +54,7 @@ namespace MSBuildProjectTools.LanguageServer
                 .OnActivated(activated =>
                 {
                     LanguageServer languageServer = activated.Instance;
-                    
+
                     // Register configuration handler (which is not a Handler).
                     var configurationHandler = activated.Context.Resolve<ConfigurationHandler>();
                     languageServer.AddHandler(configurationHandler);

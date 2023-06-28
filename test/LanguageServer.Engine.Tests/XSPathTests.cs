@@ -29,10 +29,10 @@ namespace MSBuildProjectTools.LanguageServer.Tests
         /// <param name="expectedSegmentCount">
         ///     The expected number of <see cref="XSPathSegment"/>s in the resulting path.
         /// </param>
-        [InlineData("/",     1)]
-        [InlineData("/A",    2)]
-        [InlineData("/A/",   2)]
-        [InlineData("/A/B",  3)]
+        [InlineData("/", 1)]
+        [InlineData("/A", 2)]
+        [InlineData("/A/", 2)]
+        [InlineData("/A/B", 3)]
         [InlineData("/A/B/", 3)]
         [Theory(DisplayName = "XSPath can parse absolute path ")]
         public void Can_Parse_Path_Absolute(string path, int expectedSegmentCount)
@@ -53,9 +53,9 @@ namespace MSBuildProjectTools.LanguageServer.Tests
         /// <param name="expectedSegmentCount">
         ///     The expected number of <see cref="XSPathSegment"/>s in the resulting path.
         /// </param>
-        [InlineData("A",    1)]
-        [InlineData("A/",   1)]
-        [InlineData("A/B",  2)]
+        [InlineData("A", 1)]
+        [InlineData("A/", 1)]
+        [InlineData("A/B", 2)]
         [InlineData("A/B/", 2)]
         [Theory(DisplayName = "XSPath can parse relative path ")]
         public void Can_Parse_Path_Relative(string path, int expectedSegmentCount)
@@ -79,7 +79,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests
         /// <param name="expectedPath">
         ///     The expected resulting path.
         /// </param>
-        [InlineData("/",  "A", "/A"  )]
+        [InlineData("/", "A", "/A")]
         [InlineData("/A", "B", "/A/B")]
         [Theory(DisplayName = "XSPath can append relative string segment ")]
         public void Can_Append_String_Segment_To_Path_Relative(string path, string segment, string expectedPath)
@@ -102,8 +102,8 @@ namespace MSBuildProjectTools.LanguageServer.Tests
         /// <param name="expectedPath">
         ///     The expected resulting path.
         /// </param>
-        [InlineData("/",    "/A",   "/A"  )]
-        [InlineData("/A",   "/B",   "/B"  )]
+        [InlineData("/", "/A", "/A")]
+        [InlineData("/A", "/B", "/B")]
         [InlineData("/A/B", "/C/D", "/C/D")]
         [Theory(DisplayName = "XSPath can append relative string segment ")]
         public void Can_Append_String_Segment_To_Path_Absolute(string path, string segment, string expectedPath)
@@ -145,9 +145,9 @@ namespace MSBuildProjectTools.LanguageServer.Tests
         /// <param name="basePath">
         ///     The base path.
         /// </param>
-        [InlineData("B",   "A/B"  )]
+        [InlineData("B", "A/B")]
         [InlineData("B/C", "A/B/C")]
-        [InlineData("C",   "A/B/C")]
+        [InlineData("C", "A/B/C")]
         [Theory(DisplayName = "XSPath.EndsWith succeeds with relative base path ")]
         public void Path_EndsWith_Relative_Success(string path, string ancestorPath)
         {
@@ -166,10 +166,10 @@ namespace MSBuildProjectTools.LanguageServer.Tests
         /// <param name="basePath">
         ///     The base path.
         /// </param>
-        [InlineData("A",   "/"     )]
-        [InlineData("/A",  "/"     )]
-        [InlineData("A/B", "/"     )]
-        [InlineData("A/B", "/A"    )]
+        [InlineData("A", "/")]
+        [InlineData("/A", "/")]
+        [InlineData("A/B", "/")]
+        [InlineData("A/B", "/A")]
         [InlineData("C/D", "/A/B/C")]
         [Theory(DisplayName = "XSPath.IsChildOf succeeds with absolute base path ")]
         public void Path_IsChildOf_Absolute_Success(string path, string ancestorPath)
@@ -189,8 +189,8 @@ namespace MSBuildProjectTools.LanguageServer.Tests
         /// <param name="basePath">
         ///     The base path.
         /// </param>
-        [InlineData("B",    "/A/B")]
-        [InlineData("/A/B", "/"   )]
+        [InlineData("B", "/A/B")]
+        [InlineData("/A/B", "/")]
         [Theory(DisplayName = "XSPath.IsChildOf fails with absolute base path ")]
         public void Path_IsChildOf_Absolute_Failure(string path, string ancestorPath)
         {
@@ -209,7 +209,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests
         /// <param name="basePath">
         ///     The base path.
         /// </param>
-        [InlineData("B/C", "A/B"  )]
+        [InlineData("B/C", "A/B")]
         [InlineData("C/D", "A/B/C")]
         [Theory(DisplayName = "XSPath.IsChildOf succeeds with relative base path ")]
         public void Path_IsChildOf_Relative_Success(string path, string ancestorPath)
@@ -229,8 +229,8 @@ namespace MSBuildProjectTools.LanguageServer.Tests
         /// <param name="basePath">
         ///     The base path.
         /// </param>
-        [InlineData("B",    "A/B"   )]
-        [InlineData("C",    "A/B"   )]
+        [InlineData("B", "A/B")]
+        [InlineData("C", "A/B")]
         [InlineData("C/D", "A/B/C/D")]
         [Theory(DisplayName = "XSPath.IsChildOf fails with relative base path ")]
         public void Path_IsChildOf_Relative_Failure(string path, string ancestorPath)

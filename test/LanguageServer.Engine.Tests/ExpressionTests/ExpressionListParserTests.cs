@@ -40,9 +40,9 @@ namespace MSBuildProjectTools.LanguageServer.Tests.ExpressionTests
         /// <param name="input">
         ///     The source text to parse.
         /// </param>
-        [InlineData(""    )]
-        [InlineData(" "   )]
-        [InlineData("ABC" )]
+        [InlineData("")]
+        [InlineData(" ")]
+        [InlineData("ABC")]
         [InlineData(" ABC")]
         [InlineData("ABC ")]
         [Theory(DisplayName = "SimpleListItem parser succeeds ")]

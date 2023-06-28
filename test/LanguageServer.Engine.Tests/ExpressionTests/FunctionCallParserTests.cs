@@ -34,8 +34,8 @@ namespace MSBuildProjectTools.LanguageServer.Tests.ExpressionTests
         /// <param name="expectedArgumentKind">
         ///     The expected argument kind.
         /// </param>
-        [InlineData("Exists(Foo)",       ExpressionKind.Symbol      )]
-        [InlineData("Exists($(Foo))",    ExpressionKind.Evaluate    )]
+        [InlineData("Exists(Foo)", ExpressionKind.Symbol)]
+        [InlineData("Exists($(Foo))", ExpressionKind.Evaluate)]
         [InlineData("Exists('Foo.txt')", ExpressionKind.QuotedString)]
         [Theory(DisplayName = "FunctionCall parser succeeds for global function call with a single argument ")]
         public void Parse_Global_SingleArgument_String_Success(string input, ExpressionKind expectedArgumentKind)
@@ -59,8 +59,8 @@ namespace MSBuildProjectTools.LanguageServer.Tests.ExpressionTests
         /// <param name="expectedArgumentKind">
         ///     The expected argument kind.
         /// </param>
-        [InlineData("Foo.Exists(Bar)",       ExpressionKind.Symbol      )]
-        [InlineData("Foo.Exists($(Bar))",    ExpressionKind.Evaluate    )]
+        [InlineData("Foo.Exists(Bar)", ExpressionKind.Symbol)]
+        [InlineData("Foo.Exists($(Bar))", ExpressionKind.Evaluate)]
         [InlineData("Foo.Exists('Bar.txt')", ExpressionKind.QuotedString)]
         [Theory(DisplayName = "FunctionCall parser succeeds for instance method call with a single argument ")]
         public void Parse_InstanceMethod_SingleArgument_String_Success(string input, ExpressionKind expectedArgumentKind)

@@ -72,7 +72,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
                     return null;
 
                 LspModels.Range replaceRange = conditionAttribute.ValueRange.ToLsp();
-                
+
                 completions.Add(new CompletionItem
                 {
                     Label = "If not already defined",

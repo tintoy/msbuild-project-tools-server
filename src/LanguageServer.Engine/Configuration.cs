@@ -42,7 +42,7 @@ namespace MSBuildProjectTools.LanguageServer
         /// </summary>
         [JsonProperty("msbuild", ObjectCreationHandling = ObjectCreationHandling.Reuse)]
         public MSBuildConfiguration MSBuild { get; } = new MSBuildConfiguration();
-        
+
         /// <summary>
         ///     The MSBuild language service's NuGet configuration.
         /// </summary>

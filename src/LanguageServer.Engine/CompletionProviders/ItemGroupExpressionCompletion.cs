@@ -85,7 +85,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
 
                     return null;
                 }
-                
+
                 Log.Verbose("Offering completions to replace ItemGroup expression @ {ReplaceRange:l}",
                     expressionRange
                 );
@@ -136,7 +136,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
                     description: MSBuildSchemaHelp.ForItemType(itemType)
                 );
             }
-            
+
             if (!projectDocument.HasMSBuildProject)
                 yield break; // Without a valid MSBuild project (even a cached one will do), we can't inspect existing MSBuild properties.
 

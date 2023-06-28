@@ -87,7 +87,7 @@ namespace MSBuildProjectTools.LanguageServer.Logging
 
             using (StringWriter messageWriter = new StringWriter(messageBuilder))
             {
-                logEvent.RenderMessage(messageWriter);               
+                logEvent.RenderMessage(messageWriter);
             }
             if (logEvent.Exception != null)
             {
@@ -108,19 +108,19 @@ namespace MSBuildProjectTools.LanguageServer.Logging
                 case LogEventLevel.Fatal:
                 {
                     logParameters.Type = MessageType.Error;
-                    
+
                     break;
                 }
                 case LogEventLevel.Warning:
                 {
                     logParameters.Type = MessageType.Warning;
-                    
+
                     break;
                 }
                 case LogEventLevel.Information:
                 {
                     logParameters.Type = MessageType.Info;
-                    
+
                     break;
                 }
                 default:

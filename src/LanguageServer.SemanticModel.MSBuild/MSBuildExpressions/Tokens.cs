@@ -137,7 +137,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel.MSBuildExpressions
                 (character >= '0' && character <= '9')
                 ||
                 (character >= 'A' && character <= 'F'),
-            
+
             description: "token: hexadecimal digit"
         );
 
@@ -148,7 +148,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel.MSBuildExpressions
             from escape in Parse.Char('%')
             from hexDigits in HexDigit.Repeat(2).Text()
             select (char)byte.Parse(hexDigits, NumberStyles.HexNumber),
-            
+
             name: "token: escaped character"
         );
 
@@ -170,7 +170,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel.MSBuildExpressions
             from stringContents in SingleQuotedStringChar.Many()
             from rightQuote in SingleQuote
             select stringContents,
-            
+
             name: "token: quoted string"
         );
 
@@ -196,7 +196,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel.MSBuildExpressions
             from first in Parse.Letter
             from rest in Parse.LetterOrDigit.Many().Text()
             select first + rest,
-            
+
             name: "token: identifier"
         );
 

@@ -2,7 +2,7 @@ using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-    
+
 namespace MSBuildProjectTools.LanguageServer.Tests.Stubs
 {
     using Diagnostics;
@@ -38,7 +38,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests.Stubs
         {
             if (documentUri == null)
                 throw new ArgumentNullException(nameof(documentUri));
-            
+
             if (diagnostics != null && diagnostics.Any())
                 Diagnostics[documentUri] = diagnostics.ToArray();
             else

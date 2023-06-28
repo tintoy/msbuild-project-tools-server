@@ -124,7 +124,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
         public IEnumerable<CompletionItem> GetCompletionItems(Range replaceRange)
         {
             LspModels.Range completionRange = replaceRange.ToLsp();
-            
+
             // <PropertyGroup>
             //     $0
             // </PropertyGroup>
