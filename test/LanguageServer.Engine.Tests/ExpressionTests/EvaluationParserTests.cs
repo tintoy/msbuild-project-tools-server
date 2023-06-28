@@ -41,10 +41,10 @@ namespace MSBuildProjectTools.LanguageServer.Tests.ExpressionTests
         /// <param name="expectedSymbolName">
         ///     The expected symbol name.
         /// </param>
-        [InlineData("$(Foo)", "Foo")]
+        [InlineData("$(Foo)",   "Foo")]
         [InlineData("$( Foo )", "Foo")]
-        [InlineData("$( Foo)", "Foo")]
-        [InlineData("$(Foo )", "Foo")]
+        [InlineData("$( Foo)",  "Foo")]
+        [InlineData("$(Foo )",  "Foo")]
         [Theory(DisplayName = "Evaluation parser succeeds with symbol ")]
         public void Parse_Symbol_Success(string input, string expectedSymbolName)
         {
@@ -66,13 +66,13 @@ namespace MSBuildProjectTools.LanguageServer.Tests.ExpressionTests
         /// <param name="expectedFunctionName">
         ///     The expected function name.
         /// </param>
-        [InlineData("$( Foo() )", "Foo")]
-        [InlineData("$( Foo('Bar') )", "Foo")]
-        [InlineData("$( Foo('Bar', 'Bonk') )", "Foo")]
-        [InlineData("$(Foo.Bar())", "Bar")]
+        [InlineData("$( Foo() )",                   "Foo")]
+        [InlineData("$( Foo('Bar') )",              "Foo")]
+        [InlineData("$( Foo('Bar', 'Bonk') )",      "Foo")]
+        [InlineData("$(Foo.Bar())",                 "Bar")]
         [InlineData("$(Foo.Bar('Bonk', 'Diddly'))", "Bar")]
-        [InlineData("$(Foo.Bar('Baz'))", "Bar")]
-        [InlineData("$([Foo.Bar]::Baz('Bonk'))", "Baz")]
+        [InlineData("$(Foo.Bar('Baz'))",            "Bar")]
+        [InlineData("$([Foo.Bar]::Baz('Bonk'))",    "Baz")]
         [Theory(DisplayName = "Evaluation parser succeeds with function-call ")]
         public void Parse_FunctionCall_Success(string input, string expectedFunctionName)
         {

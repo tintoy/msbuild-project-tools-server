@@ -41,9 +41,9 @@ namespace MSBuildProjectTools.LanguageServer.Tests.ExpressionTests
         /// <param name="input">
         ///     The source text to parse.
         /// </param>
-        [InlineData("")]
-        [InlineData(" ")]
-        [InlineData("ABC")]
+        [InlineData(""    )]
+        [InlineData(" "   )]
+        [InlineData("ABC" )]
         [InlineData(" ABC")]
         [InlineData("ABC ")]
         [Theory(DisplayName = "SimpleListItem parser succeeds ")]
@@ -61,12 +61,12 @@ namespace MSBuildProjectTools.LanguageServer.Tests.ExpressionTests
         /// <param name="input">
         ///     The source text to parse.
         /// </param>
-        [InlineData(";;")]
-        [InlineData("ABC")]
-        [InlineData(";ABC")]
-        [InlineData("ABC;")]
-        [InlineData(";ABC;")]
-        [InlineData("ABC;DEF")]
+        [InlineData(";;"      )]
+        [InlineData("ABC"     )]
+        [InlineData(";ABC"    )]
+        [InlineData("ABC;"    )]
+        [InlineData(";ABC;"   )]
+        [InlineData("ABC;DEF" )]
         [InlineData("ABC;DEF;")]
         [Theory(DisplayName = "Parse MSBuild simple list is equivalent to String.Split ")]
         public void SimpleListEquivalentToStringSplit(string input)
@@ -80,8 +80,8 @@ namespace MSBuildProjectTools.LanguageServer.Tests.ExpressionTests
                 {
                     Assert.Equal(ExpressionKind.SimpleListItem, actualItem.Kind);
 
-                    SimpleListItem actuaListItem = Assert.IsType<SimpleListItem>(actualItem);
-                    Assert.Equal(expectedValue, actuaListItem.Value);
+                    SimpleListItem actualListItem = Assert.IsType<SimpleListItem>(actualItem);
+                    Assert.Equal(expectedValue, actualListItem.Value);
                 }));
 
             });
@@ -99,10 +99,10 @@ namespace MSBuildProjectTools.LanguageServer.Tests.ExpressionTests
         /// <param name="expectedItemValue">
         ///     The expected value of the item.
         /// </param>
-        [InlineData("ABC", 0, "ABC")]
-        [InlineData("ABC;DEF", 3, "ABC")]
-        [InlineData("ABC;DEF", 4, "DEF")]
-        [InlineData("ABC;;DEF", 4, "")]
+        [InlineData("ABC",      0, "ABC")]
+        [InlineData("ABC;DEF",  3, "ABC")]
+        [InlineData("ABC;DEF",  4, "DEF")]
+        [InlineData("ABC;;DEF", 4, ""   )]
         [InlineData("ABC;;DEF", 5, "DEF")]
         [Theory(DisplayName = "SimpleList can find item at position ")]
         public void SimpleList_FindItemAtPosition(string input, int position, string expectedItemValue)

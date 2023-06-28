@@ -41,10 +41,10 @@ namespace MSBuildProjectTools.LanguageServer.Tests.ExpressionTests
         /// <param name="expectedContent">
         ///     The expected string content.
         /// </param>
-        [InlineData("''", "")]
-        [InlineData("'ABC'", "ABC")]
-        [InlineData("'ABC '", "ABC ")]
-        [InlineData("' ABC'", " ABC")]
+        [InlineData("''",      ""     )]
+        [InlineData("'ABC'",   "ABC"  )]
+        [InlineData("'ABC '",  "ABC " )]
+        [InlineData("' ABC'",  " ABC" )]
         [InlineData("' ABC '", " ABC ")]
         [Theory(DisplayName = "QuotedStringLiteral parser succeeds ")]
         public void Parse_Success(string input, string expectedContent)
@@ -61,9 +61,9 @@ namespace MSBuildProjectTools.LanguageServer.Tests.ExpressionTests
         /// <param name="input">
         ///     The source text to parse.
         /// </param>
-        [InlineData("ABC")]
-        [InlineData("ABC ")]
-        [InlineData(" ABC")]
+        [InlineData("ABC"  )]
+        [InlineData("ABC " )]
+        [InlineData(" ABC" )]
         [InlineData(" ABC ")]
         [Theory(DisplayName = "QuotedStringLiteral parser fails for unquoted string ")]
         public void Parse_Unquoted_Failure(string input)
@@ -77,9 +77,9 @@ namespace MSBuildProjectTools.LanguageServer.Tests.ExpressionTests
         /// <param name="input">
         ///     The source text to parse.
         /// </param>
-        [InlineData("'ABC")]
-        [InlineData("AB'C ")]
-        [InlineData(" ABC'")]
+        [InlineData("'ABC"  )]
+        [InlineData("AB'C " )]
+        [InlineData(" ABC'" )]
         [InlineData(" ABC' ")]
         [Theory(DisplayName = "QuotedStringLiteral parser fails for string without closing quote ")]
         public void Parse_Without_ClosingQuote_Failure(string input)

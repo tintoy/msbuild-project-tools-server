@@ -41,11 +41,11 @@ namespace MSBuildProjectTools.LanguageServer.Tests.ExpressionTests
         /// <param name="expectedItemGroupName">
         ///     The expected symbol name.
         /// </param>
-        [InlineData("@()", "")]
-        [InlineData("@(Foo)", "Foo")]
+        [InlineData("@()",      ""   )]
+        [InlineData("@(Foo)",   "Foo")]
         [InlineData("@( Foo )", "Foo")]
-        [InlineData("@( Foo)", "Foo")]
-        [InlineData("@(Foo )", "Foo")]
+        [InlineData("@( Foo)",  "Foo")]
+        [InlineData("@(Foo )",  "Foo")]
         [Theory(DisplayName = "ItemGroup parser succeeds ")]
         public void Parse_Success(string input, string expectedItemGroupName)
         {
@@ -61,7 +61,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests.ExpressionTests
         /// <param name="input">
         ///     The source text to parse.
         /// </param>
-        [InlineData("@(1Foo)")]
+        [InlineData("@(1Foo)"   )]
         [InlineData("@(Foo.Bar)")]
         [Theory(DisplayName = "ItemGroup parser fails ")]
         public void Parse_Failure(string input)
