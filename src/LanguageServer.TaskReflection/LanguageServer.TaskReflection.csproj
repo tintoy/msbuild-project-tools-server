@@ -6,8 +6,6 @@
         <RootNamespace>MSBuildProjectTools.LanguageServer.TaskReflection</RootNamespace>
     </PropertyGroup>
 
-    <Import Project="../Common.props" />
-
     <ItemGroup>
       <Compile Include="..\LanguageServer.Common\Utilities\DotNetRuntimeInfo.cs" Link="DotNetRuntimeInfo.cs" />
     </ItemGroup>

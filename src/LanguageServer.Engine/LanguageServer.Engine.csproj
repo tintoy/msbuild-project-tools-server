@@ -6,8 +6,6 @@
         <RootNamespace>MSBuildProjectTools.LanguageServer</RootNamespace>
     </PropertyGroup>
 
-    <Import Project="../Common.props" />
-
     <ItemGroup>
         <Compile Remove="SemanticModel\**" />
         <EmbeddedResource Remove="SemanticModel\**" />

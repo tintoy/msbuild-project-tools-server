@@ -62,6 +62,4 @@
     <ItemGroup>
       <None Include="TestProjects\Project1.csproj" />
     </ItemGroup>
-
-    <Import Project="..\Common.targets" />
 </Project>
