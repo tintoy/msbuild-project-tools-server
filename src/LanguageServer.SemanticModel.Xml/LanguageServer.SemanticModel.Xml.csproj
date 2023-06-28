@@ -1,7 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net6.0</TargetFramework>
         <AssemblyName>MSBuildProjectTools.LanguageServer.SemanticModel.Xml</AssemblyName>
         <RootNamespace>MSBuildProjectTools.LanguageServer.SemanticModel</RootNamespace>
     </PropertyGroup>

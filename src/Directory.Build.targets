@@ -1,9 +1,0 @@
-<Project>
-  <!-- Delete the SdkResolvers directory -->
-  <Target Name="DeleteSdkResolversDirectory" AfterTargets="Build">
-    <RemoveDir Directories="$(OutDir)SdkResolvers" Condition=" Exists('$(OutDir)SdkResolvers') " />
-  </Target>
-  <Target Name="DeletePublishedSdkResolversDirectory" AfterTargets="Publish">
-    <RemoveDir Directories="$(PublishDir)SdkResolvers" Condition=" Exists('$(PublishDir)SdkResolvers') " />
-  </Target>
-</Project>

@@ -1,11 +1,12 @@
 <Project>
-    <PropertyGroup>
-        <AssetTargetFallback>dnxcore50</AssetTargetFallback>
-        <LangVersion>latest</LangVersion>
-        
-        <GenerateDocumentationFile>true</GenerateDocumentationFile>
-        <NoWarn>IDE0016</NoWarn>
+    <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
 
-        <NoPackageAnalysis>true</NoPackageAnalysis>
+    <PropertyGroup>
+      <AssetTargetFallback>dnxcore50</AssetTargetFallback>
+
+      <GenerateDocumentationFile>true</GenerateDocumentationFile>
+      <NoWarn>IDE0016</NoWarn>
+
+      <NoPackageAnalysis>true</NoPackageAnalysis>
     </PropertyGroup>
 </Project>
