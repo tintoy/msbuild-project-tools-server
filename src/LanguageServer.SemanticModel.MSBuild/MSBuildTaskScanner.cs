@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Reflection;
 using System.Threading.Tasks;
 
 namespace MSBuildProjectTools.LanguageServer.SemanticModel
@@ -55,52 +54,49 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
                 RedirectStandardOutput = true,
                 RedirectStandardError = true
             };
-            using (Process scannerProcess = Process.Start(scannerStartInfo))
+
+            using Process scannerProcess = Process.Start(scannerStartInfo);
+            // Start reading output asynchronously so the process's STDOUT buffer doesn't fill up.
+            Task<string> readOutput = scannerProcess.StandardOutput.ReadToEndAsync();
+
+            bool exited = scannerProcess.WaitForExit(5000);
+            if (!exited)
             {
-                // Start reading output asynchronously so the process's STDOUT buffer doesn't fill up.
-                Task<string> readOutput = scannerProcess.StandardOutput.ReadToEndAsync();
+                scannerProcess.Kill();
 
-                bool exited = scannerProcess.WaitForExit(5000);
-                if (!exited)
-                {
-                    scannerProcess.Kill();
-
-                    throw new TimeoutException("Timed out after waiting 10 seconds for scanner process to exit.");
-                }
-
-                string output = await readOutput;
-                if (String.IsNullOrWhiteSpace(output))
-                    output = await scannerProcess.StandardError.ReadToEndAsync();
-
-                using (StringReader scannerOutput = new StringReader(output))
-                using (JsonTextReader scannerJson = new JsonTextReader(scannerOutput))
-                {
-                    if (exited && scannerProcess.ExitCode == 0)
-                        return new JsonSerializer().Deserialize<MSBuildTaskAssemblyMetadata>(scannerJson);
-
-                    string message;
-                    try
-                    {
-                        JObject errorJson = JObject.Parse(output);
-                        message = errorJson.Value<string>("Message");
-                    }
-                    catch (JsonReaderException invalidJson)
-                    {
-                        throw new Exception($"An unexpected error occurred while scanning assembly '{taskAssemblyPath}' for tasks.\n{output}",
-                            innerException: invalidJson
-                        );
-                    }
-
-                    if (String.IsNullOrWhiteSpace(message))
-                        message = $"An unexpected error occurred while scanning assembly '{taskAssemblyPath}' for tasks.";
-                    else
-                        message = $"An unexpected error occurred while scanning assembly '{taskAssemblyPath}' for tasks: {message}";
-
-                    // TODO: Custom exception type.
-
-                    throw new Exception(message);
-                }
+                throw new TimeoutException("Timed out after waiting 10 seconds for scanner process to exit.");
             }
+
+            string output = await readOutput;
+            if (string.IsNullOrWhiteSpace(output))
+                output = await scannerProcess.StandardError.ReadToEndAsync();
+
+            using StringReader scannerOutput = new StringReader(output);
+            using JsonTextReader scannerJson = new JsonTextReader(scannerOutput);
+            if (exited && scannerProcess.ExitCode == 0)
+                return new JsonSerializer().Deserialize<MSBuildTaskAssemblyMetadata>(scannerJson);
+
+            string message;
+            try
+            {
+                JObject errorJson = JObject.Parse(output);
+                message = errorJson.Value<string>("Message");
+            }
+            catch (JsonReaderException invalidJson)
+            {
+                throw new Exception($"An unexpected error occurred while scanning assembly '{taskAssemblyPath}' for tasks.\n{output}",
+                    innerException: invalidJson
+                );
+            }
+
+            if (string.IsNullOrWhiteSpace(message))
+                message = $"An unexpected error occurred while scanning assembly '{taskAssemblyPath}' for tasks.";
+            else
+                message = $"An unexpected error occurred while scanning assembly '{taskAssemblyPath}' for tasks: {message}";
+
+            // TODO: Custom exception type.
+
+            throw new Exception(message);
         }
     }
 

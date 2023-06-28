@@ -57,7 +57,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
         /// </returns>
         public async Task<MSBuildTaskAssemblyMetadata> GetAssemblyMetadata(string assemblyPath)
         {
-            if (String.IsNullOrWhiteSpace(assemblyPath))
+            if (string.IsNullOrWhiteSpace(assemblyPath))
                 throw new ArgumentException("Argument cannot be null, empty, or entirely composed of whitespace: 'assemblyPath'.", nameof(assemblyPath));
             
             MSBuildTaskAssemblyMetadata metadata;
@@ -97,7 +97,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
         /// </param>
         public void Load(string cacheFile)
         {
-            if (String.IsNullOrWhiteSpace(cacheFile))
+            if (string.IsNullOrWhiteSpace(cacheFile))
                 throw new ArgumentException("Argument cannot be null, empty, or entirely composed of whitespace: 'cacheFile'.", nameof(cacheFile));
             
             using (StateLock.Lock())
@@ -122,7 +122,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
         /// </param>
         public void Save(string cacheFile)
         {
-            if (String.IsNullOrWhiteSpace(cacheFile))
+            if (string.IsNullOrWhiteSpace(cacheFile))
                 throw new ArgumentException("Argument cannot be null, empty, or entirely composed of whitespace: 'cacheFile'.", nameof(cacheFile));
 
             using (StateLock.Lock())
@@ -151,7 +151,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
         /// </returns>
         public static MSBuildTaskMetadataCache FromCacheFile(string cacheFile)
         {
-            if (String.IsNullOrWhiteSpace(cacheFile))
+            if (string.IsNullOrWhiteSpace(cacheFile))
                 throw new ArgumentException("Argument cannot be null, empty, or entirely composed of whitespace: 'cacheFile'.", nameof(cacheFile));
             
             MSBuildTaskMetadataCache cache = new MSBuildTaskMetadataCache();

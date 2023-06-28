@@ -97,8 +97,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests
                 Assert.NotNull(referencedPackageVersions);
                 Assert.NotEmpty(referencedPackageVersions);
 
-                SemanticVersion referencedPackageVersion;
-                Assert.True(referencedPackageVersions.TryGetValue(packageId, out referencedPackageVersion),
+                Assert.True(referencedPackageVersions.TryGetValue(packageId, out SemanticVersion referencedPackageVersion),
                     $"Cannot find referenced version for package '{packageId}'."
                 );
                 Assert.Equal(expectedPackageVersion, referencedPackageVersion.ToString());

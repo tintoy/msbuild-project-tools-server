@@ -93,7 +93,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
                 yield return childNode;
 
                 foreach (SyntaxNode descendantNode in childNode.DescendantNodes())
-                    yield return childNode;
+                    yield return descendantNode;
             }
         }
 

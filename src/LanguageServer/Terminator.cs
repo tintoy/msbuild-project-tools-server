@@ -1,7 +1,7 @@
+using Serilog;
 using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
-using Serilog;
 
 namespace MSBuildProjectTools.LanguageServer
 {
@@ -24,10 +24,8 @@ namespace MSBuildProjectTools.LanguageServer
         /// </summary>
         static Terminator()
         {
-            using (Process currentProcess = Process.GetCurrentProcess())
-            {
-                CurrentProcessId = currentProcess.Id;
-            }
+            using Process currentProcess = Process.GetCurrentProcess();
+            CurrentProcessId = currentProcess.Id;
         }
 
         /// <summary>
@@ -117,6 +115,6 @@ namespace MSBuildProjectTools.LanguageServer
         /// <summary>
         ///     Terminate the current process.
         /// </summary>
-        void Terminate() => Environment.Exit(9);
+        static void Terminate() => Environment.Exit(9);
     }
 }

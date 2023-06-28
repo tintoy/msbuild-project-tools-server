@@ -1,10 +1,8 @@
 using OmniSharp.Extensions.JsonRpc;
-using OmniSharp.Extensions.LanguageServer;
 using OmniSharp.Extensions.LanguageServer.Protocol;
 using OmniSharp.Extensions.LanguageServer.Protocol.Client.Capabilities;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using OmniSharp.Extensions.LanguageServer.Server;
-using Microsoft.Language.Xml;
 using Serilog;
 using System;
 using System.Threading;
@@ -15,7 +13,6 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
     using ContentProviders;
     using Documents;
     using SemanticModel;
-    using SemanticModel.MSBuildExpressions;
     using Utilities;
 
     /// <summary>
@@ -92,16 +89,6 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         }
 
         /// <summary>
-        ///     Has the client supplied hover capabilities?
-        /// </summary>
-        bool HaveHoverCapabilities => HoverCapabilities != null;
-
-        /// <summary>
-        ///     The client's hover capabilities.
-        /// </summary>
-        HoverCapability HoverCapabilities { get; set; }
-
-        /// <summary>
         ///     Called when the mouse pointer hovers over text.
         /// </summary>
         /// <param name="parameters">
@@ -169,13 +156,13 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
                     {
                         case MSBuildProperty property:
                         {
-                            hoverContent = contentProvider.Property(property);
+                            hoverContent = HoverContentProvider.Property(property);
 
                             break;
                         }
                         case MSBuildUnusedProperty unusedProperty:
                         {
-                            hoverContent = contentProvider.UnusedProperty(unusedProperty);
+                            hoverContent = HoverContentProvider.UnusedProperty(unusedProperty);
 
                             break;
                         }
@@ -187,7 +174,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
                         }
                         case MSBuildUnusedItemGroup unusedItemGroup:
                         {
-                            hoverContent = contentProvider.UnusedItemGroup(unusedItemGroup);
+                            hoverContent = HoverContentProvider.UnusedItemGroup(unusedItemGroup);
 
                             break;
                         }
@@ -196,13 +183,13 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
                             // Currently (and this is a bug), an MSBuildTarget is returned by MSBuildLocator when the location being inspected
                             // is actually on one of its child (task) elements.
                             if (element.Path == WellKnownElementPaths.Target)
-                                hoverContent = contentProvider.Target(target);
+                                hoverContent = HoverContentProvider.Target(target);
 
                             break;
                         }
                         case MSBuildImport import:
                         {
-                            hoverContent = contentProvider.Import(import);
+                            hoverContent = HoverContentProvider.Import(import);
 
                             break;
                         }
@@ -214,7 +201,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
                         }
                         default:
                         {
-                            hoverContent = contentProvider.Element(element);
+                            hoverContent = HoverContentProvider.Element(element);
 
                             break;
                         }
@@ -227,13 +214,13 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
                     {
                         case MSBuildProperty property:
                         {
-                            hoverContent = contentProvider.Property(property);
+                            hoverContent = HoverContentProvider.Property(property);
 
                             break;
                         }
                         case MSBuildUnusedProperty unusedProperty:
                         {
-                            hoverContent = contentProvider.UnusedProperty(unusedProperty);
+                            hoverContent = HoverContentProvider.UnusedProperty(unusedProperty);
 
                             break;
                         }
@@ -258,7 +245,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
                         }
                         case MSBuildSdkImport sdkImport:
                         {
-                            hoverContent = contentProvider.SdkImport(sdkImport);
+                            hoverContent = HoverContentProvider.SdkImport(sdkImport);
 
                             break;
                         }
@@ -270,7 +257,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
                         }
                         case MSBuildImport import:
                         {
-                            hoverContent = contentProvider.Import(import);
+                            hoverContent = HoverContentProvider.Import(import);
 
                             break;
                         }
@@ -347,7 +334,6 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         /// </param>
         void ICapability<HoverCapability>.SetCapability(HoverCapability capabilities)
         {
-            HoverCapabilities = capabilities;
         }
     }
 }

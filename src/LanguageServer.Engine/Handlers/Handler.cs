@@ -1,13 +1,6 @@
 using OmniSharp.Extensions.JsonRpc;
-using OmniSharp.Extensions.LanguageServer;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
-using OmniSharp.Extensions.LanguageServer.Protocol;
 using Serilog;
 using System;
-using System.Threading.Tasks;
-using System.Linq;
-using System.Threading;
-using System.IO;
 using System.Reactive.Disposables;
 
 namespace MSBuildProjectTools.LanguageServer.Handlers
@@ -58,9 +51,9 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         /// <returns>
         ///     An <see cref="IDisposable"/> representing the log-context scope.
         /// </returns>
-        protected IDisposable BeginOperation(string operationName)
+        protected static IDisposable BeginOperation(string operationName)
         {
-            if (String.IsNullOrWhiteSpace(operationName))
+            if (string.IsNullOrWhiteSpace(operationName))
                 throw new ArgumentException("Argument cannot be null, empty, or entirely composed of whitespace: 'operationName'.", nameof(operationName));
             
             return new CompositeDisposable(

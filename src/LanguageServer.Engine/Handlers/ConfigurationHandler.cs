@@ -1,20 +1,13 @@
 using OmniSharp.Extensions.JsonRpc;
-using OmniSharp.Extensions.LanguageServer;
 using OmniSharp.Extensions.LanguageServer.Protocol;
 using OmniSharp.Extensions.LanguageServer.Protocol.Client.Capabilities;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using Newtonsoft.Json.Serialization;
 using Serilog;
-using Serilog.Events;
 using System;
 using System.Threading.Tasks;
-    
+
 namespace MSBuildProjectTools.LanguageServer.Handlers
 {
     using CustomProtocol;
-    using Handlers;
 
     /// <summary>
     ///     Language Server message handler that tracks configuration.
@@ -22,12 +15,6 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
     public sealed class ConfigurationHandler
         : IDidChangeConfigurationSettingsHandler
     {
-        /// <summary>
-        ///     The JSON serializer used to read settings from LSP notifications.
-        /// </summary>
-        /// <returns></returns>
-        readonly JsonSerializer _settingsSerializer = new JsonSerializer();
-
         /// <summary>
         ///     Create a new <see cref="ConfigurationHandler"/>.
         /// </summary>
@@ -53,16 +40,6 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         public Configuration Configuration { get; }
 
         /// <summary>
-        ///     Has the client supplied configuration capabilities?
-        /// </summary>
-        bool HaveConfigurationCapabilities => ConfigurationCapabilities != null;
-
-        /// <summary>
-        ///     The client's configuration capabilities.
-        /// </summary>
-        DidChangeConfigurationCapability ConfigurationCapabilities { get; set; }
-
-        /// <summary>
         ///     Called when configuration has changed.
         /// </summary>
         /// <param name="parameters">
@@ -75,8 +52,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         {
             Configuration.UpdateFrom(parameters);
 
-            if (ConfigurationChanged != null)
-                ConfigurationChanged(this, EventArgs.Empty);
+            ConfigurationChanged?.Invoke(this, EventArgs.Empty);
 
             return Task.CompletedTask;
         }
@@ -89,7 +65,6 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         /// </param>
         void ICapability<DidChangeConfigurationCapability>.SetCapability(DidChangeConfigurationCapability capabilities)
         {
-            ConfigurationCapabilities = capabilities;
         }
 
         /// <summary>
@@ -105,7 +80,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         {
             if (parameters == null)
                 throw new ArgumentNullException(nameof(parameters));
-            
+
             using (BeginOperation("OnDidChangeConfiguration"))
             {
                 try
@@ -139,11 +114,11 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         /// <returns>
         ///     An <see cref="IDisposable"/> representing the log-context scope.
         /// </returns>
-        IDisposable BeginOperation(string operationName)
+        static IDisposable BeginOperation(string operationName)
         {
-            if (String.IsNullOrWhiteSpace(operationName))
+            if (string.IsNullOrWhiteSpace(operationName))
                 throw new ArgumentException("Argument cannot be null, empty, or entirely composed of whitespace: 'operationName'.", nameof(operationName));
-            
+
             return Serilog.Context.LogContext.PushProperty("Operation", operationName);
         }
     }

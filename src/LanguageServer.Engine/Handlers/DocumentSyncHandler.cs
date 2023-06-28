@@ -1,19 +1,17 @@
+using NuGet.Configuration;
 using OmniSharp.Extensions.JsonRpc;
-using OmniSharp.Extensions.LanguageServer;
 using OmniSharp.Extensions.LanguageServer.Protocol;
 using OmniSharp.Extensions.LanguageServer.Protocol.Client.Capabilities;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using OmniSharp.Extensions.LanguageServer.Protocol.Server.Capabilities;
 using OmniSharp.Extensions.LanguageServer.Server;
-using NuGet.Configuration;
 using Serilog;
 using Serilog.Events;
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
-using System.Linq;
-using System.Threading;
 using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace MSBuildProjectTools.LanguageServer.Handlers
 {
@@ -45,7 +43,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         {
             if (workspace == null)
                 throw new ArgumentNullException(nameof(workspace));
-            
+
             Workspace = workspace;
         }
 
@@ -98,16 +96,6 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         ///     The document workspace.
         /// </summary>
         Workspace Workspace { get; }
-
-        /// <summary>
-        ///     Has the client supplied synchronization capabilities?
-        /// </summary>
-        bool HaveSynchronizationCapabilities => SynchronizationCapabilities != null;
-
-        /// <summary>
-        ///     The client's synchronization capabilities.
-        /// </summary>
-        SynchronizationCapability SynchronizationCapabilities { get; set; }
 
         /// <summary>
         ///     Get registration options for handling document events.
@@ -194,7 +182,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
                     break;
                 }
             }
-            
+
             if (Log.IsEnabled(LogEventLevel.Verbose))
             {
                 Log.Verbose("===========================");
@@ -354,7 +342,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         /// <returns>
         ///     The document attributes.
         /// </returns>
-        TextDocumentAttributes GetTextDocumentAttributes(Uri documentUri)
+        static TextDocumentAttributes GetTextDocumentAttributes(Uri documentUri)
         {
             string documentFilePath = VSCodeDocumentUri.GetFileSystemPath(documentUri);
             if (documentFilePath == null)
@@ -393,7 +381,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         {
             if (parameters == null)
                 throw new ArgumentNullException(nameof(parameters));
-            
+
             using (BeginOperation("OnDidOpenTextDocument"))
             {
                 try
@@ -520,7 +508,6 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         /// </param>
         void ICapability<SynchronizationCapability>.SetCapability(SynchronizationCapability capabilities)
         {
-            SynchronizationCapabilities = capabilities;
         }
 
         /// <summary>

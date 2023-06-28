@@ -1,7 +1,5 @@
-using System;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
@@ -12,7 +10,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests
 {
     using SemanticModel;
     using Utilities;
-    
+
     /// <summary>
     ///     Tests for <see cref="MSBuildTaskScanner"/>.
     /// </summary>

@@ -7,7 +7,6 @@ using Xunit.Abstractions;
 namespace MSBuildProjectTools.LanguageServer.Tests.ExpressionTests
 {
     using SemanticModel.MSBuildExpressions;
-    using Sprache;
 
     /// <summary>
     ///     Tests for parsing of MSBuild item group expressions.

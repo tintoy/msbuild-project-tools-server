@@ -52,7 +52,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel.MSBuildExpressions
                 from leadingEmptyItem in
                     ReturnPositioned(() => new SimpleListItem
                     {
-                        Value = String.Empty
+                        Value = string.Empty
                     })
                 from separator in Separator.Once()
                 select leadingEmptyItem.ToSequence().Concat<ExpressionNode>(separator);
@@ -411,7 +411,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel.MSBuildExpressions
             select new Symbol
             {
                 Name = identifiers[identifiers.Length - 1],
-                Namespace = String.Join(".", identifiers.Take(identifiers.Length - 1))
+                Namespace = string.Join(".", identifiers.Take(identifiers.Length - 1))
             }
         ).Named("qualified symbol");
 

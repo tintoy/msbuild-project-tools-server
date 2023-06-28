@@ -1,9 +1,7 @@
 using Autofac;
-using Microsoft.Build.Locator;
 using NuGet.Credentials;
 using Serilog;
 using System;
-using System.Linq;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -118,7 +116,7 @@ namespace MSBuildProjectTools.LanguageServer
                         (int)server.Client.ProcessId.Value
                     );
                 }
-                
+
                 await server.WasShutDown;
 
                 log.Debug("Language server is shutting down...");
@@ -142,7 +140,7 @@ namespace MSBuildProjectTools.LanguageServer
         static IContainer BuildContainer()
         {
             ContainerBuilder builder = new ContainerBuilder();
-            
+
             builder.RegisterModule<LoggingModule>();
             builder.RegisterModule<LanguageServerModule>();
 
@@ -155,7 +153,7 @@ namespace MSBuildProjectTools.LanguageServer
         static void AutoDetectExtensionDirectory()
         {
             string extensionDir = Environment.GetEnvironmentVariable("MSBUILD_PROJECT_TOOLS_DIR");
-            if (String.IsNullOrWhiteSpace(extensionDir))
+            if (string.IsNullOrWhiteSpace(extensionDir))
             {
                 extensionDir = Path.Combine(
                     AppContext.BaseDirectory, "..", ".."

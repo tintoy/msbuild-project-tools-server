@@ -1,6 +1,5 @@
 using Autofac;
 using OmniSharp.Extensions.LanguageServer.Server;
-using Serilog;
 using Serilog.Events;
 using System;
 using System.Collections.Generic;

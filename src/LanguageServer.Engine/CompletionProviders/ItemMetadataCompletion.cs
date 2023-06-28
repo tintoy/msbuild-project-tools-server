@@ -2,8 +2,6 @@ using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using Serilog;
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -53,7 +51,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
         /// <returns>
         ///     A <see cref="Task{TResult}"/> that resolves either a <see cref="CompletionList"/>s, or <c>null</c> if no completions are provided.
         /// </returns>
-        public override async Task<CompletionList> ProvideCompletions(XmlLocation location, ProjectDocument projectDocument, string triggerCharacters, CancellationToken cancellationToken = default(CancellationToken))
+        public override async Task<CompletionList> ProvideCompletions(XmlLocation location, ProjectDocument projectDocument, string triggerCharacters, CancellationToken cancellationToken = default)
         {
             if (location == null)
                 throw new ArgumentNullException(nameof(location));
@@ -65,7 +63,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
 
             List<CompletionItem> completions = new List<CompletionItem>();
 
-            using (await projectDocument.Lock.ReaderLockAsync())
+            using (await projectDocument.Lock.ReaderLockAsync(cancellationToken))
             {
                 if (location.IsElement(out XSElement element) && !element.HasParentPath(WellKnownElementPaths.ItemGroup))
                 {
@@ -75,9 +73,9 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
                 }
 
                 HashSet<string> existingMetadata = new HashSet<string>();
-                
+
                 completions.AddRange(
-                    GetAttributeCompletions(location, projectDocument, existingMetadata)
+                    GetAttributeCompletions(location, existingMetadata)
                 );
 
                 completions.AddRange(
@@ -101,23 +99,17 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
         /// <param name="location">
         ///     The <see cref="XmlLocation"/> where completions are requested.
         /// </param>
-        /// <param name="projectDocument">
-        ///     The <see cref="ProjectDocument"/> that contains the <paramref name="location"/>.
-        /// </param>
         /// <param name="existingMetadata">
         ///     Metadata already declared on the item.
         /// </param>
         /// <returns>
         ///     A sequence of <see cref="CompletionItem"/>s.
         /// </returns>
-        IEnumerable<CompletionItem> GetAttributeCompletions(XmlLocation location, ProjectDocument projectDocument, HashSet<string> existingMetadata)
+        IEnumerable<CompletionItem> GetAttributeCompletions(XmlLocation location, HashSet<string> existingMetadata)
         {
             Log.Verbose("Evaluate attribute completions for {XmlLocation:l}", location);
 
-            XSElement itemElement;
-            XSAttribute replaceAttribute;
-            PaddingType needsPadding;
-            if (!location.CanCompleteAttribute(out itemElement, out replaceAttribute, out needsPadding))
+            if (!location.CanCompleteAttribute(out XSElement itemElement, out XSAttribute replaceAttribute, out PaddingType needsPadding))
             {
                 Log.Verbose("Not offering any attribute completions for {XmlLocation:l} (not a location where we can offer attribute completion.", location);
 
@@ -133,7 +125,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
             }
 
             string itemType = itemElement.Name;
-            if (String.IsNullOrWhiteSpace(itemType))
+            if (string.IsNullOrWhiteSpace(itemType))
             {
                 Log.Verbose("Not offering any attribute completions for {XmlLocation:l} (element represents a new, unnamed, item group).",
                     location,
@@ -209,8 +201,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
         {
             Log.Verbose("Evaluate element completions for {XmlLocation:l}", location);
 
-            XSElement replaceElement;
-            if (!location.CanCompleteElement(out replaceElement, parentPath: WellKnownElementPaths.Item))
+            if (!location.CanCompleteElement(out XSElement replaceElement, parentPath: WellKnownElementPaths.Item))
             {
                 Log.Verbose("Not offering any element completions for {XmlLocation:l} (not a location where an item metadata element can be created or replaced by completion).", location);
 
@@ -244,7 +235,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
 
                 yield break;
             }
-            
+
             if (MSBuildSchemaHelp.ForItemType(itemType) == null)
             {
                 Log.Verbose("Not offering any element completions for {XmlLocation:l} ({ItemType} is not a well-known item type).",
@@ -303,11 +294,11 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
         /// <returns>
         ///     A sequence of existing metadata names.
         /// </returns>
-        IEnumerable<string> GetExistingMetadataNames(XSElement itemElement)
+        static IEnumerable<string> GetExistingMetadataNames(XSElement itemElement)
         {
             if (itemElement == null)
                 throw new ArgumentNullException(nameof(itemElement));
-            
+
             foreach (XSAttribute metadataAttribute in itemElement.Attributes)
                 yield return metadataAttribute.Name;
 

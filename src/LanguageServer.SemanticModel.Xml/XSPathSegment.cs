@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace MSBuildProjectTools.LanguageServer.SemanticModel
 {
@@ -11,7 +11,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
         /// <summary>
         ///     The root path segment.
         /// </summary>
-        public static readonly XSPathSegment Root = new XSPathSegment(String.Empty);
+        public static readonly XSPathSegment Root = new XSPathSegment(string.Empty);
 
         /// <summary>
         ///     The wild-card ("*") path segment.
@@ -29,7 +29,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
         /// </param>
         XSPathSegment(string name)
         {
-            if (string.IsNullOrWhiteSpace(name) && name != String.Empty)
+            if (string.IsNullOrWhiteSpace(name) && name != string.Empty)
                 throw new ArgumentException($"Argument cannot be null or entirely composed of whitespace: {nameof(name)}.", nameof(name));
 
             if (name.IndexOf(XSPath.PathSeparatorCharacter) != -1)
@@ -46,7 +46,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
         /// <summary>
         ///     Does the path segment represent the root of a path?
         /// </summary>
-        public bool IsRoot => Name == String.Empty;
+        public bool IsRoot => Name == string.Empty;
 
         /// <summary>
         ///     Does the path segment represent a wildcard?
@@ -64,20 +64,20 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
         /// </returns>
         public bool Equals(XSPathSegment other)
         {
-            if (ReferenceEquals(other, null))
+            if (other is null)
                 return false;
 
             return other.Name == Name;
         }
 
         /// <summary>
-        ///     Determine whether the <see cref="XSPathSegment"/> is equal to another <see cref="Object"/>.
+        ///     Determine whether the <see cref="XSPathSegment"/> is equal to another <see cref="object"/>.
         /// </summary>
         /// <param name="other">
-        ///     The other <see cref="Object"/>.
+        ///     The other <see cref="object"/>.
         /// </param>
         /// <returns>
-        ///     <c>true</c>, if the <see cref="XSPathSegment"/> is equal to the other <see cref="Object"/>; otherwise, <c>false</c>.
+        ///     <c>true</c>, if the <see cref="XSPathSegment"/> is equal to the other <see cref="object"/>; otherwise, <c>false</c>.
         /// </returns>
         public override bool Equals(object other)
         {
@@ -117,7 +117,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
             if (name == null)
                 throw new ArgumentNullException(nameof(name));
 
-            if (name == String.Empty)
+            if (name == string.Empty)
                 return Root;
 
             if (name == "*")
@@ -140,8 +140,8 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
         /// </returns>
         public static bool operator ==(XSPathSegment left, XSPathSegment right)
         {
-            bool isLeftNull = ReferenceEquals(left, null);
-            bool isRightNull = ReferenceEquals(right, null);
+            bool isLeftNull = left is null;
+            bool isRightNull = right is null;
 
             if (isLeftNull && isRightNull)
                 return true;
@@ -166,8 +166,8 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
         /// </returns>
         public static bool operator !=(XSPathSegment left, XSPathSegment right)
         {
-            bool isLeftNull = ReferenceEquals(left, null);
-            bool isRightNull = ReferenceEquals(right, null);
+            bool isLeftNull = left is null;
+            bool isRightNull = right is null;
 
             if (isLeftNull && isRightNull)
                 return false;

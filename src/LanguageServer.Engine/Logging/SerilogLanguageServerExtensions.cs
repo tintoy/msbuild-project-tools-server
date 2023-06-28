@@ -1,4 +1,3 @@
-using OmniSharp.Extensions.LanguageServer;
 using OmniSharp.Extensions.LanguageServer.Server;
 using Serilog;
 using Serilog.Configuration;
@@ -7,8 +6,6 @@ using System;
 
 namespace MSBuildProjectTools.LanguageServer.Logging
 {
-    using Handlers;
-
     /// <summary>
     ///     Extension methods for configuring Serilog.
     /// </summary>

@@ -48,8 +48,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
             if (node == null)
                 throw new ArgumentNullException(nameof(node));
 
-            ExpressionContainerNode containerNode = node as ExpressionContainerNode;
-            if (containerNode == null)
+            if (node is not ExpressionContainerNode containerNode)
                 yield break;
 
             foreach (ExpressionNode childNode in containerNode.Children)
@@ -82,8 +81,8 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
             {
                 // Special case for "virtual" nodes (they take up no space, but we want to match them when searching).
                 if (node.IsVirtual)
-                    return atPosition == node.AbsoluteStart;    
-                
+                    return atPosition == node.AbsoluteStart;
+
                 return node.AbsoluteLength > 0 && atPosition >= node.AbsoluteStart && atPosition < node.AbsoluteEnd;
             });
         }

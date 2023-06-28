@@ -545,8 +545,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
             if (location.IsWhitespace(out XSWhitespace whitespace) && (parentPath == null || whitespace.HasParentPath(parentPath)))
                 return true;
 
-            XSElement element;
-            if (!location.IsElement(out element))
+            if (!location.IsElement(out XSElement element))
                 return false;
 
             if (location.IsElementBetweenAttributes())
@@ -606,8 +605,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
             replaceAttribute = null;
             needsPadding = PaddingType.None;
 
-            XSAttribute attribute;
-            if (location.IsAttribute(out attribute) && !location.IsValue())
+            if (location.IsAttribute(out XSAttribute attribute) && !location.IsValue())
             {
                 element = attribute.Element;
                 if (location.Position == attribute.Start)
@@ -679,8 +677,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
             
             targetAttribute = null;
 
-            XSAttribute attribute;
-            if (!location.IsAttributeValue(out attribute))
+            if (!location.IsAttributeValue(out XSAttribute attribute))
                 return false;
 
             if (onElementWithPath != null && !attribute.HasParentPath(onElementWithPath))

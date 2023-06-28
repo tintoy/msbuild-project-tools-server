@@ -25,11 +25,11 @@ namespace MSBuildProjectTools.LanguageServer.TaskReflection
         /// </param>
         public DirectoryAssemblyLoadContext(string baseDirectory, string fallbackDirectory = null, AssemblyLoadContext fallbackAssemblyLoadContext = null)
         {
-            if (String.IsNullOrWhiteSpace(baseDirectory))
+            if (string.IsNullOrWhiteSpace(baseDirectory))
                 throw new ArgumentException($"Argument cannot be null, empty, or entirely composed of whitespace: {nameof(baseDirectory)}.", nameof(baseDirectory));
 
             BaseDirectory = new DirectoryInfo(baseDirectory);
-            if (!String.IsNullOrWhiteSpace(fallbackDirectory))
+            if (!string.IsNullOrWhiteSpace(fallbackDirectory))
                 FallbackDirectory = new DirectoryInfo(fallbackDirectory);
             else
                 FallbackDirectory = BaseDirectory;

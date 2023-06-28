@@ -1,6 +1,4 @@
-using Sprache;
 using System;
-using System.Linq;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -220,7 +218,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests.ExpressionTests
                 throw new ArgumentNullException(nameof(expression));
 
             TestOutput.WriteLine("{0}{1}",
-                new String(' ', currentDepth * 2),
+                new string(' ', currentDepth * 2),
                 expression.ToString()
             );
 

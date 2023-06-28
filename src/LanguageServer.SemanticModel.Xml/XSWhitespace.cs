@@ -1,4 +1,3 @@
-using Microsoft.Language.Xml;
 using System;
 
 namespace MSBuildProjectTools.LanguageServer.SemanticModel

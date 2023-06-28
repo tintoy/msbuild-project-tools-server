@@ -70,7 +70,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
         /// <returns>
         ///     A <see cref="Task{TResult}"/> that resolves either a <see cref="CompletionList"/>s, or <c>null</c> if no completions are provided.
         /// </returns>
-        public override async Task<CompletionList> ProvideCompletions(XmlLocation location, ProjectDocument projectDocument, string triggerCharacters, CancellationToken cancellationToken = default(CancellationToken))
+        public override async Task<CompletionList> ProvideCompletions(XmlLocation location, ProjectDocument projectDocument, string triggerCharacters, CancellationToken cancellationToken = default)
         {
             if (location == null)
                 throw new ArgumentNullException(nameof(location));
@@ -80,12 +80,9 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
 
             List<CompletionItem> completions = new List<CompletionItem>();
 
-            using (await projectDocument.Lock.ReaderLockAsync())
+            using (await projectDocument.Lock.ReaderLockAsync(cancellationToken))
             {
-                XSElement element;
-                XSAttribute replaceAttribute;
-                PaddingType needsPadding;
-                if (!location.CanCompleteAttribute(out element, out replaceAttribute, out needsPadding))
+                if (!location.CanCompleteAttribute(out XSElement element, out XSAttribute replaceAttribute, out PaddingType needsPadding))
                     return null;
 
                 // Must be a valid item element.
@@ -93,7 +90,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
                     return null;
 
                 Range replaceRange = replaceAttribute?.Range ?? location.Position.ToEmptyRange();
-                
+
                 completions.AddRange(
                     WellKnownItemAttributes.Except(
                         element.AttributeNames

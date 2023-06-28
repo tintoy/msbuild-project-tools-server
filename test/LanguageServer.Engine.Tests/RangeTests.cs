@@ -5,8 +5,6 @@ using Xunit;
 
 namespace MSBuildProjectTools.LanguageServer.Tests
 {
-    using SemanticModel;
-
     /// <summary>
     ///     Tests for <see cref="Range"/>.
     /// </summary>

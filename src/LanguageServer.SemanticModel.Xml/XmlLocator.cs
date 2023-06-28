@@ -1,7 +1,6 @@
 using Microsoft.Language.Xml;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace MSBuildProjectTools.LanguageServer.SemanticModel
 {
@@ -46,10 +45,10 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
         {
             if (document == null)
                 throw new ArgumentNullException(nameof(document));
-            
+
             if (documentPositions == null)
                 throw new ArgumentNullException(nameof(documentPositions));
-            
+
             _documentPositions = documentPositions;
 
             List<XSNode> allNodes = document.GetSemanticModel(_documentPositions);
@@ -156,7 +155,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
 
                 if (objectRange.Contains(position))
                     lastMatchingRange = objectRange;
-            }   
+            }
             if (lastMatchingRange == Range.Zero)
                 return null;
 
@@ -169,7 +168,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
         /// <returns>
         ///     <see cref="XmlLocationFlags"/> describing the position.
         /// </returns>
-        XmlLocationFlags ComputeLocationFlags(XSNode node, int absolutePosition)
+        static XmlLocationFlags ComputeLocationFlags(XSNode node, int absolutePosition)
         {
             if (node == null)
                 throw new ArgumentNullException(nameof(node));
@@ -195,7 +194,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
                         attributesSpan = new TextSpan(start: syntaxNode.NameNode.Span.End, length: syntaxNode.SlashGreaterThanToken.Span.Start - syntaxNode.NameNode.Span.End);
                     else if (syntaxNode.AttributesNode != null)
                         attributesSpan = syntaxNode.AttributesNode.FullSpan; // We don't rely on the span of the syntaxNode.AttributesNode unless we have to, because it's often less accurate than the measurement above.
-                    
+
                     if (attributesSpan.Contains(absolutePosition))
                         flags |= XmlLocationFlags.Attributes;
 
@@ -265,13 +264,13 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
 
                     break;
                 }
-                case XSElementText text:
+                case XSElementText:
                 {
                     flags |= XmlLocationFlags.Text | XmlLocationFlags.Element | XmlLocationFlags.Value;
 
                     break;
                 }
-                case XSWhitespace whitespace:
+                case XSWhitespace:
                 {
                     flags |= XmlLocationFlags.Whitespace | XmlLocationFlags.Element | XmlLocationFlags.Value;
 

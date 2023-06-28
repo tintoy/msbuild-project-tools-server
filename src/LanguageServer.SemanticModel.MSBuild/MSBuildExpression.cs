@@ -32,19 +32,19 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
             var parseResult = Parsers.Root.TryParse(expression);
             if (!parseResult.WasSuccessful)
             {
-                string expectations = String.Empty;
+                string expectations = string.Empty;
                 if (parseResult.Expectations.Any())
                 {
-                    expectations = String.Format(" (expected {0} at {1})",
-                        String.Join(", ", parseResult.Expectations.Select(
-                            expectation => String.Format("'{0}'", expectation)
+                    expectations = string.Format(" (expected {0} at {1})",
+                        string.Join(", ", parseResult.Expectations.Select(
+                            expectation => string.Format("'{0}'", expectation)
                         )),
                         parseResult.Remainder
                     );
                 }
 
                 throw new ParseException(
-                    String.Format("Failed to parse expression '{0}'{1}.", expression, expectations)
+                    string.Format("Failed to parse expression '{0}'{1}.", expression, expectations)
                 );
             }
 
@@ -102,19 +102,19 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
             var parseResult = Parsers.SimpleLists.List.TryParse(expression);
             if (!parseResult.WasSuccessful)
             {
-                string expectations = String.Empty;
+                string expectations = string.Empty;
                 if (parseResult.Expectations.Any())
                 {
-                    expectations = String.Format(" (expected {0} at {1})",
-                        String.Join(", ", parseResult.Expectations.Select(
-                            expectation => String.Format("'{0}'", expectation)
+                    expectations = string.Format(" (expected {0} at {1})",
+                        string.Join(", ", parseResult.Expectations.Select(
+                            expectation => string.Format("'{0}'", expectation)
                         )),
                         parseResult.Remainder
                     );
                 }
 
                 throw new ParseException(
-                    String.Format("Failed to parse simple list{0}.", expectations)
+                    string.Format("Failed to parse simple list{0}.", expectations)
                 );
             }
 

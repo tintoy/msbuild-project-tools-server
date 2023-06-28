@@ -5,23 +5,23 @@ namespace MSBuildProjectTools.LanguageServer
     /// <summary>
     ///     Represents a position in a text document.
     /// </summary>
-    public struct Position
+    public readonly struct Position
         : IEquatable<Position>, IComparable<Position>, IComparable<Range>
     {
         /// <summary>
         ///     An invalid position (-1,-1).
         /// </summary>
-        public static Position Invalid = new Position(-1,-1);
+        public static readonly Position Invalid = new Position(-1, -1);
 
         /// <summary>
         ///     The origin position (1,1).
         /// </summary>
-        public static Position Origin = new Position(1,1);
+        public static readonly Position Origin = new Position(1, 1);
 
         /// <summary>
         ///     The zero position (0,0).
         /// </summary>
-        public static Position Zero = new Position(0,0);
+        public static readonly Position Zero = new Position(0, 0);
 
         /// <summary>
         ///     Create a new <see cref="Position"/>.
@@ -69,7 +69,7 @@ namespace MSBuildProjectTools.LanguageServer
         /// <summary>
         ///     Is the position 0-based (instead of 1-based)?
         /// </summary>
-        public bool IsZeroBased { get; private set; }
+        public bool IsZeroBased { get; }
 
         /// <summary>
         ///     Is the position 1-based?
@@ -247,7 +247,7 @@ namespace MSBuildProjectTools.LanguageServer
                 other = other.ToOneBased();
             else if (IsZeroBased)
                 other = other.ToZeroBased();
-            
+
             int lineComparison = LineNumber.CompareTo(other.LineNumber);
             if (lineComparison != 0)
                 return lineComparison;
@@ -285,7 +285,7 @@ namespace MSBuildProjectTools.LanguageServer
         /// <returns>
         ///     The string representation "LineNumber,ColumnNumber".
         /// </returns>
-        public override string ToString() => String.Format("{0},{1}", LineNumber, ColumnNumber);
+        public override string ToString() => string.Format("{0},{1}", LineNumber, ColumnNumber);
 
         /// <summary>
         ///     Convert the position to a one-based position.
@@ -347,7 +347,7 @@ namespace MSBuildProjectTools.LanguageServer
         /// <returns>
         ///     <c>true</c>, if the positions are equal; otherwise, <c>false</c>.
         /// </returns>
-        public static bool operator==(Position position1, Position position2)
+        public static bool operator ==(Position position1, Position position2)
         {
             return position1.Equals(position2);
         }
@@ -364,7 +364,7 @@ namespace MSBuildProjectTools.LanguageServer
         /// <returns>
         ///     <c>true</c>, if the positions are not equal; otherwise, <c>false</c>.
         /// </returns>
-        public static bool operator!=(Position position1, Position position2)
+        public static bool operator !=(Position position1, Position position2)
         {
             return !position1.Equals(position2);
         }
@@ -381,7 +381,7 @@ namespace MSBuildProjectTools.LanguageServer
         /// <returns>
         ///     <c>true</c>, if <paramref name="position1"/> is greater than <paramref name="position2"/>; otherwise, <c>false</c>.
         /// </returns>
-        public static bool operator>(Position position1, Position position2)
+        public static bool operator >(Position position1, Position position2)
         {
             return position1.CompareTo(position2) > 0;
         }
@@ -398,7 +398,7 @@ namespace MSBuildProjectTools.LanguageServer
         /// <returns>
         ///     <c>true</c>, if <paramref name="position1"/> is greater than <paramref name="position2"/>; otherwise, <c>false</c>.
         /// </returns>
-        public static bool operator>=(Position position1, Position position2)
+        public static bool operator >=(Position position1, Position position2)
         {
             return position1.CompareTo(position2) >= 0;
         }
@@ -415,7 +415,7 @@ namespace MSBuildProjectTools.LanguageServer
         /// <returns>
         ///     <c>true</c>, if <paramref name="position1"/> is greater than <paramref name="position2"/>; otherwise, <c>false</c>.
         /// </returns>
-        public static bool operator<(Position position1, Position position2)
+        public static bool operator <(Position position1, Position position2)
         {
             return position1.CompareTo(position2) < 0;
         }
@@ -432,7 +432,7 @@ namespace MSBuildProjectTools.LanguageServer
         /// <returns>
         ///     <c>true</c>, if <paramref name="position1"/> is greater than <paramref name="position2"/>; otherwise, <c>false</c>.
         /// </returns>
-        public static bool operator<=(Position position1, Position position2)
+        public static bool operator <=(Position position1, Position position2)
         {
             return position1.CompareTo(position2) <= 0;
         }
@@ -449,7 +449,7 @@ namespace MSBuildProjectTools.LanguageServer
         /// <returns>
         ///     <c>true</c>, if <paramref name="position"/> is greater than <paramref name="range"/>; otherwise, <c>false</c>.
         /// </returns>
-        public static bool operator>(Position position, Range range)
+        public static bool operator >(Position position, Range range)
         {
             return position.CompareTo(range) > 0;
         }
@@ -466,7 +466,7 @@ namespace MSBuildProjectTools.LanguageServer
         /// <returns>
         ///     <c>true</c>, if <paramref name="position"/> is greater than <paramref name="range"/>; otherwise, <c>false</c>.
         /// </returns>
-        public static bool operator>=(Position position, Range range)
+        public static bool operator >=(Position position, Range range)
         {
             return position.CompareTo(range) >= 0;
         }
@@ -483,7 +483,7 @@ namespace MSBuildProjectTools.LanguageServer
         /// <returns>
         ///     <c>true</c>, if <paramref name="position"/> is greater than <paramref name="range"/>; otherwise, <c>false</c>.
         /// </returns>
-        public static bool operator<(Position position, Range range)
+        public static bool operator <(Position position, Range range)
         {
             return position.CompareTo(range) < 0;
         }
@@ -500,7 +500,7 @@ namespace MSBuildProjectTools.LanguageServer
         /// <returns>
         ///     <c>true</c>, if <paramref name="position"/> is greater than <paramref name="range"/>; otherwise, <c>false</c>.
         /// </returns>
-        public static bool operator<=(Position position, Range range)
+        public static bool operator <=(Position position, Range range)
         {
             return position.CompareTo(range) <= 0;
         }

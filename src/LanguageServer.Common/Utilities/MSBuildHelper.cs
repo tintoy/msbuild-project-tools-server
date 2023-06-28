@@ -94,10 +94,9 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
             //
             // For now, though, let's choose the dumb option.
             DotNetRuntimeInfo runtimeInfo = DotNetRuntimeInfo.GetCurrent(baseDirectory, logger);
-            
+
             // SDK versions are in SemVer format...
-            SemanticVersion targetSdkSemanticVersion;
-            if (!SemanticVersion.TryParse(runtimeInfo.SdkVersion, out targetSdkSemanticVersion))
+            if (!SemanticVersion.TryParse(runtimeInfo.SdkVersion, out SemanticVersion targetSdkSemanticVersion))
                 throw new Exception($"Cannot determine SDK version information for current .NET SDK (located at '{runtimeInfo.BaseDirectory}').");
 
             // ...which MSBuildLocator does not understand.
@@ -126,7 +125,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
 
             if (latestInstance == null)
             {
-                string foundVersions = String.Join(", ", allInstances.Select(instance => instance.Version));
+                string foundVersions = string.Join(", ", allInstances.Select(instance => instance.Version));
 
                 throw new Exception($"Cannot locate MSBuild engine for .NET SDK v{targetSdkVersion}. This probably means that MSBuild Project Tools cannot find the MSBuild for the current project instance. It did find the following version(s), though: [{foundVersions}].");
             }
@@ -153,8 +152,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         /// </returns>
         public static ProjectCollection CreateProjectCollection(string solutionDirectory, Dictionary<string, string> globalPropertyOverrides = null, ILogger logger = null)
         {
-            if (logger == null)
-                logger = Log.Logger;
+            logger ??= Log.Logger;
 
             return CreateProjectCollection(solutionDirectory,
                 DotNetRuntimeInfo.GetCurrent(solutionDirectory, logger),
@@ -179,13 +177,13 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         /// </returns>
         public static ProjectCollection CreateProjectCollection(string solutionDirectory, DotNetRuntimeInfo runtimeInfo, Dictionary<string, string> globalPropertyOverrides = null)
         {
-            if (String.IsNullOrWhiteSpace(solutionDirectory))
+            if (string.IsNullOrWhiteSpace(solutionDirectory))
                 throw new ArgumentException("Argument cannot be null, empty, or entirely composed of whitespace: 'baseDir'.", nameof(solutionDirectory));
 
             if (runtimeInfo == null)
                 throw new ArgumentNullException(nameof(runtimeInfo));
 
-            if (String.IsNullOrWhiteSpace(runtimeInfo.BaseDirectory))
+            if (string.IsNullOrWhiteSpace(runtimeInfo.BaseDirectory))
                 throw new InvalidOperationException("Cannot determine base directory for .NET (check the output of 'dotnet --info').");
 
             Dictionary<string, string> globalProperties = CreateGlobalMSBuildProperties(runtimeInfo, solutionDirectory, globalPropertyOverrides);
@@ -193,16 +191,14 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
 
             ProjectCollection projectCollection = new ProjectCollection(globalProperties) { IsBuildEnabled = false };
 
-            SemanticVersion netcoreVersion;
-            if (!SemanticVersion.TryParse(runtimeInfo.SdkVersion, out netcoreVersion))
+            if (!SemanticVersion.TryParse(runtimeInfo.SdkVersion, out SemanticVersion netcoreVersion))
                 throw new FormatException($"Cannot parse .NET SDK version '{runtimeInfo.SdkVersion}' (does not appear to be a valid semantic version).");
 
             // Newer versions of the .NET SDK use the toolset version "Current" instead of "15.0" (tintoy/msbuild-project-tools-vscode#46).
             string toolsVersion = netcoreVersion <= NetCoreLastSdkVersionFor150Folder ? "15.0" : "Current";
 
             // Override toolset paths (for some reason these point to the main directory where the dotnet executable lives).
-            Toolset toolset = projectCollection.GetToolset(toolsVersion);
-            toolset = new Toolset(toolsVersion,
+            Toolset toolset = new Toolset(toolsVersion,
                 toolsPath: runtimeInfo.BaseDirectory,
                 projectCollection: projectCollection,
                 msbuildOverrideTasksPath: ""
@@ -239,15 +235,15 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
             if (runtimeInfo == null)
                 throw new ArgumentNullException(nameof(runtimeInfo));
 
-            if (String.IsNullOrWhiteSpace(solutionDirectory))
+            if (string.IsNullOrWhiteSpace(solutionDirectory))
                 throw new ArgumentException("Argument cannot be null, empty, or entirely composed of whitespace: 'solutionDirectory'.", nameof(solutionDirectory));
 
-            if (solutionDirectory.Length > 0 && solutionDirectory[solutionDirectory.Length - 1] != Path.DirectorySeparatorChar)
+            if (solutionDirectory.Length > 0 && solutionDirectory[^1] != Path.DirectorySeparatorChar)
                 solutionDirectory += Path.DirectorySeparatorChar;
 
             // Support overriding of SDKs path.
             string sdksPath = Environment.GetEnvironmentVariable("MSBuildSDKsPath");
-            if (String.IsNullOrWhiteSpace(sdksPath))
+            if (string.IsNullOrWhiteSpace(sdksPath))
                 sdksPath = Path.Combine(runtimeInfo.BaseDirectory, "Sdks");
 
             var globalProperties = new Dictionary<string, string>
@@ -354,10 +350,12 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
                 throw new ArgumentNullException(nameof(project));
 
             ProjectRootElement clonedXml = project.Xml.DeepClone();
-            Project clonedProject = new Project(clonedXml, project.GlobalProperties, project.ToolsVersion, project.ProjectCollection);
-            clonedProject.FullPath = Path.ChangeExtension(project.FullPath,
-                ".cached" + Path.GetExtension(project.FullPath)
-            );
+            Project clonedProject = new Project(clonedXml, project.GlobalProperties, project.ToolsVersion, project.ProjectCollection)
+            {
+                FullPath = Path.ChangeExtension(project.FullPath,
+                    ".cached" + Path.GetExtension(project.FullPath)
+                )
+            };
 
             return clonedProject;
         }
@@ -377,7 +375,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
                 throw new ArgumentNullException(nameof(project));
 
             string projectAssetsFile = project.GetPropertyValue(WellKnownPropertyNames.ProjectAssetsFile);
-            if (String.IsNullOrWhiteSpace(projectAssetsFile))
+            if (string.IsNullOrWhiteSpace(projectAssetsFile))
                 return null;
 
             if (!Path.IsPathRooted(projectAssetsFile))
@@ -413,11 +411,9 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
             JObject projectAssetsJson;
             try
             {
-                using (TextReader reader = projectAssetsFile.OpenText())
-                using (JsonReader jsonReader = new JsonTextReader(reader))
-                {
-                    projectAssetsJson = await JObject.LoadAsync(jsonReader, cancellationToken);
-                }
+                using TextReader reader = projectAssetsFile.OpenText();
+                using JsonReader jsonReader = new JsonTextReader(reader);
+                projectAssetsJson = await JObject.LoadAsync(jsonReader, cancellationToken);
             }
             catch (Exception cannotLoadProjectAssetsJson)
             {
@@ -440,15 +436,14 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
             {
                 // Property names should be in the format "libName/semVer".
                 string[] nameComponents = library.Name.Split(
-                    separator: new[] {'/'},
+                    separator: new[] { '/' },
                     count: 2
                 );
                 if (nameComponents.Length != 2)
                     continue; // Invalid format.
 
                 string name = nameComponents[0];
-                SemanticVersion version;
-                if (!SemanticVersion.TryParse(nameComponents[1], out version))
+                if (!SemanticVersion.TryParse(nameComponents[1], out SemanticVersion version))
                     continue; // Not a valid semantic version.
 
                 referencedPackageVersions[name] = version;

@@ -10,7 +10,7 @@ namespace MSBuildProjectTools.LanguageServer
     /// <remarks>
     ///     The range includes the start position, but does not (for the purposes of <see cref="Contains(Position)"/> include the end position.
     /// </remarks>
-    public struct Range
+    public readonly struct Range
         : IEquatable<Range>, IComparable<Range>
     {
         /// <summary>
@@ -258,7 +258,7 @@ namespace MSBuildProjectTools.LanguageServer
         /// <returns>
         ///     The string representation "[Start..End]".
         /// </returns>
-        public override string ToString() => String.Format("[{0}..{1})", Start, End);
+        public override string ToString() => string.Format("[{0}..{1})", Start, End);
 
         /// <summary>
         ///     Create an empty range from the specified position.
@@ -283,7 +283,7 @@ namespace MSBuildProjectTools.LanguageServer
         /// <returns>
         ///     <c>true</c>, if the ranges are equal; otherwise, <c>false</c>.
         /// </returns>
-        public static bool operator==(Range range1, Range range2)
+        public static bool operator ==(Range range1, Range range2)
         {
             return range1.Equals(range2);
         }
@@ -300,7 +300,7 @@ namespace MSBuildProjectTools.LanguageServer
         /// <returns>
         ///     <c>true</c>, if the ranges are not equal; otherwise, <c>false</c>.
         /// </returns>
-        public static bool operator!=(Range range1, Range range2)
+        public static bool operator !=(Range range1, Range range2)
         {
             return !range1.Equals(range2);
         }
@@ -317,7 +317,7 @@ namespace MSBuildProjectTools.LanguageServer
         /// <returns>
         ///     <c>true</c>, if <paramref name="range1"/> is greater than <paramref name="range2"/>; otherwise, <c>false</c>.
         /// </returns>
-        public static bool operator>(Range range1, Range range2)
+        public static bool operator >(Range range1, Range range2)
         {
             return range1.CompareTo(range2) > 0;
         }
@@ -334,7 +334,7 @@ namespace MSBuildProjectTools.LanguageServer
         /// <returns>
         ///     <c>true</c>, if <paramref name="range1"/> is greater than <paramref name="range2"/>; otherwise, <c>false</c>.
         /// </returns>
-        public static bool operator>=(Range range1, Range range2)
+        public static bool operator >=(Range range1, Range range2)
         {
             return range1.CompareTo(range2) >= 0;
         }
@@ -351,7 +351,7 @@ namespace MSBuildProjectTools.LanguageServer
         /// <returns>
         ///     <c>true</c>, if <paramref name="range1"/> is greater than <paramref name="range2"/>; otherwise, <c>false</c>.
         /// </returns>
-        public static bool operator<(Range range1, Range range2)
+        public static bool operator <(Range range1, Range range2)
         {
             return range1.CompareTo(range2) < 0;
         }
@@ -368,7 +368,7 @@ namespace MSBuildProjectTools.LanguageServer
         /// <returns>
         ///     <c>true</c>, if <paramref name="range1"/> is greater than <paramref name="range2"/>; otherwise, <c>false</c>.
         /// </returns>
-        public static bool operator<=(Range range1, Range range2)
+        public static bool operator <=(Range range1, Range range2)
         {
             return range1.CompareTo(range2) <= 0;
         }

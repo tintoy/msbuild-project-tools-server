@@ -1,4 +1,3 @@
-using Sprache;
 using System;
 using System.Linq;
 using Xunit;
@@ -8,7 +7,6 @@ using Xunit.Abstractions;
 
 namespace MSBuildProjectTools.LanguageServer.Tests.ExpressionTests
 {
-    using SemanticModel;
     using SemanticModel.MSBuildExpressions;
 
     /// <summary>

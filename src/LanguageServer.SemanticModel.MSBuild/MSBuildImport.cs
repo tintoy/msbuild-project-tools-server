@@ -1,6 +1,5 @@
 using Microsoft.Build.Construction;
 using Microsoft.Build.Evaluation;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -64,7 +63,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
         /// <summary>
         ///     The imported project file names (only returns imported projects that have file names).
         /// </summary>
-        public IEnumerable<string> ImportedProjectFiles => Imports.Select(import => import.ImportedProject.ProjectFileLocation.File).Where(projectFile => projectFile != String.Empty);
+        public IEnumerable<string> ImportedProjectFiles => Imports.Select(import => import.ImportedProject.ProjectFileLocation.File).Where(projectFile => projectFile != string.Empty);
 
         /// <summary>
         ///     The imported <see cref="ProjectRootElement"/>.

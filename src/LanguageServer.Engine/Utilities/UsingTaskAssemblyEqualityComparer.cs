@@ -34,7 +34,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         /// <returns>
         ///     <c>true</c>, if the <see cref="UsingTaskAssemblyEqualityComparer"/>s are equal; otherwise, <c>false</c>.
         /// </returns>
-        public override bool Equals(ProjectUsingTaskElement usingTask1, ProjectUsingTaskElement usingTask2) => String.Equals(usingTask1?.AssemblyFile, usingTask2?.AssemblyFile, StringComparison.OrdinalIgnoreCase);
+        public override bool Equals(ProjectUsingTaskElement usingTask1, ProjectUsingTaskElement usingTask2) => string.Equals(usingTask1?.AssemblyFile, usingTask2?.AssemblyFile, StringComparison.OrdinalIgnoreCase);
 
         /// <summary>
         ///     Get a hash code to represent the specified <see cref="UsingTaskAssemblyEqualityComparer"/>.

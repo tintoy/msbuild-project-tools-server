@@ -1,10 +1,8 @@
-using OmniSharp.Extensions.LanguageServer;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using OmniSharp.Extensions.LanguageServer.Server;
 using System;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using System.Linq;
 
 namespace MSBuildProjectTools.LanguageServer.CustomProtocol
 {
@@ -27,7 +25,7 @@ namespace MSBuildProjectTools.LanguageServer.CustomProtocol
             if (router == null)
                 throw new ArgumentNullException(nameof(router));
 
-            if (String.IsNullOrWhiteSpace(message))
+            if (string.IsNullOrWhiteSpace(message))
                 throw new ArgumentException("Argument cannot be null, empty, or entirely composed of whitespace: 'message'.", nameof(message));
 
             router.SendNotification("msbuild/busy", new BusyNotificationParams
@@ -71,12 +69,11 @@ namespace MSBuildProjectTools.LanguageServer.CustomProtocol
         {
             if (configuration == null)
                 throw new ArgumentNullException(nameof(configuration));
-            
+
             if (request == null)
                 throw new ArgumentNullException(nameof(request));
-            
-            JObject json = request.Settings?.SelectToken(Configuration.SectionName) as JObject;
-            if (json == null)
+
+            if (request.Settings?.SelectToken(Configuration.SectionName) is not JObject json)
                 return;
 
             configuration.UpdateFrom(json);
@@ -95,16 +92,14 @@ namespace MSBuildProjectTools.LanguageServer.CustomProtocol
         {
             if (configuration == null)
                 throw new ArgumentNullException(nameof(configuration));
-            
+
             if (request == null)
                 throw new ArgumentNullException(nameof(request));
 
-            JToken initializationParameters = request.InitializationOptions as JToken;
-            if (initializationParameters == null)
+            if (request.InitializationOptions is not JToken initializationParameters)
                 return;
-            
-            JObject json = initializationParameters.SelectToken(Configuration.SectionName) as JObject;
-            if (json == null)
+
+            if (initializationParameters.SelectToken(Configuration.SectionName) is not JObject json)
                 return;
 
             configuration.UpdateFrom(json);
@@ -123,7 +118,7 @@ namespace MSBuildProjectTools.LanguageServer.CustomProtocol
         {
             if (configuration == null)
                 throw new ArgumentNullException(nameof(configuration));
-            
+
             if (settingsJson == null)
                 throw new ArgumentNullException(nameof(settingsJson));
 
@@ -131,11 +126,8 @@ namespace MSBuildProjectTools.LanguageServer.CustomProtocol
             configuration.Language.CompletionsFromProject.Clear();
             configuration.EnableExperimentalFeatures.Clear();
 
-            using (JsonReader reader = settingsJson.CreateReader())
-            {
-                new JsonSerializer().Populate(reader, configuration);
-            }
+            using JsonReader reader = settingsJson.CreateReader();
+            new JsonSerializer().Populate(reader, configuration);
         }
-
     }
 }

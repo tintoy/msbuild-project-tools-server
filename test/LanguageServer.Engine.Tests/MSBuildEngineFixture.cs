@@ -1,7 +1,5 @@
 using Microsoft.Build.Locator;
 using System;
-using System.IO;
-using System.Linq;
 using Xunit;
 
 namespace MSBuildProjectTools.LanguageServer.Tests

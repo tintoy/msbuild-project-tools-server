@@ -1,6 +1,5 @@
-using OmniSharp.Extensions.LanguageServer;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using OmniSharp.Extensions.LanguageServer.Protocol;
+using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using OmniSharp.Extensions.LanguageServer.Server;
 using System;
 using System.Collections.Generic;
@@ -29,7 +28,7 @@ namespace MSBuildProjectTools.LanguageServer.Diagnostics
         {
             if (languageServer == null)
                 throw new ArgumentNullException(nameof(languageServer));
-            
+
             _languageServer = languageServer;
         }
 
@@ -46,10 +45,9 @@ namespace MSBuildProjectTools.LanguageServer.Diagnostics
         {
             if (documentUri == null)
                 throw new ArgumentNullException(nameof(documentUri));
-            
-            if (diagnostics == null)
-                diagnostics = Enumerable.Empty<Diagnostic>();
-            
+
+            diagnostics ??= Enumerable.Empty<Diagnostic>();
+
             _languageServer.PublishDiagnostics(new PublishDiagnosticsParams
             {
                 Uri = documentUri,

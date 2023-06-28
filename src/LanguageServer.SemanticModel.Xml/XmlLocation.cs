@@ -1,4 +1,3 @@
-using Microsoft.Language.Xml;
 using System;
 using System.Diagnostics;
 
@@ -29,7 +28,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
         {
             if (node == null)
                 throw new ArgumentNullException(nameof(node));
-            
+
             Position = position;
             AbsolutePosition = absolutePosition;
             Node = node;
@@ -50,7 +49,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
         ///     The <see cref="XSNode"/> closest to the position.
         /// </summary>
         public XSNode Node { get; }
-        
+
         /// <summary>
         ///     The node's parent node (if any).
         /// </summary>
@@ -107,9 +106,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
         /// </returns>
         public override string ToString()
         {
-            string nodeDescription = Node.Kind.ToString();
-            
-            return String.Format("{0} -> [{1}]:{2} ({3})",
+            return string.Format("{0} -> [{1}]:{2} ({3})",
                 Position,
                 Flags,
                 Node.Path,

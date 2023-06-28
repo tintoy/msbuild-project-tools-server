@@ -1,5 +1,4 @@
 using Sprache;
-using System;
 
 namespace MSBuildProjectTools.LanguageServer.SemanticModel.MSBuildExpressions
 {
@@ -24,27 +23,27 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel.MSBuildExpressions
         /// <summary>
         ///     The symbol's name.
         /// </summary>
-        public string Name { get; internal set; } = String.Empty;
+        public string Name { get; internal set; } = string.Empty;
 
         /// <summary>
         ///     The symbol's namespace.
         /// </summary>
-        public string Namespace { get; set; } = String.Empty;
+        public string Namespace { get; set; } = string.Empty;
 
         /// <summary>
         ///     The symbol's fully-qualified name.
         /// </summary>
-        public string FullName => IsQualified ? String.Format("{0}.{1}", Namespace, Name) : Name;
+        public string FullName => IsQualified ? string.Format("{0}.{1}", Namespace, Name) : Name;
 
         /// <summary>
         ///     Is the symbol qualified (i.e. does it have a namespace)?
         /// </summary>
-        public bool IsQualified => !String.IsNullOrWhiteSpace(Namespace);
+        public bool IsQualified => !string.IsNullOrWhiteSpace(Namespace);
 
         /// <summary>
         ///     Is the symbol valid?
         /// </summary>
-        public override bool IsValid => !String.IsNullOrWhiteSpace(Name) && base.IsValid;
+        public override bool IsValid => !string.IsNullOrWhiteSpace(Name) && base.IsValid;
 
         /// <summary>
         ///     Get a string representation of the expression node.

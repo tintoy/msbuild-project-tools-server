@@ -1,4 +1,3 @@
-using System;
 using Xunit.Abstractions;
 
 namespace MSBuildProjectTools.LanguageServer.Tests.ExpressionTests

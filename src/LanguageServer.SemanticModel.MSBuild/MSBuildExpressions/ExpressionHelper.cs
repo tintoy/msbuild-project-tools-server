@@ -37,15 +37,13 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel.MSBuildExpressions
             Dictionary<int, Position> positionCache = new Dictionary<int, Position>();
             void SetRange(ExpressionNode node)
             {
-                Position start;
-                if (!positionCache.TryGetValue(node.AbsoluteStart, out start))
+                if (!positionCache.TryGetValue(node.AbsoluteStart, out Position start))
                 {
                     start = textPositions.GetPosition(node.AbsoluteStart);
                     positionCache.Add(node.AbsoluteStart, start);
                 }
 
-                Position end;
-                if (!positionCache.TryGetValue(node.AbsoluteEnd, out end))
+                if (!positionCache.TryGetValue(node.AbsoluteEnd, out Position end))
                 {
                     end = textPositions.GetPosition(node.AbsoluteEnd);
                     positionCache.Add(node.AbsoluteEnd, end);

@@ -1,6 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace MSBuildProjectTools.LanguageServer.SemanticModel
 {
@@ -48,14 +46,13 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
             }
             else if (location.IsWhitespace(out XSWhitespace whitespace))
             {
-                expressionText = String.Empty;
+                expressionText = string.Empty;
                 expressionStartPosition = whitespace.Range.Start;
             }
             else
                 return false;
 
-            ExpressionTree expressionTree;
-            if (!MSBuildExpression.TryParse(expressionText, out expressionTree))
+            if (!MSBuildExpression.TryParse(expressionText, out ExpressionTree expressionTree))
                 return false;
 
             Position expressionPosition = location.Position.RelativeTo(expressionStartPosition);

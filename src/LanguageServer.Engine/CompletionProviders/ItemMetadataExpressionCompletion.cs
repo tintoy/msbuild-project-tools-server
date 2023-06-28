@@ -1,4 +1,3 @@
-using Microsoft.Build.Evaluation;
 using Newtonsoft.Json.Linq;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using Serilog;
@@ -57,7 +56,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
         /// <returns>
         ///     A <see cref="Task{TResult}"/> that resolves either a <see cref="CompletionList"/>s, or <c>null</c> if no completions are provided.
         /// </returns>
-        public override async Task<CompletionList> ProvideCompletions(XmlLocation location, ProjectDocument projectDocument, string triggerCharacters, CancellationToken cancellationToken = default(CancellationToken))
+        public override async Task<CompletionList> ProvideCompletions(XmlLocation location, ProjectDocument projectDocument, string triggerCharacters, CancellationToken cancellationToken = default)
         {
             if (location == null)
                 throw new ArgumentNullException(nameof(location));
@@ -69,14 +68,12 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
 
             Log.Verbose("Evaluate completions for {XmlLocation:l}", location);
 
-            using (await projectDocument.Lock.ReaderLockAsync())
+            using (await projectDocument.Lock.ReaderLockAsync(cancellationToken))
             {
                 if (!projectDocument.EnableExpressions)
                     return null;
 
-                ExpressionNode expression;
-                Range expressionRange;
-                if (!location.IsExpression(out expression, out expressionRange))
+                if (!location.IsExpression(out ExpressionNode expression, out Range expressionRange))
                 {
                     Log.Verbose("Not offering any completions for {XmlLocation:l} (not on an expression or a location where an expression can be added).", location);
 
@@ -103,25 +100,25 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
                     targetItemType = metadataExpression.ItemType;
                     offerItemTypes = false; // We don't offer item types if one is already specified in the metadata expression.
                 }
-                
-                bool offerUnqualifiedCompletions = false;
+
+                bool offerUnqualifiedCompletions;
                 if (location.IsAttribute(out XSAttribute attribute) && attribute.Element.ParentElement?.Name == "ItemGroup")
                 {
                     // An attribute on an item element.
-                    targetItemType = targetItemType ?? attribute.Element.Name;
+                    targetItemType ??= attribute.Element.Name;
                     offerUnqualifiedCompletions = true;
                 }
                 else if (location.IsElementText(out XSElementText elementText) && elementText.Element.ParentElement?.Name == "ItemGroup")
                 {
                     // Text inside a an item element's metadata element.
                     offerUnqualifiedCompletions = true;
-                    targetItemType = targetItemType ?? elementText.Element.Name;
+                    targetItemType ??= elementText.Element.Name;
                 }
                 else if (location.IsWhitespace(out XSWhitespace whitespace) && whitespace.ParentElement?.ParentElement?.Name == "ItemGroup")
                 {
                     // Whitespace inside a an item element's metadata element.
                     offerUnqualifiedCompletions = true;
-                    targetItemType = targetItemType ?? whitespace.ParentElement.Name;
+                    targetItemType ??= whitespace.ParentElement.Name;
                 }
                 else
                 {
@@ -129,7 +126,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
 
                     return null;
                 }
-                
+
                 Log.Verbose("Offering completions to replace ItemMetadata expression @ {ReplaceRange:l} (OfferItemTypes={OfferItemTypes}, OfferUnqualifiedCompletions={OfferUnqualifiedCompletions})",
                     expressionRange,
                     offerItemTypes,
@@ -196,11 +193,11 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
             if (!projectDocument.HasMSBuildProject)
                 yield break;
 
-            
-            if (!String.IsNullOrWhiteSpace(targetItemType))
+
+            if (!string.IsNullOrWhiteSpace(targetItemType))
             {
                 priority += 100;
-                
+
                 SortedSet<string> metadataNames = new SortedSet<string>(
                     projectDocument.MSBuildProject.GetItems(targetItemType)
                         .SelectMany(

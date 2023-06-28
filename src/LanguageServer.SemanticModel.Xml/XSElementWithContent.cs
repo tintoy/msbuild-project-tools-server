@@ -1,7 +1,4 @@
 using Microsoft.Language.Xml;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace MSBuildProjectTools.LanguageServer.SemanticModel
 {

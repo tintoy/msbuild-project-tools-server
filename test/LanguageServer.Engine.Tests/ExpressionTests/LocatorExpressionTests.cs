@@ -1,10 +1,7 @@
 using Microsoft.Language.Xml;
-using Sprache;
 using System;
 using System.IO;
-using System.Linq;
 using Xunit;
-using Xunit.Abstractions;
 
 #pragma warning disable xUnit2013 // Do not use equality check to check for collection size.
 
@@ -58,10 +55,8 @@ namespace MSBuildProjectTools.LanguageServer.Tests.ExpressionTests
             XmlLocation location = locator.Inspect(testPosition);
             Assert.NotNull(location);
 
-            ExpressionNode actualExpression;
-            Range actualExpressionRange;
             Assert.True(
-                location.IsExpression(out actualExpression, out actualExpressionRange),
+                location.IsExpression(out ExpressionNode actualExpression, out Range actualExpressionRange),
                 "IsExpression"
             );
             Assert.NotNull(actualExpression);

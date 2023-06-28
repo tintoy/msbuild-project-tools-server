@@ -1,5 +1,4 @@
 using Sprache;
-using System;
 using System.Collections.Generic;
 using System.Globalization;
 
@@ -148,7 +147,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel.MSBuildExpressions
         public static Parser<char> EscapedChar = Parse.Named(
             from escape in Parse.Char('%')
             from hexDigits in HexDigit.Repeat(2).Text()
-            select (char)Byte.Parse(hexDigits, NumberStyles.HexNumber),
+            select (char)byte.Parse(hexDigits, NumberStyles.HexNumber),
             
             name: "token: escaped character"
         );

@@ -1,12 +1,7 @@
-using OmniSharp.Extensions.LanguageServer;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
-using OmniSharp.Extensions.LanguageServer.Protocol;
 using OmniSharp.Extensions.LanguageServer.Server;
-using Newtonsoft.Json;
 using Serilog;
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -28,7 +23,7 @@ namespace MSBuildProjectTools.LanguageServer.Documents
         ///     Documents for loaded project, keyed by document URI.
         /// </summary>
         readonly ConcurrentDictionary<Uri, ProjectDocument> _projectDocuments = new ConcurrentDictionary<Uri, ProjectDocument>();
-        
+
         /// <summary>
         ///     Create a new <see cref="Workspace"/>.
         /// </summary>
@@ -54,17 +49,17 @@ namespace MSBuildProjectTools.LanguageServer.Documents
 
             if (diagnosticsPublisher == null)
                 throw new ArgumentNullException(nameof(diagnosticsPublisher));
-            
+
             if (logger == null)
                 throw new ArgumentNullException(nameof(logger));
-            
+
             Server = server;
             Configuration = configuration;
             DiagnosticsPublisher = diagnosticsPublisher;
             Log = logger.ForContext<Workspace>();
 
             string extensionDirectory = Environment.GetEnvironmentVariable("MSBUILD_PROJECT_TOOLS_DIR");
-            if (String.IsNullOrWhiteSpace(extensionDirectory))
+            if (string.IsNullOrWhiteSpace(extensionDirectory))
                 throw new InvalidOperationException("Cannot determine current extension directory ('MSBUILD_PROJECT_TOOLS_DIR' environment variable is not present).");
 
             ExtensionDirectory = new DirectoryInfo(extensionDirectory);
@@ -76,7 +71,7 @@ namespace MSBuildProjectTools.LanguageServer.Documents
             );
         }
 
-         /// <summary>
+        /// <summary>
         ///     Finalizer for <see cref="Workspace"/>.
         /// </summary>
         ~Workspace()
@@ -193,8 +188,7 @@ namespace MSBuildProjectTools.LanguageServer.Documents
             {
                 isNewProject = true;
 
-                if (MasterProject == null)
-                    return MasterProject = new MasterProjectDocument(this, documentUri, Log);
+                MasterProject ??= new MasterProjectDocument(this, documentUri, Log);
 
                 SubProjectDocument subProject = new SubProjectDocument(this, documentUri, Log, MasterProject);
                 MasterProject.AddSubProject(subProject);
@@ -256,8 +250,7 @@ namespace MSBuildProjectTools.LanguageServer.Documents
         /// </returns>
         public async Task<ProjectDocument> TryUpdateProjectDocument(Uri documentUri, string documentText)
         {
-            ProjectDocument projectDocument;
-            if (!_projectDocuments.TryGetValue(documentUri, out projectDocument))
+            if (!_projectDocuments.TryGetValue(documentUri, out ProjectDocument projectDocument))
             {
                 Log.Error("Tried to update non-existent project with document URI {DocumentUri}.", documentUri);
 
@@ -329,13 +322,12 @@ namespace MSBuildProjectTools.LanguageServer.Documents
         {
             if (documentUri == null)
                 throw new ArgumentNullException(nameof(documentUri));
-            
-            ProjectDocument projectDocument;
-            if (!_projectDocuments.TryRemove(documentUri, out projectDocument))
+
+            if (!_projectDocuments.TryRemove(documentUri, out ProjectDocument projectDocument))
                 return false;
-            
+
             if (MasterProject == projectDocument)
-                MasterProject = null;                
+                MasterProject = null;
 
             using (await projectDocument.Lock.WriterLockAsync())
             {
