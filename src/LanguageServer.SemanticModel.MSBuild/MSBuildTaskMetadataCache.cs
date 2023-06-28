@@ -13,7 +13,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
     public sealed class MSBuildTaskMetadataCache
     {
         /// <summary>
-        ///     Settings for serialisation of cache state.
+        ///     Settings for serialization of cache state.
         /// </summary>
         static readonly JsonSerializerSettings SerializerSettings = new JsonSerializerSettings
         {
@@ -29,7 +29,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
         }
 
         /// <summary>
-        ///     A lock used to synchronise access to cache state.
+        ///     A lock used to synchronize access to cache state.
         /// </summary>
         [JsonIgnore]
         public AsyncLock StateLock { get; } = new AsyncLock();

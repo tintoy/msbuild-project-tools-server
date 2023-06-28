@@ -20,7 +20,7 @@ namespace MSBuildProjectTools.LanguageServer
         public static readonly int CurrentProcessId;
 
         /// <summary>
-        ///     Type initialiser for <see cref="Terminator"/>.
+        ///     Type initializer for <see cref="Terminator"/>.
         /// </summary>
         static Terminator()
         {
@@ -61,7 +61,7 @@ namespace MSBuildProjectTools.LanguageServer
         ILogger Log { get; }
 
         /// <summary>
-        /// Initialise the process terminator.
+        /// Initialize the process terminator.
         /// </summary>
         /// <param name="parentProcessId">
         ///     The process Id (PID) of the parent process that launched the language server.

@@ -23,7 +23,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         : IDidChangeConfigurationSettingsHandler
     {
         /// <summary>
-        ///     The JSON serialiser used to read settings from LSP notifications.
+        ///     The JSON serializer used to read settings from LSP notifications.
         /// </summary>
         /// <returns></returns>
         readonly JsonSerializer _settingsSerializer = new JsonSerializer();

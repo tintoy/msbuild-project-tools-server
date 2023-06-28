@@ -110,7 +110,7 @@ namespace MSBuildProjectTools.LanguageServer.Documents
             {
                 if (Workspace.Configuration.Logging.IsDebugLoggingEnabled)
                 {
-                    Log.Error(invalidProjectFile, "Failed to load MSBuild proiect '{ProjectFileName}'.",
+                    Log.Error(invalidProjectFile, "Failed to load MSBuild project '{ProjectFileName}'.",
                         ProjectFile.FullName
                     );
                 }

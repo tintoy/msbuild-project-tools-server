@@ -23,7 +23,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
     using Utilities;
 
     /// <summary>
-    ///     The handler for language server document synchronisation.
+    ///     The handler for language server document synchronization.
     /// </summary>
     public sealed class DocumentSyncHandler
         : Handler, ITextDocumentSyncHandler
@@ -50,7 +50,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         }
 
         /// <summary>
-        ///     Options that control synchronisation.
+        ///     Options that control synchronization.
         /// </summary>
         public TextDocumentSyncOptions Options { get; } = new TextDocumentSyncOptions
         {
@@ -65,7 +65,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         };
 
         /// <summary>
-        ///     The document selector that describes documents to synchronise.
+        ///     The document selector that describes documents to synchronize.
         /// </summary>
         DocumentSelector DocumentSelector { get; } = new DocumentSelector(
             new DocumentFilter
@@ -100,12 +100,12 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         Workspace Workspace { get; }
 
         /// <summary>
-        ///     Has the client supplied synchronisation capabilities?
+        ///     Has the client supplied synchronization capabilities?
         /// </summary>
         bool HaveSynchronizationCapabilities => SynchronizationCapabilities != null;
 
         /// <summary>
-        ///     The client's synchronisation capabilities.
+        ///     The client's synchronization capabilities.
         /// </summary>
         SynchronizationCapability SynchronizationCapabilities { get; set; }
 
@@ -513,7 +513,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         TextDocumentSaveRegistrationOptions IRegistration<TextDocumentSaveRegistrationOptions>.GetRegistrationOptions() => DocumentSaveRegistrationOptions;
 
         /// <summary>
-        ///     Called to inform the handler of the language server's document-synchronisation capabilities.
+        ///     Called to inform the handler of the language server's document-synchronization capabilities.
         /// </summary>
         /// <param name="capabilities">
         ///     A <see cref="SynchronizationCapability"/> data structure representing the capabilities.

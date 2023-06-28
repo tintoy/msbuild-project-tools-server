@@ -110,7 +110,7 @@ namespace MSBuildProjectTools.LanguageServer.Documents
         }
 
         /// <summary>
-        ///     Finaliser for <see cref="ProjectDocument"/>.
+        ///     Finalizer for <see cref="ProjectDocument"/>.
         /// </summary>
         ~ProjectDocument()
         {
@@ -552,7 +552,7 @@ namespace MSBuildProjectTools.LanguageServer.Documents
         /// </returns>
         public virtual async Task<SortedSet<string>> SuggestPackageIds(string packageIdPrefix, bool includePrerelease, CancellationToken cancellationToken = default(CancellationToken))
         {
-            // We don't actually need a working MSBuild project for this, but we do want parseable XML.
+            // We don't actually need a working MSBuild project for this, but we do want parsable XML.
             if (!HasXml)
                 throw new InvalidOperationException($"XML for project '{ProjectFile.FullName}' is not loaded.");
 
@@ -591,7 +591,7 @@ namespace MSBuildProjectTools.LanguageServer.Documents
         /// </returns>
         public virtual async Task<SortedSet<NuGetVersion>> SuggestPackageVersions(string packageId, bool includePrerelease, CancellationToken cancellationToken = default(CancellationToken))
         {
-            // We don't actually need a working MSBuild project for this, but we do want parseable XML.
+            // We don't actually need a working MSBuild project for this, but we do want parsable XML.
             if (!HasXml)
                 throw new InvalidOperationException($"XML for project '{ProjectFile.FullName}' is not loaded.");
 
@@ -621,7 +621,7 @@ namespace MSBuildProjectTools.LanguageServer.Documents
                 foreach (Exception exception in task.Exception.Flatten().InnerExceptions)
                 {
                     Log.Debug(exception,
-                        "Error initialising NuGet client. {ErrorMessage}",
+                        "Error initializing NuGet client. {ErrorMessage}",
                         exception.Message
                     );
                 }

@@ -77,7 +77,7 @@ namespace MSBuildProjectTools.LanguageServer.Documents
         }
 
          /// <summary>
-        ///     Finaliser for <see cref="Workspace"/>.
+        ///     Finalizer for <see cref="Workspace"/>.
         /// </summary>
         ~Workspace()
         {

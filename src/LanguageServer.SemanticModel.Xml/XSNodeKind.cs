@@ -9,7 +9,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
         ///     An unknown node type.
         /// </summary>
         /// <remarks>
-        ///     Used to detect uninitialised values; do not use directly.
+        ///     Used to detect uninitialized values; do not use directly.
         /// </remarks>
         Unknown = 0,
 

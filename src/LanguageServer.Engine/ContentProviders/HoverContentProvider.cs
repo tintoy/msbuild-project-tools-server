@@ -189,7 +189,7 @@ namespace MSBuildProjectTools.LanguageServer.ContentProviders
                     );
                 }
 
-                // TODO: Verify package is from NuGet (later, we can also recognise MyGet)
+                // TODO: Verify package is from NuGet (later, we can also recognize MyGet)
 
                 return new MarkedStringContainer(
                     $"NuGet Package: [{itemGroup.FirstInclude}](https://nuget.org/packages/{itemGroup.FirstInclude}/{packageActualVersion})",

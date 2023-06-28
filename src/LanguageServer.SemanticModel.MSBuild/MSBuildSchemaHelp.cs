@@ -13,7 +13,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
     public static class MSBuildSchemaHelp
     {
         /// <summary>
-        ///     Type initialiser for <see cref="MSBuildSchemaHelp"/>.
+        ///     Type initializer for <see cref="MSBuildSchemaHelp"/>.
         /// </summary>
         static MSBuildSchemaHelp()
         {
@@ -125,7 +125,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
         public static IEnumerable<string> WellKnownItemTypes => ItemHelp.Keys.Where(key => !key.Contains("*"));
 
         /// <summary>
-        ///     The nnames of well-known metadata for the specified item type.
+        ///     The names of well-known metadata for the specified item type.
         /// </summary>
         /// <param name="itemType">
         ///     The item type, or "*" for global item metadata.
@@ -385,7 +385,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
         }
 
         /// <summary>
-        ///     Get help content for a well-known MSBuild task's praemeter.
+        ///     Get help content for a well-known MSBuild task's parameter.
         /// </summary>
         /// <param name="taskName">
         ///     The task name.

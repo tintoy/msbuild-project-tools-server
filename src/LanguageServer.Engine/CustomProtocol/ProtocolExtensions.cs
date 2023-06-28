@@ -83,13 +83,13 @@ namespace MSBuildProjectTools.LanguageServer.CustomProtocol
         }
 
         /// <summary>
-        ///     Update the configuration from the specified initialisation request.
+        ///     Update the configuration from the specified initialization request.
         /// </summary>
         /// <param name="configuration">
         ///     The <see cref="Configuration"/> to update.
         /// </param>
         /// <param name="request">
-        ///     The initialisation request.
+        ///     The initialization request.
         /// </param>
         public static void UpdateFrom(this Configuration configuration, InitializeParams request)
         {

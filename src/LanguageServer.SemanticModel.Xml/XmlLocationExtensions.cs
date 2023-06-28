@@ -552,7 +552,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
             if (location.IsElementBetweenAttributes())
                 return false;
 
-            // Check if we need to perform a substition of the element to be replaced (the common case is simply replacing an existing element or partial element).
+            // Check if we need to perform a substitution of the element to be replaced (the common case is simply replacing an existing element or partial element).
             if (element.IsValid)
             {
                 // Do we have an invalid parent (e.g. "<<Foo />", which yields invalid element named "" with child element named "Foo")?

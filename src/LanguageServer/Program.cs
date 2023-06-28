@@ -81,14 +81,14 @@ namespace MSBuildProjectTools.LanguageServer
             using (Terminator terminator = new Terminator())
             using (IContainer container = BuildContainer())
             {
-                // Force initialisation of logging.
+                // Force initialization of logging.
                 ILogger log = container.Resolve<ILogger>().ForContext(typeof(Program));
 
                 log.Debug("Creating language server...");
 
                 var server = container.Resolve<LSP.Server.LanguageServer>();
 
-                log.Debug("Waiting for client to initialise language server...");
+                log.Debug("Waiting for client to initialize language server...");
 
                 Task initializeTask = server.Initialize();
 
@@ -110,7 +110,7 @@ namespace MSBuildProjectTools.LanguageServer
 
                 await initializeTask;
 
-                log.Debug("Language server initialised by client.");
+                log.Debug("Language server initialized by client.");
 
                 if (server.Client.ProcessId != null)
                 {

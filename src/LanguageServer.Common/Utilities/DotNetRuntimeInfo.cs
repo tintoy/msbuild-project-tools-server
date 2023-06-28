@@ -442,7 +442,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         ///     Well-known sections returned by "dotnet --info".
         /// </summary>
         /// <remarks>
-        ///     Since the section titles returned by "dotnet --info" are now localised, we have to resort to this (more-fragile) method of parsing the output.
+        ///     Since the section titles returned by "dotnet --info" are now localized, we have to resort to this (more-fragile) method of parsing the output.
         /// </remarks>
         enum DotnetInfoSection
         {

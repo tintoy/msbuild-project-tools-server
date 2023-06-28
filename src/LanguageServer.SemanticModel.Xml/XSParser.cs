@@ -36,7 +36,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
 
             XSParserVisitor parserVisitor = new XSParserVisitor(xmlPositions);
             parserVisitor.Visit(document);
-            parserVisitor.FinaliseModel();
+            parserVisitor.FinalizeModel();
 
             return parserVisitor.DiscoveredNodes;
         }
@@ -63,7 +63,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
 
             XSParserVisitor parserVisitor = new XSParserVisitor(xmlPositions);
             parserVisitor.Visit(node);
-            parserVisitor.FinaliseModel();
+            parserVisitor.FinalizeModel();
 
             return parserVisitor.DiscoveredNodes;
         }
@@ -121,7 +121,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
             /// <summary>
             ///     Perform final processing of discovered nodes.
             /// </summary>
-            public void FinaliseModel()
+            public void FinalizeModel()
             {
                 ComputeWhitespace();
                 DiscoveredNodes.Sort(

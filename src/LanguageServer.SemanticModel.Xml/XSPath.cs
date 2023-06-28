@@ -8,7 +8,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
     /// <summary>
     ///     Represents a path through XML.
     /// </summary>
-    public sealed class XSPath // TODO: IEquatable<XSPath> (plus equality / inequality operators)
+    public sealed class XSPath // TODO: IEquitable<XSPath> (plus equality / inequality operators)
     {
         /// <summary>
         ///     The <see cref="XSPath"/> separator.

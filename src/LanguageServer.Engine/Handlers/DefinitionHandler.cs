@@ -58,7 +58,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         Configuration Configuration { get; }
 
         /// <summary>
-        ///     The document selector that describes documents to synchronise.
+        ///     The document selector that describes documents to synchronize.
         /// </summary>
         DocumentSelector DocumentSelector { get; } = new DocumentSelector(
             new DocumentFilter
