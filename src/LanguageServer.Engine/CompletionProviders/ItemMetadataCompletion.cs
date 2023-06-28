@@ -105,7 +105,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
         /// <returns>
         ///     A sequence of <see cref="CompletionItem"/>s.
         /// </returns>
-        IEnumerable<CompletionItem> GetAttributeCompletions(XmlLocation location, HashSet<string> existingMetadata)
+        private IEnumerable<CompletionItem> GetAttributeCompletions(XmlLocation location, HashSet<string> existingMetadata)
         {
             Log.Verbose("Evaluate attribute completions for {XmlLocation:l}", location);
 
@@ -197,7 +197,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
         /// <returns>
         ///     A sequence of <see cref="CompletionItem"/>s.
         /// </returns>
-        IEnumerable<CompletionItem> GetElementCompletions(XmlLocation location, ProjectDocument projectDocument, string triggerCharacters, HashSet<string> existingMetadata)
+        private IEnumerable<CompletionItem> GetElementCompletions(XmlLocation location, ProjectDocument projectDocument, string triggerCharacters, HashSet<string> existingMetadata)
         {
             Log.Verbose("Evaluate element completions for {XmlLocation:l}", location);
 
@@ -294,7 +294,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
         /// <returns>
         ///     A sequence of existing metadata names.
         /// </returns>
-        static IEnumerable<string> GetExistingMetadataNames(XSElement itemElement)
+        private static IEnumerable<string> GetExistingMetadataNames(XSElement itemElement)
         {
             if (itemElement == null)
                 throw new ArgumentNullException(nameof(itemElement));

@@ -21,17 +21,17 @@ namespace MSBuildProjectTools.LanguageServer.Logging
         /// <summary>
         ///     The language server to which events will be logged.
         /// </summary>
-        readonly ILanguageServer _languageServer;
+        private readonly ILanguageServer _languageServer;
 
         /// <summary>
         ///     The <see cref="LoggingLevelSwitch"/> that controls logging.
         /// </summary>
-        readonly LoggingLevelSwitch _levelSwitch;
+        private readonly LoggingLevelSwitch _levelSwitch;
 
         /// <summary>
         ///     Has the language server shut down?
         /// </summary>
-        bool _hasServerShutDown;
+        private bool _hasServerShutDown;
 
         /// <summary>
         ///     Create a new language-server event sink.
@@ -67,7 +67,7 @@ namespace MSBuildProjectTools.LanguageServer.Logging
         /// <summary>
         ///     Can log entries be sent to the language server?
         /// </summary>
-        bool CanLog => _languageServer.Server != null && !_hasServerShutDown;
+        private bool CanLog => _languageServer.Server != null && !_hasServerShutDown;
 
         /// <summary>
         ///     Emit a log event.

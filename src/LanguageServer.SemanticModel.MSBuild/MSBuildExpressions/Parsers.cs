@@ -14,7 +14,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel.MSBuildExpressions
     /// <remarks>
     ///     AF: Be careful when combining Parse.Ref with Parse.Or; you want to use Parse.Ref(() => X.Or(Y)) not Parse.Ref(() => X).Or(Parse.Ref(() => Y)).
     /// </remarks>
-    static class Parsers
+    internal static class Parsers
     {
         /// <summary>
         ///     Parsers for simple MSBuild lists.
@@ -602,7 +602,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel.MSBuildExpressions
         /// <returns>
         ///     A single-element sequence containing the item.
         /// </returns>
-        static IEnumerable<T> ToSequence<T>(this T item)
+        private static IEnumerable<T> ToSequence<T>(this T item)
         {
             yield return item;
         }
@@ -619,7 +619,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel.MSBuildExpressions
         /// <returns>
         ///     If <see cref="IOption{T}.IsDefined"/> is <c>true</c>, a single-element sequence containing the item; otherwise, <c>false</c>.
         /// </returns>
-        static IEnumerable<T> ToSequenceIfDefined<T>(this IOption<T> optionalItem)
+        private static IEnumerable<T> ToSequenceIfDefined<T>(this IOption<T> optionalItem)
         {
             if (optionalItem == null)
                 throw new ArgumentNullException(nameof(optionalItem));
@@ -640,7 +640,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel.MSBuildExpressions
         /// <returns>
         ///     If <see cref="IOption{T}.IsDefined"/> is <c>true</c>, a single-element sequence containing the item; otherwise, an empty sequence.
         /// </returns>
-        static IEnumerable<T> ToSequenceIfDefined<T>(this IOption<IEnumerable<T>> optionalItems)
+        private static IEnumerable<T> ToSequenceIfDefined<T>(this IOption<IEnumerable<T>> optionalItems)
         {
             if (optionalItems == null)
                 throw new ArgumentNullException(nameof(optionalItems));
@@ -667,7 +667,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel.MSBuildExpressions
         /// <returns>
         ///     If <see cref="IOption{T}.IsDefined"/> is <c>true</c>, a single-element sequence containing the item; otherwise, a sequence containing <paramref name="valueIfNotDefined"/>.
         /// </returns>
-        static IEnumerable<T> ToSequenceOrElse<T>(this IOption<T> optionalItem, T valueIfNotDefined)
+        private static IEnumerable<T> ToSequenceOrElse<T>(this IOption<T> optionalItem, T valueIfNotDefined)
         {
             yield return optionalItem.GetOrElse(valueIfNotDefined);
         }
@@ -684,7 +684,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel.MSBuildExpressions
         /// <returns>
         ///     The new sequence.
         /// </returns>
-        static IEnumerable<TSource> DropLast<TSource>(this IEnumerable<TSource> source)
+        private static IEnumerable<TSource> DropLast<TSource>(this IEnumerable<TSource> source)
         {
             if (source == null)
                 throw new ArgumentNullException(nameof(source));
@@ -724,7 +724,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel.MSBuildExpressions
         /// <returns>
         ///     A parser whose result type is an array of <typeparamref name="TResult"/>.
         /// </returns>
-        static Parser<TResult[]> Array<TResult>(this Parser<IEnumerable<TResult>> parser)
+        private static Parser<TResult[]> Array<TResult>(this Parser<IEnumerable<TResult>> parser)
         {
             if (parser == null)
                 throw new ArgumentNullException(nameof(parser));
@@ -751,7 +751,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel.MSBuildExpressions
         /// <returns>
         ///     The parser, as one for a sub-type of <typeparamref name="TResult"/>.
         /// </returns>
-        static Parser<TResult> As<TResult>(this Parser<TResult> parser) => parser;
+        private static Parser<TResult> As<TResult>(this Parser<TResult> parser) => parser;
 
         /// <summary>
         ///     Create a parser that returns a constant value, capturing position information.
@@ -765,7 +765,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel.MSBuildExpressions
         /// <returns>
         ///     The new parser.
         /// </returns>
-        static Parser<TResult> ReturnPositioned<TResult>(Func<TResult> createResult)
+        private static Parser<TResult> ReturnPositioned<TResult>(Func<TResult> createResult)
             where TResult : IPositionAware<TResult>
         {
             return input => Result.Success(

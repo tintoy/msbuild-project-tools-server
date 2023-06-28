@@ -7,7 +7,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel.MSBuildExpressions
     /// <summary>
     ///     Token parsers for MSBuild expression syntax.
     /// </summary>
-    static class Tokens
+    internal static class Tokens
     {
         /// <summary>
         ///     Parse a period, ".".

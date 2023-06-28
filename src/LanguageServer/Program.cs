@@ -16,7 +16,7 @@ namespace MSBuildProjectTools.LanguageServer
     /// <summary>
     ///     The MSBuild language server.
     /// </summary>
-    static class Program
+    internal static class Program
     {
         /// <summary>
         ///     The main program entry-point.
@@ -24,7 +24,7 @@ namespace MSBuildProjectTools.LanguageServer
         /// <returns>
         ///     The process exit code.
         /// </returns>
-        static int Main()
+        private static int Main()
         {
             SynchronizationContext.SetSynchronizationContext(
                 new SynchronizationContext()
@@ -73,7 +73,7 @@ namespace MSBuildProjectTools.LanguageServer
         /// <returns>
         ///     The process exit code.
         /// </returns>
-        static async Task<int> AsyncMain()
+        private static async Task<int> AsyncMain()
         {
             using (ActivityCorrelationManager.BeginActivityScope())
             using (Terminator terminator = new Terminator())
@@ -137,7 +137,7 @@ namespace MSBuildProjectTools.LanguageServer
         /// <returns>
         ///     The container.
         /// </returns>
-        static IContainer BuildContainer()
+        private static IContainer BuildContainer()
         {
             ContainerBuilder builder = new ContainerBuilder();
 
@@ -150,7 +150,7 @@ namespace MSBuildProjectTools.LanguageServer
         /// <summary>
         ///     Auto-detect the directory containing the extension's files.
         /// </summary>
-        static void AutoDetectExtensionDirectory()
+        private static void AutoDetectExtensionDirectory()
         {
             string extensionDir = Environment.GetEnvironmentVariable("MSBUILD_PROJECT_TOOLS_DIR");
             if (string.IsNullOrWhiteSpace(extensionDir))
@@ -166,7 +166,7 @@ namespace MSBuildProjectTools.LanguageServer
         /// <summary>
         ///     Configure NuGet's credential providers (i.e. support for authenticated package feeds).
         /// </summary>
-        static void ConfigureNuGetCredentialProviders()
+        private static void ConfigureNuGetCredentialProviders()
         {
             DefaultCredentialServiceUtility.SetupDefaultCredentialService(
                 logger: NuGetNullLogger.Instance,

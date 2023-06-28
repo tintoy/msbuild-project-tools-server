@@ -65,7 +65,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         /// <summary>
         ///     The document selector that describes documents to synchronize.
         /// </summary>
-        DocumentSelector DocumentSelector { get; } = new DocumentSelector(
+        private DocumentSelector DocumentSelector { get; } = new DocumentSelector(
             new DocumentFilter
             {
                 Pattern = "**/*.*",
@@ -95,12 +95,12 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         /// <summary>
         ///     The document workspace.
         /// </summary>
-        Workspace Workspace { get; }
+        private Workspace Workspace { get; }
 
         /// <summary>
         ///     Get registration options for handling document events.
         /// </summary>
-        TextDocumentRegistrationOptions DocumentRegistrationOptions
+        private TextDocumentRegistrationOptions DocumentRegistrationOptions
         {
             get => new TextDocumentRegistrationOptions
             {
@@ -111,7 +111,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         /// <summary>
         ///     Get registration options for handling document-change events.
         /// </summary>
-        TextDocumentChangeRegistrationOptions DocumentChangeRegistrationOptions
+        private TextDocumentChangeRegistrationOptions DocumentChangeRegistrationOptions
         {
             get => new TextDocumentChangeRegistrationOptions
             {
@@ -123,7 +123,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         /// <summary>
         ///     Get registration options for handling document save events.
         /// </summary>
-        TextDocumentSaveRegistrationOptions DocumentSaveRegistrationOptions
+        private TextDocumentSaveRegistrationOptions DocumentSaveRegistrationOptions
         {
             get => new TextDocumentSaveRegistrationOptions
             {
@@ -141,7 +141,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         /// <returns>
         ///     A <see cref="Task"/> representing the operation.
         /// </returns>
-        async Task OnDidOpenTextDocument(DidOpenTextDocumentParams parameters)
+        private async Task OnDidOpenTextDocument(DidOpenTextDocumentParams parameters)
         {
             Server.NotifyBusy("Loading project...");
 
@@ -238,7 +238,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         /// <returns>
         ///     A <see cref="Task"/> representing the operation.
         /// </returns>
-        async Task OnDidChangeTextDocument(DidChangeTextDocumentParams parameters)
+        private async Task OnDidChangeTextDocument(DidChangeTextDocumentParams parameters)
         {
             Log.Verbose("Reloading project {ProjectFile}...",
                 VSCodeDocumentUri.GetFileSystemPath(parameters.TextDocument.Uri)
@@ -289,7 +289,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         /// <returns>
         ///     A <see cref="Task"/> representing the operation.
         /// </returns>
-        async Task OnDidSaveTextDocument(DidSaveTextDocumentParams parameters)
+        private async Task OnDidSaveTextDocument(DidSaveTextDocumentParams parameters)
         {
             Log.Information("Reloading project {ProjectFile}...",
                 VSCodeDocumentUri.GetFileSystemPath(parameters.TextDocument.Uri)
@@ -324,7 +324,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         /// <returns>
         ///     A <see cref="Task"/> representing the operation.
         /// </returns>
-        async Task OnDidCloseTextDocument(DidCloseTextDocumentParams parameters)
+        private async Task OnDidCloseTextDocument(DidCloseTextDocumentParams parameters)
         {
             await Workspace.RemoveProjectDocument(parameters.TextDocument.Uri);
 
@@ -342,7 +342,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         /// <returns>
         ///     The document attributes.
         /// </returns>
-        static TextDocumentAttributes GetTextDocumentAttributes(Uri documentUri)
+        private static TextDocumentAttributes GetTextDocumentAttributes(Uri documentUri)
         {
             string documentFilePath = VSCodeDocumentUri.GetFileSystemPath(documentUri);
             if (documentFilePath == null)

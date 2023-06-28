@@ -13,4 +13,7 @@ csharp_indent_case_contents_when_block=false
 [*.yml]
 indent_size = 2
 
+[*.{cs,vb}]
+dotnet_diagnostic.IDE0040.severity = suggestion
+
 csharp_style_throw_expression = false:none

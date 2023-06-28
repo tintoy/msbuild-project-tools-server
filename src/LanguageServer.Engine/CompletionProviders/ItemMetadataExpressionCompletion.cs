@@ -277,7 +277,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
         /// <returns>
         ///     The <see cref="CompletionItem"/>.
         /// </returns>
-        CompletionItem ItemTypeCompletionItem(string itemType, LspModels.Range replaceRange, int? priority = null, string description = null)
+        private CompletionItem ItemTypeCompletionItem(string itemType, LspModels.Range replaceRange, int? priority = null, string description = null)
         {
             return new CompletionItem
             {
@@ -323,7 +323,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
         /// <returns>
         ///     The <see cref="CompletionItem"/>.
         /// </returns>
-        CompletionItem UnqualifiedMetadataCompletionItem(string metadataName, LspModels.Range replaceRange, int? priority = null, string description = null)
+        private CompletionItem UnqualifiedMetadataCompletionItem(string metadataName, LspModels.Range replaceRange, int? priority = null, string description = null)
         {
             return new CompletionItem
             {
@@ -362,7 +362,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
         /// <returns>
         ///     The <see cref="CompletionItem"/>.
         /// </returns>
-        CompletionItem QualifiedMetadataCompletionItem(string itemType, string metadataName, LspModels.Range replaceRange, int? priority = null, string description = null)
+        private CompletionItem QualifiedMetadataCompletionItem(string itemType, string metadataName, LspModels.Range replaceRange, int? priority = null, string description = null)
         {
             return new CompletionItem
             {

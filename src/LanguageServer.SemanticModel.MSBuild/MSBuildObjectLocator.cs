@@ -19,7 +19,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
         /// <remarks>
         ///     Sorted by range comparison (effectively, this means document order).
         /// </remarks>
-        readonly List<Range> _objectRanges = new List<Range>();
+        private readonly List<Range> _objectRanges = new List<Range>();
 
         /// <summary>
         ///     All objects in the project, keyed by starting position.
@@ -27,27 +27,27 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
         /// <remarks>
         ///     Sorted by range comparison.
         /// </remarks>
-        readonly SortedDictionary<Position, MSBuildObject> _objectsByStartPosition = new SortedDictionary<Position, MSBuildObject>();
+        private readonly SortedDictionary<Position, MSBuildObject> _objectsByStartPosition = new SortedDictionary<Position, MSBuildObject>();
 
         /// <summary>
         ///     The MSBuild project.
         /// </summary>
-        readonly Project _project;
+        private readonly Project _project;
 
         /// <summary>
         ///     The full path to the MSBuild project file.
         /// </summary>
-        readonly string _projectFile;
+        private readonly string _projectFile;
 
         /// <summary>
         ///     The project XML.
         /// </summary>
-        readonly XmlLocator _projectXmlLocator;
+        private readonly XmlLocator _projectXmlLocator;
 
         /// <summary>
         ///     The position-lookup for the project XML.
         /// </summary>
-        readonly TextPositions _xmlPositions;
+        private readonly TextPositions _xmlPositions;
 
         /// <summary>
         ///     Create a new <see cref="MSBuildObjectLocator"/>.
@@ -134,7 +134,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
         /// <returns>
         ///     <c>true</c>, if the element is from the current project; otherwise, <c>false</c>.
         /// </returns>
-        bool IsFromCurrentProject(ProjectElement element)
+        private bool IsFromCurrentProject(ProjectElement element)
         {
             if (element == null)
                 throw new ArgumentNullException(nameof(element));
@@ -148,7 +148,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
         /// <summary>
         ///     Add all targets defined in the project.
         /// </summary>
-        void AddTargets()
+        private void AddTargets()
         {
             foreach (ProjectTargetElement target in _project.Xml.Targets)
             {
@@ -163,7 +163,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
         /// <param name="target">
         ///     The target's declaring <see cref="ProjectTargetElement"/>.
         /// </param>
-        void AddTarget(ProjectTargetElement target)
+        private void AddTarget(ProjectTargetElement target)
         {
             if (target == null)
                 throw new ArgumentNullException(nameof(target));
@@ -185,7 +185,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
         /// <summary>
         ///     Add all properties defined in the project.
         /// </summary>
-        void AddProperties()
+        private void AddProperties()
         {
             foreach (ProjectPropertyElement property in _project.Xml.Properties)
             {
@@ -200,7 +200,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
         /// <param name="property">
         ///     The property's declaring <see cref="ProjectPropertyElement"/>.
         /// </param>
-        void AddProperty(ProjectPropertyElement property)
+        private void AddProperty(ProjectPropertyElement property)
         {
             if (property == null)
                 throw new ArgumentNullException(nameof(property));
@@ -232,7 +232,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
         /// <summary>
         ///     Add all items defined in the project.
         /// </summary>
-        void AddItems()
+        private void AddItems()
         {
             // First, map each item to the element in the XML from where it originates.
             var itemsByXml = new Dictionary<ProjectItemElement, List<ProjectItem>>();
@@ -288,7 +288,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
         /// <remarks>
         ///     Currently, this doesn't capture imports whose condition evaluates to false.
         /// </remarks>
-        void AddImports()
+        private void AddImports()
         {
             HashSet<ProjectImportElement> resolvedImportElements = new HashSet<ProjectImportElement>();
             var importsBySdk =
@@ -331,7 +331,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
         /// <param name="resolvedImports">
         ///     The resolved imports resulting from the import declaration.
         /// </param>
-        void AddSdkImport(IEnumerable<ResolvedImport> resolvedImports)
+        private void AddSdkImport(IEnumerable<ResolvedImport> resolvedImports)
         {
             if (resolvedImports == null)
                 throw new ArgumentNullException(nameof(resolvedImports));
@@ -365,7 +365,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
         /// <param name="resolvedImports">
         ///     The resolved imports resulting from the import declaration.
         /// </param>
-        void AddImport(IEnumerable<ResolvedImport> resolvedImports)
+        private void AddImport(IEnumerable<ResolvedImport> resolvedImports)
         {
             if (resolvedImports == null)
                 throw new ArgumentNullException(nameof(resolvedImports));
@@ -394,7 +394,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
         /// <param name="import">
         ///     The declaring import element.
         /// </param>
-        void AddUnresolvedSdkImport(ProjectImportElement import)
+        private void AddUnresolvedSdkImport(ProjectImportElement import)
         {
             if (import == null)
                 throw new ArgumentNullException(nameof(import));
@@ -421,7 +421,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
         /// <param name="import">
         ///     The declaring import element.
         /// </param>
-        void AddUnresolvedImport(ProjectImportElement import)
+        private void AddUnresolvedImport(ProjectImportElement import)
         {
             if (import == null)
                 throw new ArgumentNullException(nameof(import));
@@ -446,7 +446,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
         /// <param name="msbuildObject">
         ///     The <see cref="MSBuildObject"/>.
         /// </param>
-        void Add(MSBuildObject msbuildObject)
+        private void Add(MSBuildObject msbuildObject)
         {
             if (msbuildObject == null)
                 throw new ArgumentNullException(nameof(msbuildObject));

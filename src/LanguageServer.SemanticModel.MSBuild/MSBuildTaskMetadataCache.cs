@@ -15,7 +15,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
         /// <summary>
         ///     Settings for serialization of cache state.
         /// </summary>
-        static readonly JsonSerializerSettings SerializerSettings = new JsonSerializerSettings
+        private static readonly JsonSerializerSettings SerializerSettings = new JsonSerializerSettings
         {
             Formatting = Formatting.Indented,
             DateFormatHandling = DateFormatHandling.IsoDateFormat

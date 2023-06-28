@@ -22,7 +22,7 @@ namespace MSBuildProjectTools.LanguageServer.Documents
         /// <summary>
         ///     Documents for loaded project, keyed by document URI.
         /// </summary>
-        readonly ConcurrentDictionary<Uri, ProjectDocument> _projectDocuments = new ConcurrentDictionary<Uri, ProjectDocument>();
+        private readonly ConcurrentDictionary<Uri, ProjectDocument> _projectDocuments = new ConcurrentDictionary<Uri, ProjectDocument>();
 
         /// <summary>
         ///     Create a new <see cref="Workspace"/>.
@@ -145,27 +145,27 @@ namespace MSBuildProjectTools.LanguageServer.Documents
         /// <remarks>
         ///     TODO: Make this selectable from the editor (get the extension to show a pick-list of open projects).
         /// </remarks>
-        MasterProjectDocument MasterProject { get; set; }
+        private MasterProjectDocument MasterProject { get; set; }
 
         /// <summary>
         ///     The language server.
         /// </summary>
-        ILanguageServer Server { get; }
+        private ILanguageServer Server { get; }
 
         /// <summary>
         ///     The diagnostic publishing facility.
         /// </summary>
-        IPublishDiagnostics DiagnosticsPublisher { get; }
+        private IPublishDiagnostics DiagnosticsPublisher { get; }
 
         /// <summary>
         ///     The workspace logger.
         /// </summary>
-        ILogger Log { get; }
+        private ILogger Log { get; }
 
         /// <summary>
         ///     Has the version of MSBuild in use been logged?
         /// </summary>
-        bool _msbuildVersionLogged;
+        private bool _msbuildVersionLogged;
 
         /// <summary>
         ///     Try to retrieve the current state for the specified project document.

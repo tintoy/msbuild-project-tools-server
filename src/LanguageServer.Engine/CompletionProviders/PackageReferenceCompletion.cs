@@ -24,7 +24,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
         /// <summary>
         ///     The names of elements supported by the provider.
         /// </summary>
-        static readonly HashSet<string> SupportedElementNames = new HashSet<string>
+        private static readonly HashSet<string> SupportedElementNames = new HashSet<string>
         {
             "PackageReference",
             "DotNetCliToolReference"
@@ -157,7 +157,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
         /// <returns>
         ///     A <see cref="Task"/> representing the operation.
         /// </returns>
-        async Task<List<CompletionItem>> HandlePackageReferenceAttributeCompletion(ProjectDocument projectDocument, XSAttribute attribute, CancellationToken cancellationToken)
+        private async Task<List<CompletionItem>> HandlePackageReferenceAttributeCompletion(ProjectDocument projectDocument, XSAttribute attribute, CancellationToken cancellationToken)
         {
             bool includePreRelease = projectDocument.Workspace.Configuration.NuGet.IncludePreRelease;
 
@@ -234,7 +234,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
         /// <returns>
         ///     The completion list or <c>null</c> if no completions are provided.
         /// </returns>
-        List<CompletionItem> HandlePackageReferenceElementCompletion(XmlLocation location, ProjectDocument projectDocument, Range replaceRange)
+        private List<CompletionItem> HandlePackageReferenceElementCompletion(XmlLocation location, ProjectDocument projectDocument, Range replaceRange)
         {
             if (projectDocument == null)
                 throw new ArgumentNullException(nameof(projectDocument));

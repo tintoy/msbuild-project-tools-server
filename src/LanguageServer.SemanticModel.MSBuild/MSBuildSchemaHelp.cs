@@ -67,27 +67,27 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
         /// <summary>
         ///     Help for MSBuild elements.
         /// </summary>
-        static SortedDictionary<string, ElementHelp> ElementHelp { get; }
+        private static SortedDictionary<string, ElementHelp> ElementHelp { get; }
 
         /// <summary>
         ///     Help for MSBuild properties.
         /// </summary>
-        static SortedDictionary<string, PropertyHelp> PropertyHelp { get; }
+        private static SortedDictionary<string, PropertyHelp> PropertyHelp { get; }
 
         /// <summary>
         ///     Help for MSBuild properties.
         /// </summary>
-        static SortedDictionary<string, ItemHelp> ItemHelp { get; }
+        private static SortedDictionary<string, ItemHelp> ItemHelp { get; }
 
         /// <summary>
         ///     Help for MSBuild properties.
         /// </summary>
-        static SortedDictionary<string, string> GlobalItemMetadataHelp { get; }
+        private static SortedDictionary<string, string> GlobalItemMetadataHelp { get; }
 
         /// <summary>
         ///     Help for MSBuild tasks.
         /// </summary>
-        static SortedDictionary<string, TaskHelp> TaskHelp { get; }
+        private static SortedDictionary<string, TaskHelp> TaskHelp { get; }
 
         /// <summary>
         ///     The directory where extension help files are stored.
@@ -411,7 +411,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
         /// <remarks>
         ///     Extracted from MSBuild.*.xsd - TODO: Move this to JSON-based help, same as property, item, and task help.
         /// </remarks>
-        static readonly Dictionary<string, string> Root = new Dictionary<string, string>
+        private static readonly Dictionary<string, string> Root = new Dictionary<string, string>
         {
             ["*.Condition"] = "Optional expression evaluated to determine whether the target element should be evaluated",
             ["*.Label"] = "Optional expression. Used to identify or order system and user elements",

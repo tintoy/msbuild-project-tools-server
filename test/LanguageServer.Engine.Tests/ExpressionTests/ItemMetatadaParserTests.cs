@@ -31,7 +31,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests.ExpressionTests
         /// <summary>
         ///     Output for the current test.
         /// </summary>
-        ITestOutputHelper TestOutput { get; }
+        private ITestOutputHelper TestOutput { get; }
 
         /// <summary>
         ///     Verify that the ItemMetadata parser can successfully parse an unqualified item metadata expression.

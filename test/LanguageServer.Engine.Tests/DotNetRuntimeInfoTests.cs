@@ -36,7 +36,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests
         /// <summary>
         ///     Output examples from "dotnet --info".
         /// </summary>
-        static class Examples
+        private static class Examples
         {
             /// <summary>
             ///     .NET Core SDK v2.1.401 (English)

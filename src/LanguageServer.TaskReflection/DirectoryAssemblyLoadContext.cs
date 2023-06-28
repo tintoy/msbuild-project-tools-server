@@ -89,7 +89,7 @@ namespace MSBuildProjectTools.LanguageServer.TaskReflection
         /// <returns>
         ///     The assembly, or <c>null</c> if no matching assembly file was found <paramref name="directory"/>.
         /// </returns>
-        Assembly LoadFromDirectory(AssemblyName assemblyName, DirectoryInfo directory)
+        private Assembly LoadFromDirectory(AssemblyName assemblyName, DirectoryInfo directory)
         {
             if (assemblyName == null)
                 throw new ArgumentNullException(nameof(assemblyName));

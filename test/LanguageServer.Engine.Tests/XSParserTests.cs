@@ -18,7 +18,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests
         /// <summary>
         ///     The directory for test files.
         /// </summary>
-        static readonly DirectoryInfo TestDirectory = new DirectoryInfo(Path.GetDirectoryName(
+        private static readonly DirectoryInfo TestDirectory = new DirectoryInfo(Path.GetDirectoryName(
             typeof(XSParserTests).Assembly.Location
         ));
 
@@ -39,7 +39,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests
         /// <summary>
         ///     Output for the current test.
         /// </summary>
-        ITestOutputHelper TestOutput { get; }
+        private ITestOutputHelper TestOutput { get; }
 
         /// <summary>
         ///     XSParser should discover the specified number of nodes.
@@ -52,7 +52,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests
         /// </param>
         [InlineData("Test1", 12)]
         [Theory(DisplayName = "XSParser discovers node count ")]
-        void NodeCount(string testFileName, int expectedNodeCount)
+        private void NodeCount(string testFileName, int expectedNodeCount)
         {
             string testXml = LoadTestFile("TestFiles", testFileName + ".xml");
             TextPositions xmlPositions = new TextPositions(testXml);
@@ -101,7 +101,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests
         [InlineData("Invalid1.EmptyOpeningTag", 11, XSNodeKind.Whitespace)]
         [InlineData("Invalid1.EmptyOpeningTag", 12, XSNodeKind.Element)]
         [Theory(DisplayName = "XSParser discovers node of kind ")]
-        void NodeKind(string testFileName, int index, XSNodeKind nodeKind)
+        private void NodeKind(string testFileName, int index, XSNodeKind nodeKind)
         {
             string testXml = LoadTestFile("TestFiles", testFileName + ".xml");
             TextPositions xmlPositions = new TextPositions(testXml);
@@ -129,7 +129,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests
         [InlineData("Invalid1.EmptyOpeningTag", 9)]
         [InlineData("Invalid1.DoubleOpeningTag", 7)]
         [Theory(DisplayName = "XSParser discovers invalid element ")]
-        void InvalidElement(string testFileName, int index)
+        private void InvalidElement(string testFileName, int index)
         {
             string testXml = LoadTestFile("TestFiles", testFileName + ".xml");
             TextPositions xmlPositions = new TextPositions(testXml);
@@ -180,7 +180,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests
         [InlineData("Test1", 10, 6, 5, 6, 27)]
         [InlineData("Test1", 11, 6, 27, 7, 1)]
         [Theory(DisplayName = "XSParser discovers node with range ")]
-        void NodeRange(string testFileName, int index, int startLine, int startColumn, int endLine, int endColumn)
+        private void NodeRange(string testFileName, int index, int startLine, int startColumn, int endLine, int endColumn)
         {
             string testXml = LoadTestFile("TestFiles", testFileName + ".xml");
             TextPositions xmlPositions = new TextPositions(testXml);
@@ -234,7 +234,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests
         [InlineData("Test1", "Element2", 2, 15, 2, 35)]
         [InlineData("Test2", "PackageReference", 11, 27, 11, 70)]
         [Theory(DisplayName = "XSParser discovers element with attributes range ")]
-        void ElementAttributesRange(string testFileName, string elementName, int startLine, int startColumn, int endLine, int endColumn)
+        private void ElementAttributesRange(string testFileName, string elementName, int startLine, int startColumn, int endLine, int endColumn)
         {
             string testXml = LoadTestFile("TestFiles", testFileName + ".xml");
             TextPositions xmlPositions = new TextPositions(testXml);
@@ -317,7 +317,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests
         /// <returns>
         ///     The file content, as a string.
         /// </returns>
-        static string LoadTestFile(params string[] relativePathSegments)
+        private static string LoadTestFile(params string[] relativePathSegments)
         {
             if (relativePathSegments == null)
                 throw new ArgumentNullException(nameof(relativePathSegments));

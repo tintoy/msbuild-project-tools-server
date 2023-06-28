@@ -60,7 +60,7 @@ namespace MSBuildProjectTools.LanguageServer
         /// <returns>
         ///     The logger.
         /// </returns>
-        static ILogger CreateLogger(IComponentContext componentContext)
+        private static ILogger CreateLogger(IComponentContext componentContext)
         {
             if (componentContext == null)
                 throw new ArgumentNullException(nameof(componentContext));

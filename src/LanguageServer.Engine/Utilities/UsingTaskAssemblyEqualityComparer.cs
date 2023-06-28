@@ -7,7 +7,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
     /// <summary>
     ///     Equality comparer for <see cref="ProjectUsingTaskElement"/>s that compares <see cref="ProjectUsingTaskElement.AssemblyFile"/>.
     /// </summary>
-    class UsingTaskAssemblyEqualityComparer
+    internal class UsingTaskAssemblyEqualityComparer
         : EqualityComparer<ProjectUsingTaskElement>
     {
         /// <summary>
@@ -18,7 +18,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         /// <summary>
         ///     Create a new <see cref="UsingTaskAssemblyEqualityComparer"/>.
         /// </summary>
-        UsingTaskAssemblyEqualityComparer()
+        private UsingTaskAssemblyEqualityComparer()
         {
         }
 

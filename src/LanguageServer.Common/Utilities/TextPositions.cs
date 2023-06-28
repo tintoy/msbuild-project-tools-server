@@ -14,7 +14,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         /// <summary>
         ///     The absolution starting position, within the text, of each line.
         /// </summary>
-        readonly int[] _lineStartPositions;
+        private readonly int[] _lineStartPositions;
 
         /// <summary>
         ///     Create a new <see cref="TextPositions"/> for the specified text.
@@ -205,7 +205,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         /// <returns>
         ///     An array of line starting positions.
         /// </returns>
-        static int[] CalculateLineStartPositions(string text)
+        private static int[] CalculateLineStartPositions(string text)
         {
             if (text == null)
                 throw new ArgumentNullException(nameof(text));

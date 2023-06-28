@@ -18,12 +18,12 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
         /// <summary>
         ///     The <see cref="XSPath"/> separator.
         /// </summary>
-        static readonly string PathSeparatorString = PathSeparatorCharacter.ToString();
+        private static readonly string PathSeparatorString = PathSeparatorCharacter.ToString();
 
         /// <summary>
         ///     The path of the root <see cref="XSPath"/>.
         /// </summary>
-        static readonly string RootPath = PathSeparatorString;
+        private static readonly string RootPath = PathSeparatorString;
 
         /// <summary>
         ///     The root path.
@@ -44,22 +44,22 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
         /// <remarks>
         ///     We store these separately because not every <see cref="XSPath"/> is created with a parent <see cref="XSPath"/>.
         /// </remarks>
-        readonly ImmutableList<XSPathSegment> _ancestorSegments;
+        private readonly ImmutableList<XSPathSegment> _ancestorSegments;
 
         /// <summary>
         ///     The path's segments, including the leaf.
         /// </summary>
-        readonly ImmutableList<XSPathSegment> _segments;
+        private readonly ImmutableList<XSPathSegment> _segments;
 
         /// <summary>
         ///     The parent path (if any).
         /// </summary>
-        readonly XSPath _parent;
+        private readonly XSPath _parent;
 
         /// <summary>
         ///     The path as a string (lazily-computed).
         /// </summary>
-        string _path;
+        private string _path;
 
         /// <summary>
         ///     Create a new <see cref="XSPath"/>.
@@ -70,7 +70,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
         /// <param name="segments">
         ///     The path's segments, including the leaf.
         /// </param>
-        XSPath(ImmutableList<XSPathSegment> ancestorSegments, ImmutableList<XSPathSegment> segments)
+        private XSPath(ImmutableList<XSPathSegment> ancestorSegments, ImmutableList<XSPathSegment> segments)
         {
             if (ancestorSegments == null)
                 throw new ArgumentNullException(nameof(ancestorSegments));
@@ -91,7 +91,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
         /// <param name="child">
         ///     The child <see cref="XSPath"/>.
         /// </param>
-        XSPath(XSPath parent, XSPath child)
+        private XSPath(XSPath parent, XSPath child)
         {
             if (parent == null)
                 throw new ArgumentNullException(nameof(parent));
@@ -113,7 +113,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
         /// <param name="leaf">
         ///     The leaf <see cref="XSPathSegment"/> to append.
         /// </param>
-        XSPath(XSPath parent, XSPathSegment leaf)
+        private XSPath(XSPath parent, XSPathSegment leaf)
         {
             if (parent == null)
                 throw new ArgumentNullException(nameof(parent));
@@ -448,7 +448,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
         /// <returns>
         ///     The path's string representation.
         /// </returns>
-        string ComputePathString()
+        private string ComputePathString()
         {
             if (_segments.Count == 1 && _segments[0] == XSPathSegment.Root)
                 return RootPath;

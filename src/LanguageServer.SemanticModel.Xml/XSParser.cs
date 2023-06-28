@@ -71,18 +71,18 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
         /// <summary>
         ///     A syntax visitor that extracts a semantic model (in the form of <see cref="XSNode"/>s) from syntax nodes.
         /// </summary>
-        class XSParserVisitor
+        private class XSParserVisitor
             : SyntaxVisitor
         {
             /// <summary>
             ///     The stack of <see cref="XSElement"/>s being processed.
             /// </summary>
-            readonly Stack<XSElement> _elementStack = new Stack<XSElement>();
+            private readonly Stack<XSElement> _elementStack = new Stack<XSElement>();
 
             /// <summary>
             ///     Lookup for document text positions.
             /// </summary>
-            readonly TextPositions _textPositions;
+            private readonly TextPositions _textPositions;
 
             /// <summary>
             ///     Create a new <see cref="XSParserVisitor"/>.
@@ -106,12 +106,12 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
             /// <summary>
             ///     Is there an element currently being processed?
             /// </summary>
-            bool HaveCurrentElement => _elementStack.Count > 0;
+            private bool HaveCurrentElement => _elementStack.Count > 0;
 
             /// <summary>
             ///     The element (if any) being processed.
             /// </summary>
-            XSElement CurrentElement => HaveCurrentElement ? _elementStack.Peek() : null;
+            private XSElement CurrentElement => HaveCurrentElement ? _elementStack.Peek() : null;
 
             /// <summary>
             ///     Perform final processing of discovered nodes.
@@ -128,7 +128,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
             /// <summary>
             ///     Find the spaces between elements and use that to infer whitespace.
             /// </summary>
-            void ComputeWhitespace()
+            private void ComputeWhitespace()
             {
                 // TODO: Merge contiguous whitespace.
 
@@ -208,7 +208,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
             /// <summary>
             ///     Connect sibling nodes.
             /// </summary>
-            void ConnectSiblings()
+            private void ConnectSiblings()
             {
                 var discoveredElements = DiscoveredNodes.OfType<XSElement>();
                 foreach (XSElement element in discoveredElements)
@@ -436,7 +436,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
             /// <returns>
             ///     The <see cref="XSElement"/>.
             /// </returns>
-            XSElement PushElement(XSElement element)
+            private XSElement PushElement(XSElement element)
             {
                 if (element == null)
                     throw new ArgumentNullException(nameof(element));
@@ -451,7 +451,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
             /// <summary>
             ///     Pop an element from the stack.
             /// </summary>
-            void PopElement()
+            private void PopElement()
             {
                 _elementStack.Pop();
             }
