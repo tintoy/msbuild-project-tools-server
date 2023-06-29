@@ -1,12 +1,5 @@
-using Microsoft.Build.Evaluation;
 using Microsoft.Build.Exceptions;
-using Microsoft.Language.Xml;
-using Nito.AsyncEx;
-using NuGet.Configuration;
-using NuGet.Protocol.Core.Types;
-using NuGet.Versioning;
 using Serilog;
-using Serilog.Events;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -29,7 +22,7 @@ namespace MSBuildProjectTools.LanguageServer.Documents
         /// <summary>
         ///     Sub-projects (if any).
         /// </summary>
-        Dictionary<Uri, SubProjectDocument> _subProjects = new Dictionary<Uri, SubProjectDocument>();
+        readonly Dictionary<Uri, SubProjectDocument> _subProjects = new Dictionary<Uri, SubProjectDocument>();
 
         /// <summary>
         ///     Create a new <see cref="MasterProjectDocument"/>.
@@ -95,9 +88,8 @@ namespace MSBuildProjectTools.LanguageServer.Documents
         {
             if (documentUri == null)
                 throw new ArgumentNullException(nameof(documentUri));
-            
-            SubProjectDocument subProjectDocument;
-            if (!_subProjects.TryGetValue(documentUri, out subProjectDocument))
+
+            if (!_subProjects.TryGetValue(documentUri, out SubProjectDocument subProjectDocument))
                 return;
 
             subProjectDocument.Unload();
@@ -147,12 +139,9 @@ namespace MSBuildProjectTools.LanguageServer.Documents
                 if (HasMSBuildProject && !IsDirty)
                     return true;
 
-                if (MSBuildProjectCollection == null)
-                {
-                    MSBuildProjectCollection = MSBuildHelper.CreateProjectCollection(ProjectFile.Directory.FullName,
-                        globalPropertyOverrides: GetMSBuildGlobalPropertyOverrides()
-                    );
-                }
+                MSBuildProjectCollection ??= MSBuildHelper.CreateProjectCollection(ProjectFile.Directory.FullName,
+                    globalPropertyOverrides: GetMSBuildGlobalPropertyOverrides()
+                );
 
                 if (HasMSBuildProject && IsDirty)
                 {
@@ -178,7 +167,7 @@ namespace MSBuildProjectTools.LanguageServer.Documents
             {
                 if (Workspace.Configuration.Logging.IsDebugLoggingEnabled)
                 {
-                    Log.Error(invalidProjectFile, "Failed to load MSBuild proiect '{ProjectFileName}'.",
+                    Log.Error(invalidProjectFile, "Failed to load MSBuild project '{ProjectFileName}'.",
                         ProjectFile.FullName
                     );
                 }

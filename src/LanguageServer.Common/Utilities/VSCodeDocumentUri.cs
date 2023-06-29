@@ -30,7 +30,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
             if (Path.DirectorySeparatorChar == '\\')
             {
                 if (fileSystemPath.StartsWith("/"))
-                    fileSystemPath = fileSystemPath.Substring(1);
+                    fileSystemPath = fileSystemPath[1..];
 
                 fileSystemPath = fileSystemPath.Replace('/', '\\');
             }
@@ -49,7 +49,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         /// </returns>
         public static Uri FromFileSystemPath(string fileSystemPath)
         {
-            if (String.IsNullOrWhiteSpace(fileSystemPath))
+            if (string.IsNullOrWhiteSpace(fileSystemPath))
                 throw new ArgumentException("Argument cannot be null, empty, or entirely composed of whitespace: 'fileSystemPath'.", nameof(fileSystemPath));
 
             if (!Path.IsPathRooted(fileSystemPath))

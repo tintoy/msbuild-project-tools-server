@@ -1,10 +1,7 @@
 using Microsoft.Language.Xml;
-using Sprache;
 using System;
 using System.IO;
-using System.Linq;
 using Xunit;
-using Xunit.Abstractions;
 
 #pragma warning disable xUnit2013 // Do not use equality check to check for collection size.
 
@@ -42,9 +39,9 @@ namespace MSBuildProjectTools.LanguageServer.Tests.ExpressionTests
         ///     The expected kind of expression.
         /// </param>
         [Theory(DisplayName = "On expression ")]
-        [InlineData("Test4", 3, 25, ExpressionKind.Evaluate)]
+        [InlineData("Test4", 3, 25, ExpressionKind.Evaluate    )]
         [InlineData("Test4", 4, 25, ExpressionKind.ItemMetadata)]
-        [InlineData("Test4", 5, 30, ExpressionKind.Symbol)]
+        [InlineData("Test4", 5, 30, ExpressionKind.Symbol      )]
         [InlineData("Test4", 5, 46, ExpressionKind.ItemMetadata)]
         public void IsExpression_Success(string testFileName, int line, int column, ExpressionKind expectedExpressionKind)
         {
@@ -58,14 +55,12 @@ namespace MSBuildProjectTools.LanguageServer.Tests.ExpressionTests
             XmlLocation location = locator.Inspect(testPosition);
             Assert.NotNull(location);
 
-            ExpressionNode actualExpression;
-            Range actualExpressionRange;
             Assert.True(
-                location.IsExpression(out actualExpression, out actualExpressionRange),
+                location.IsExpression(out ExpressionNode actualExpression, out Range actualExpressionRange),
                 "IsExpression"
             );
             Assert.NotNull(actualExpression);
-            
+
             Assert.Equal(expectedExpressionKind, actualExpression.Kind);
         }
 
@@ -82,7 +77,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests.ExpressionTests
         {
             if (relativePathSegments == null)
                 throw new ArgumentNullException(nameof(relativePathSegments));
-            
+
             return File.ReadAllText(
                 Path.Combine(
                     TestDirectory.FullName,

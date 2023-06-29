@@ -1,4 +1,3 @@
-using OmniSharp.Extensions.LanguageServer;
 using OmniSharp.Extensions.LanguageServer.Server;
 using Serilog;
 using Serilog.Configuration;
@@ -7,8 +6,6 @@ using System;
 
 namespace MSBuildProjectTools.LanguageServer.Logging
 {
-    using Handlers;
-
     /// <summary>
     ///     Extension methods for configuring Serilog.
     /// </summary>
@@ -33,10 +30,10 @@ namespace MSBuildProjectTools.LanguageServer.Logging
         {
             if (loggerSinkConfiguration == null)
                 throw new ArgumentNullException(nameof(loggerSinkConfiguration));
-            
+
             if (languageServer == null)
                 throw new ArgumentNullException(nameof(languageServer));
-            
+
             if (levelSwitch == null)
                 throw new ArgumentNullException(nameof(levelSwitch));
 
@@ -58,7 +55,7 @@ namespace MSBuildProjectTools.LanguageServer.Logging
         {
             if (loggerEnrichmentConfiguration == null)
                 throw new ArgumentNullException(nameof(loggerEnrichmentConfiguration));
-            
+
             return loggerEnrichmentConfiguration.With<ActivityIdEnricher>();
         }
     }

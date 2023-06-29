@@ -1,4 +1,3 @@
-using Microsoft.Language.Xml;
 using System;
 
 namespace MSBuildProjectTools.LanguageServer.SemanticModel
@@ -28,7 +27,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
         {
             if (parent == null)
                 throw new ArgumentNullException(nameof(parent));
-            
+
             ParentElement = parent;
 
             XSPath parentPath = parent?.Path ?? XSPath.Root;

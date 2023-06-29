@@ -41,7 +41,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests.ExpressionTests
         /// <param name="expectedIdentifierName">
         ///     The expected identifier name.
         /// </param>
-        [InlineData("F", "F")]
+        [InlineData("F", "F"    )]
         [InlineData("Foo", "Foo")]
         [Theory(DisplayName = "Identifier token parser succeeds ")]
         public void Parse_Success(string input, string expectedIdentifierName)
@@ -58,7 +58,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests.ExpressionTests
         /// <param name="input">
         ///     The source text to parse.
         /// </param>
-        [InlineData("1")]
+        [InlineData("1"   )]
         [InlineData("1Foo")]
         [Theory(DisplayName = "Identifier token parser fails ")]
         public void Parse_Failure(string input)

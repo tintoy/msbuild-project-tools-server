@@ -205,7 +205,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         /// <returns>
         ///     An array of line starting positions.
         /// </returns>
-        int[] CalculateLineStartPositions(string text)
+        static int[] CalculateLineStartPositions(string text)
         {
             if (text == null)
                 throw new ArgumentNullException(nameof(text));

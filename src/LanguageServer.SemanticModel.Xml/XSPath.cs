@@ -8,7 +8,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
     /// <summary>
     ///     Represents a path through XML.
     /// </summary>
-    public sealed class XSPath // TODO: IEquatable<XSPath> (plus equality / inequality operators)
+    public sealed class XSPath // TODO: IEquitable<XSPath> (plus equality / inequality operators)
     {
         /// <summary>
         ///     The <see cref="XSPath"/> separator.
@@ -122,14 +122,15 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
                 throw new ArgumentNullException(nameof(leaf));
 
             _parent = parent;
-            _ancestorSegments = _parent._segments; ;
+            _ancestorSegments = _parent._segments;
+            ;
             _segments = _ancestorSegments.Add(leaf);
         }
 
         /// <summary>
         ///     The path's string representation.
         /// </summary>
-        public string Path => _path ?? (_path = ComputePathString());
+        public string Path => _path ??= ComputePathString();
 
         /// <summary>
         ///     The name of the current path segment.
@@ -149,7 +150,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
         /// <summary>
         ///     The last segment of the path.
         /// </summary>
-        public XSPathSegment Leaf => _segments[_segments.Count - 1];
+        public XSPathSegment Leaf => _segments[^1];
 
         /// <summary>
         ///     Is the path an absolute path?
@@ -200,7 +201,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
         {
             if (basePath == null)
                 throw new ArgumentNullException(nameof(basePath));
-            
+
             return basePath.IsAbsolute
                 ? StartsWith(basePath)
                 : EndsWith(basePath);
@@ -239,7 +240,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
 
             if (ancestorPath.IsAbsolute)
                 return StartsWith(ancestorPath);
-            
+
             if (_ancestorSegments.Count == 0 && Leaf == ancestorPath.Leaf)
                 return true;
 
@@ -332,13 +333,13 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
                 actualPathSegments.Take(actualPathSegments.Length - 1)
             );
             ImmutableList<XSPathSegment> segments = ancestorSegments.Add(
-                actualPathSegments[actualPathSegments.Length - 1]
+                actualPathSegments[^1]
             );
 
             XSPath appendPath = new XSPath(ancestorSegments, segments);
             if (appendPath.IsAbsolute)
                 return appendPath;
-            
+
             return new XSPath(
                 parent: this,
                 child: appendPath
@@ -452,7 +453,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
             if (_segments.Count == 1 && _segments[0] == XSPathSegment.Root)
                 return RootPath;
 
-            return String.Join(PathSeparatorString,
+            return string.Join(PathSeparatorString,
                 _segments.Select(segment => segment.Name)
             );
         }
@@ -474,8 +475,8 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
             if (path == PathSeparatorString)
                 return Root;
 
-            if (path[path.Length - 1] == PathSeparatorCharacter)
-                path = path.Substring(0, path.Length - 1);
+            if (path[^1] == PathSeparatorCharacter)
+                path = path[..^1];
 
             XSPathSegment[] pathSegments = ParseSegments(path).ToArray();
 
@@ -483,7 +484,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
                 pathSegments.Take(pathSegments.Length - 1)
             );
             ImmutableList<XSPathSegment> segments = ancestorSegments.Add(
-                pathSegments[pathSegments.Length - 1]
+                pathSegments[^1]
             );
 
             return new XSPath(ancestorSegments, segments);
@@ -506,8 +507,8 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
             if (path == PathSeparatorString)
                 yield return XSPathSegment.Root;
 
-            if (path[path.Length - 1] == PathSeparatorCharacter)
-                path = path.Substring(0, path.Length - 1);
+            if (path[^1] == PathSeparatorCharacter)
+                path = path[..^1];
 
             string[] pathSegments = path.Split(new char[] { PathSeparatorCharacter });
             foreach (string pathSegment in pathSegments)

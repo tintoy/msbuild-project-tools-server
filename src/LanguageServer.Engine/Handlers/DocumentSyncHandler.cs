@@ -1,19 +1,17 @@
+using NuGet.Configuration;
 using OmniSharp.Extensions.JsonRpc;
-using OmniSharp.Extensions.LanguageServer;
 using OmniSharp.Extensions.LanguageServer.Protocol;
 using OmniSharp.Extensions.LanguageServer.Protocol.Client.Capabilities;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using OmniSharp.Extensions.LanguageServer.Protocol.Server.Capabilities;
 using OmniSharp.Extensions.LanguageServer.Server;
-using NuGet.Configuration;
 using Serilog;
 using Serilog.Events;
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
-using System.Linq;
-using System.Threading;
 using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace MSBuildProjectTools.LanguageServer.Handlers
 {
@@ -23,7 +21,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
     using Utilities;
 
     /// <summary>
-    ///     The handler for language server document synchronisation.
+    ///     The handler for language server document synchronization.
     /// </summary>
     public sealed class DocumentSyncHandler
         : Handler, ITextDocumentSyncHandler
@@ -45,12 +43,12 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         {
             if (workspace == null)
                 throw new ArgumentNullException(nameof(workspace));
-            
+
             Workspace = workspace;
         }
 
         /// <summary>
-        ///     Options that control synchronisation.
+        ///     Options that control synchronization.
         /// </summary>
         public TextDocumentSyncOptions Options { get; } = new TextDocumentSyncOptions
         {
@@ -65,7 +63,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         };
 
         /// <summary>
-        ///     The document selector that describes documents to synchronise.
+        ///     The document selector that describes documents to synchronize.
         /// </summary>
         DocumentSelector DocumentSelector { get; } = new DocumentSelector(
             new DocumentFilter
@@ -98,16 +96,6 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         ///     The document workspace.
         /// </summary>
         Workspace Workspace { get; }
-
-        /// <summary>
-        ///     Has the client supplied synchronisation capabilities?
-        /// </summary>
-        bool HaveSynchronizationCapabilities => SynchronizationCapabilities != null;
-
-        /// <summary>
-        ///     The client's synchronisation capabilities.
-        /// </summary>
-        SynchronizationCapability SynchronizationCapabilities { get; set; }
 
         /// <summary>
         ///     Get registration options for handling document events.
@@ -194,7 +182,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
                     break;
                 }
             }
-            
+
             if (Log.IsEnabled(LogEventLevel.Verbose))
             {
                 Log.Verbose("===========================");
@@ -354,7 +342,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         /// <returns>
         ///     The document attributes.
         /// </returns>
-        TextDocumentAttributes GetTextDocumentAttributes(Uri documentUri)
+        static TextDocumentAttributes GetTextDocumentAttributes(Uri documentUri)
         {
             string documentFilePath = VSCodeDocumentUri.GetFileSystemPath(documentUri);
             if (documentFilePath == null)
@@ -393,7 +381,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         {
             if (parameters == null)
                 throw new ArgumentNullException(nameof(parameters));
-            
+
             using (BeginOperation("OnDidOpenTextDocument"))
             {
                 try
@@ -513,14 +501,13 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         TextDocumentSaveRegistrationOptions IRegistration<TextDocumentSaveRegistrationOptions>.GetRegistrationOptions() => DocumentSaveRegistrationOptions;
 
         /// <summary>
-        ///     Called to inform the handler of the language server's document-synchronisation capabilities.
+        ///     Called to inform the handler of the language server's document-synchronization capabilities.
         /// </summary>
         /// <param name="capabilities">
         ///     A <see cref="SynchronizationCapability"/> data structure representing the capabilities.
         /// </param>
         void ICapability<SynchronizationCapability>.SetCapability(SynchronizationCapability capabilities)
         {
-            SynchronizationCapabilities = capabilities;
         }
 
         /// <summary>

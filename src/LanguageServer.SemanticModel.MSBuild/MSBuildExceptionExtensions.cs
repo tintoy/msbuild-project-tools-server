@@ -1,7 +1,5 @@
-
-
-using System;
 using Microsoft.Build.Exceptions;
+using System;
 
 namespace MSBuildProjectTools.LanguageServer.SemanticModel
 {

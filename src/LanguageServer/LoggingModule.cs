@@ -9,7 +9,7 @@ using MSLogging = Microsoft.Extensions.Logging;
 namespace MSBuildProjectTools.LanguageServer
 {
     using Logging;
-    
+
     using LanguageServer = OmniSharp.Extensions.LanguageServer.Server.LanguageServer;
 
     /// <summary>
@@ -35,7 +35,7 @@ namespace MSBuildProjectTools.LanguageServer
         {
             if (builder == null)
                 throw new ArgumentNullException(nameof(builder));
-            
+
             builder.Register(CreateLogger)
                 .SingleInstance()
                 .As<ILogger>();
@@ -64,7 +64,7 @@ namespace MSBuildProjectTools.LanguageServer
         {
             if (componentContext == null)
                 throw new ArgumentNullException(nameof(componentContext));
-            
+
             ILanguageServer languageServer = componentContext.Resolve<ILanguageServer>();
 
             Configuration languageServerConfiguration = componentContext.Resolve<Configuration>();
@@ -75,7 +75,7 @@ namespace MSBuildProjectTools.LanguageServer
             ILogger logger = loggerConfiguration.CreateLogger();
             Log.Logger = logger;
 
-            logger.Verbose("Logger initialised.");
+            logger.Verbose("Logger initialized.");
 
             return logger;
         }
@@ -102,7 +102,7 @@ namespace MSBuildProjectTools.LanguageServer
                 languageServerConfiguration.Logging.Seq.LevelSwitch.MinimumLevel = LogEventLevel.Verbose;
             }
             string loggingFilePathOverride = Environment.GetEnvironmentVariable("MSBUILD_PROJECT_TOOLS_LOG_FILE");
-            if (!String.IsNullOrWhiteSpace(loggingFilePathOverride))
+            if (!string.IsNullOrWhiteSpace(loggingFilePathOverride))
                 languageServerConfiguration.Logging.LogFile = loggingFilePathOverride;
 
             languageServerConfiguration.Logging.Seq.Url = Environment.GetEnvironmentVariable("MSBUILD_PROJECT_TOOLS_SEQ_URL");
@@ -114,7 +114,7 @@ namespace MSBuildProjectTools.LanguageServer
                 .Enrich.WithDemystifiedStackTraces()
                 .Enrich.FromLogContext();
 
-            if (!String.IsNullOrWhiteSpace(languageServerConfiguration.Logging.Seq.Url))
+            if (!string.IsNullOrWhiteSpace(languageServerConfiguration.Logging.Seq.Url))
             {
                 loggerConfiguration = loggerConfiguration.WriteTo.Seq(languageServerConfiguration.Logging.Seq.Url,
                     apiKey: languageServerConfiguration.Logging.Seq.ApiKey,
@@ -122,7 +122,7 @@ namespace MSBuildProjectTools.LanguageServer
                 );
             }
 
-            if (!String.IsNullOrWhiteSpace(languageServerConfiguration.Logging.LogFile))
+            if (!string.IsNullOrWhiteSpace(languageServerConfiguration.Logging.LogFile))
             {
                 loggerConfiguration = loggerConfiguration.WriteTo.File(
                     path: languageServerConfiguration.Logging.LogFile,

@@ -1,4 +1,3 @@
-using System;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -66,19 +65,19 @@ namespace MSBuildProjectTools.LanguageServer.Tests.ExpressionTests
         /// <param name="expectedParentExpressionKind">
         ///     The expected parent expression kind (if any).
         /// </param>
-        [InlineData("ABC",                                 00, ExpressionKind.Symbol      , null                        )]
-        [InlineData("! ABC",                               00, ExpressionKind.Logical     , null                        )]
-        [InlineData("! ABC",                               02, ExpressionKind.Symbol      , ExpressionKind.Logical      )]
-        [InlineData("ABC And DEF",                         00, ExpressionKind.Symbol      , ExpressionKind.Logical      )]
-        [InlineData("ABC And DEF",                         04, ExpressionKind.Logical     , null                        )]
-        [InlineData("ABC And DEF",                         08, ExpressionKind.Symbol      , ExpressionKind.Logical      )]
-        [InlineData("$(ABC)",                              00, ExpressionKind.Evaluate    , null                        )]
-        [InlineData("$(ABC)",                              02, ExpressionKind.Symbol      , ExpressionKind.Evaluate     )]
-        [InlineData("'ABC'",                               00, ExpressionKind.QuotedString, null                        )]
-        [InlineData("'ABC' != 'DEF'",                      00, ExpressionKind.QuotedString, ExpressionKind.Compare      )]
-        [InlineData(" '$(YetAnotherProperty)' == 'true' ", 01, ExpressionKind.QuotedString, ExpressionKind.Compare      )]
-        [InlineData(" '$(YetAnotherProperty)' == 'true' ", 03, ExpressionKind.Evaluate    , ExpressionKind.QuotedString )]
-        [InlineData(" '$(YetAnotherProperty)' == 'true' ", 26, ExpressionKind.Compare     , null                        )]
+        [InlineData("ABC",                                 00, ExpressionKind.Symbol,       null                       )]
+        [InlineData("! ABC",                               00, ExpressionKind.Logical,      null                       )]
+        [InlineData("! ABC",                               02, ExpressionKind.Symbol,       ExpressionKind.Logical     )]
+        [InlineData("ABC And DEF",                         00, ExpressionKind.Symbol,       ExpressionKind.Logical     )]
+        [InlineData("ABC And DEF",                         04, ExpressionKind.Logical,      null                       )]
+        [InlineData("ABC And DEF",                         08, ExpressionKind.Symbol,       ExpressionKind.Logical     )]
+        [InlineData("$(ABC)",                              00, ExpressionKind.Evaluate,     null                       )]
+        [InlineData("$(ABC)",                              02, ExpressionKind.Symbol,       ExpressionKind.Evaluate    )]
+        [InlineData("'ABC'",                               00, ExpressionKind.QuotedString, null                       )]
+        [InlineData("'ABC' != 'DEF'",                      00, ExpressionKind.QuotedString, ExpressionKind.Compare     )]
+        [InlineData(" '$(YetAnotherProperty)' == 'true' ", 01, ExpressionKind.QuotedString, ExpressionKind.Compare     )]
+        [InlineData(" '$(YetAnotherProperty)' == 'true' ", 03, ExpressionKind.Evaluate,     ExpressionKind.QuotedString)]
+        [InlineData(" '$(YetAnotherProperty)' == 'true' ", 26, ExpressionKind.Compare,      null                       )]
         [Theory(DisplayName = "Expression parser succeeds for node at position ")]
         public void FindDeepestNode_Success(string input, int absolutePosition, ExpressionKind expectedExpressionKind, ExpressionKind? parentExpressionKind)
         {

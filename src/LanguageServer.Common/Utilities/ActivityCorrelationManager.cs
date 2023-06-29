@@ -23,10 +23,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         /// <summary>
         ///     Get the current activity Id (if any).
         /// </summary>
-        public static Guid? CurrentActivityId
-        {
-            get { return CurrentActivityIdInternal.Value; }
-        }
+        public static Guid? CurrentActivityId => CurrentActivityIdInternal.Value;
 
         /// <summary>
         ///     Create an activity scope.
@@ -180,12 +177,12 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         Application = 1,
 
         /// <summary>
-        ///     Activity-correlation information comes from <see cref="EventSource">ETW</see>'s <see cref="System.Diagnostics.Tracing.EventSource.CurrentThreadActivityId" />.
+        ///     Activity-correlation information comes from <see cref="EventSource">ETW</see>'s <see cref="EventSource.CurrentThreadActivityId" />.
         /// </summary>
         EventSource = 2
     }
 
-     /// <summary>
+    /// <summary>
     ///     Represents a scope for an activity.
     /// </summary>
     /// <remarks>

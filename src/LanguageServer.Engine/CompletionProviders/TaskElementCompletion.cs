@@ -1,12 +1,8 @@
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
-using Microsoft.Build.Construction;
 using Serilog;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Reflection;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -24,11 +20,6 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
     public class TaskElementCompletion
         : TaskCompletionProvider
     {
-        /// <summary>
-        ///     An absolute path representing a Target element.
-        /// </summary>
-        static readonly XSPath TargetElementPath = XSPath.Parse("/Project/Target");
-
         /// <summary>
         ///     Create a new <see cref="TaskElementCompletion"/>.
         /// </summary>
@@ -63,7 +54,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
         /// <returns>
         ///     A <see cref="Task{TResult}"/> that resolves either a <see cref="CompletionList"/>s, or <c>null</c> if no completions are provided.
         /// </returns>
-        public override async Task<CompletionList> ProvideCompletions(XmlLocation location, ProjectDocument projectDocument, string triggerCharacters, CancellationToken cancellationToken = default(CancellationToken))
+        public override async Task<CompletionList> ProvideCompletions(XmlLocation location, ProjectDocument projectDocument, string triggerCharacters, CancellationToken cancellationToken = default)
         {
             if (location == null)
                 throw new ArgumentNullException(nameof(location));
@@ -89,18 +80,17 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
 
             Log.Verbose("Evaluate completions for {XmlLocation:l}", location);
 
-            using (await projectDocument.Lock.ReaderLockAsync())
+            using (await projectDocument.Lock.ReaderLockAsync(cancellationToken))
             {
-                XSElement replaceElement;
-                if (!location.CanCompleteElement(out replaceElement, parentPath: WellKnownElementPaths.Target))
+                if (!location.CanCompleteElement(out XSElement replaceElement, parentPath: WellKnownElementPaths.Target))
                 {
                     Log.Verbose("Not offering any completions for {XmlLocation:l} (does not represent the direct child of a 'Target' element).", location);
 
                     return null;
                 }
-                
+
                 Range targetRange = replaceElement?.Range ?? location.Position.ToEmptyRange();
-                
+
                 // Replace any characters that were typed to trigger the completion.
                 HandleTriggerCharacters(triggerCharacters, projectDocument, ref targetRange);
 
@@ -121,7 +111,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
                 Dictionary<string, MSBuildTaskMetadata> projectTasks = await GetProjectTasks(projectDocument);
 
                 completions.AddRange(
-                    GetCompletionItems(projectDocument, projectTasks, targetRange)
+                    GetCompletionItems(projectTasks, targetRange)
                 );
             }
 
@@ -138,9 +128,6 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
         /// <summary>
         ///     Get task element completions.
         /// </summary>
-        /// <param name="projectDocument">
-        ///     The <see cref="ProjectDocument"/> for which completions will be offered.
-        /// </param>
         /// <param name="projectTasks">
         ///     The metadata for the tasks defined in the project (and its imports), keyed by task name.
         /// </param>
@@ -150,7 +137,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
         /// <returns>
         ///     A sequence of <see cref="CompletionItem"/>s.
         /// </returns>
-        public IEnumerable<CompletionItem> GetCompletionItems(ProjectDocument projectDocument, Dictionary<string, MSBuildTaskMetadata> projectTasks, Range replaceRange)
+        public IEnumerable<CompletionItem> GetCompletionItems(Dictionary<string, MSBuildTaskMetadata> projectTasks, Range replaceRange)
         {
             LspModels.Range replaceRangeLsp = replaceRange.ToLsp();
 
@@ -178,10 +165,10 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
         CompletionItem TaskElementCompletionItem(string taskName, MSBuildTaskMetadata taskMetadata, LspModels.Range replaceRange)
         {
             MSBuildTaskParameterMetadata[] requiredParameters = taskMetadata.Parameters.Where(parameter => parameter.IsRequired).ToArray();
-            string requiredAttributes = String.Join(" ", requiredParameters.Select(
+            string requiredAttributes = string.Join(" ", requiredParameters.Select(
                 (parameter, index) => $"{parameter.Name}=\"${index + 1}\""
             ));
-            string attributePadding = (requiredAttributes.Length > 0) ? " " : String.Empty;
+            string attributePadding = (requiredAttributes.Length > 0) ? " " : string.Empty;
 
             string restOfElement = " />$0";
             if (taskMetadata.Parameters.Any(parameter => parameter.IsOutput))
@@ -189,7 +176,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
                 // Create Outputs sub-element if there are any output parameters.
                 restOfElement = $">\n\t${requiredParameters.Length + 1}\n</{taskName}>$0";
             }
-            
+
             return new CompletionItem
             {
                 Label = $"<{taskName}>",

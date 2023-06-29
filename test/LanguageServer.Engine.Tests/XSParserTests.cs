@@ -2,7 +2,6 @@ using Microsoft.Language.Xml;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Text;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -249,7 +248,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests
 
             Assert.IsAssignableFrom<XSElement>(targetNode);
             XSElement targetElement = (XSElement)targetNode;
-            
+
             Range expectedRange = new Range(
                 start: new Position(startLine, startColumn),
                 end: new Position(endLine, endColumn)

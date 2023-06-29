@@ -46,7 +46,7 @@ namespace MSBuildProjectTools.LanguageServer.Help
         {
             if (json == null)
                 throw new ArgumentNullException(nameof(json));
-            
+
             return new JsonSerializer().Deserialize<SortedDictionary<string, PropertyHelp>>(json);
         }
     }

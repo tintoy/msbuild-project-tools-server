@@ -7,7 +7,6 @@ using Xunit.Abstractions;
 namespace MSBuildProjectTools.LanguageServer.Tests.ExpressionTests
 {
     using SemanticModel.MSBuildExpressions;
-    using Sprache;
 
     /// <summary>
     ///     Tests for parsing of MSBuild item group expressions.
@@ -49,13 +48,13 @@ namespace MSBuildProjectTools.LanguageServer.Tests.ExpressionTests
         ///     Expect the item group transform to have a separator.
         /// </param>
         [InlineData("@(Foo->)",         "Foo", false, false)]
-        [InlineData("@(Foo->'')",       "Foo", true,  false)]
-        [InlineData("@(Foo ->'')",      "Foo", true,  false)]
-        [InlineData("@(Foo -> '')",     "Foo", true,  false)]
-        [InlineData("@(Foo->'','')",    "Foo", true,  true )]
-        [InlineData("@(Foo->'', '')",   "Foo", true,  true )]
-        [InlineData("@(Foo->'$(Bar)')", "Foo", true,  false)]
-        [InlineData("@(Foo->'%(Bar)')", "Foo", true,  false)]
+        [InlineData("@(Foo->'')",       "Foo", true, false )]
+        [InlineData("@(Foo ->'')",      "Foo", true, false )]
+        [InlineData("@(Foo -> '')",     "Foo", true, false )]
+        [InlineData("@(Foo->'','')",    "Foo", true, true  )]
+        [InlineData("@(Foo->'', '')",   "Foo", true, true  )]
+        [InlineData("@(Foo->'$(Bar)')", "Foo", true, false )]
+        [InlineData("@(Foo->'%(Bar)')", "Foo", true, false )]
         [Theory(DisplayName = "ItemGroupTransform parser succeeds ")]
         public void Parse_Success(string input, string expectedItemType, bool expectBody, bool expectSeparator)
         {
@@ -81,8 +80,8 @@ namespace MSBuildProjectTools.LanguageServer.Tests.ExpressionTests
         /// <param name="input">
         ///     The source text to parse.
         /// </param>
-        [InlineData("@(Foo)")]
-        [InlineData("@(1Foo)")]
+        [InlineData("@(Foo)"    )]
+        [InlineData("@(1Foo)"   )]
         [InlineData("@(Foo.Bar)")]
         [Theory(DisplayName = "ItemGroupTransform parser fails ")]
         public void Parse_Failure(string input)

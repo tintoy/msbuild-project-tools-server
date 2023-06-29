@@ -8,7 +8,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
         /// <summary>
         ///     The absolute path of the root "Project" element.
         /// </summary>
-        public static XSPath Project = XSPath.Parse("/Project");
+        public static readonly XSPath Project = XSPath.Parse("/Project");
 
         /// <summary>
         ///     The relative path that represents a "PropertyGroup" element (static or dynamic).

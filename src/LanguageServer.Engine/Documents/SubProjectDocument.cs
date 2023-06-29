@@ -1,24 +1,12 @@
-using Microsoft.Build.Evaluation;
 using Microsoft.Build.Exceptions;
-using Microsoft.Language.Xml;
-using Nito.AsyncEx;
-using NuGet.Configuration;
-using NuGet.Protocol.Core.Types;
-using NuGet.Versioning;
 using Serilog;
-using Serilog.Events;
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Xml;
 
 namespace MSBuildProjectTools.LanguageServer.Documents
 {
     using SemanticModel;
-    using Utilities;
 
     /// <summary>
     ///     Represents the document state for an MSBuild sub-project.
@@ -46,7 +34,7 @@ namespace MSBuildProjectTools.LanguageServer.Documents
         {
             if (masterProjectDocument == null)
                 throw new ArgumentNullException(nameof(masterProjectDocument));
-            
+
             MasterProjectDocument = masterProjectDocument;
         }
 
@@ -83,8 +71,7 @@ namespace MSBuildProjectTools.LanguageServer.Documents
                 if (!MasterProjectDocument.HasMSBuildProject)
                     throw new InvalidOperationException("Parent project does not have an MSBuild project.");
 
-                if (MSBuildProjectCollection == null)
-                    MSBuildProjectCollection = MasterProjectDocument.MSBuildProjectCollection;
+                MSBuildProjectCollection ??= MasterProjectDocument.MSBuildProjectCollection;
 
                 if (HasMSBuildProject && IsDirty)
                 {
@@ -110,7 +97,7 @@ namespace MSBuildProjectTools.LanguageServer.Documents
             {
                 if (Workspace.Configuration.Logging.IsDebugLoggingEnabled)
                 {
-                    Log.Error(invalidProjectFile, "Failed to load MSBuild proiect '{ProjectFileName}'.",
+                    Log.Error(invalidProjectFile, "Failed to load MSBuild project '{ProjectFileName}'.",
                         ProjectFile.FullName
                     );
                 }

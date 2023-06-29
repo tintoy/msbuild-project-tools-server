@@ -1,7 +1,4 @@
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
-using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace MSBuildProjectTools.LanguageServer.CompletionProviders
@@ -38,6 +35,6 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
         /// <returns>
         ///     A <see cref="Task{TResult}"/> that resolves either a list of <see cref="CompletionItem"/>s, or <c>null</c> if no completions are provided.
         /// </returns>
-        Task<CompletionList> ProvideCompletions(XmlLocation location, ProjectDocument projectDocument, string triggerCharacters, CancellationToken cancellationToken = default(CancellationToken));
+        Task<CompletionList> ProvideCompletions(XmlLocation location, ProjectDocument projectDocument, string triggerCharacters, CancellationToken cancellationToken = default);
     }
 }

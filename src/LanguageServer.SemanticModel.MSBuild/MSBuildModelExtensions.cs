@@ -90,13 +90,13 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
             ProjectElement currentElement = projectElement;
             while (currentElement != null)
             {
-                if (!String.IsNullOrWhiteSpace(currentElement.Condition))
+                if (!string.IsNullOrWhiteSpace(currentElement.Condition))
                     return currentElement.Condition;
 
                 currentElement = currentElement.Parent;
             }
 
-            return String.Empty;
+            return string.Empty;
         }
     }
 }

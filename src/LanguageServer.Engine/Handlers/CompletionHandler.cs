@@ -1,10 +1,8 @@
 using OmniSharp.Extensions.JsonRpc;
-using OmniSharp.Extensions.LanguageServer;
 using OmniSharp.Extensions.LanguageServer.Protocol;
 using OmniSharp.Extensions.LanguageServer.Protocol.Client.Capabilities;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using OmniSharp.Extensions.LanguageServer.Server;
-using NuGet.Versioning;
 using Serilog;
 using System;
 using System.Collections.Generic;
@@ -20,7 +18,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
     using SemanticModel;
     using Utilities;
 
-    using Position = LanguageServer.Position;
+    using Position = Position;
 
     /// <summary>
     ///     Handler for completion requests.
@@ -60,11 +58,6 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         Workspace Workspace { get; }
 
         /// <summary>
-        ///     The language server configuration.
-        /// </summary>
-        Configuration Configuration { get; }
-
-        /// <summary>
         ///     The LSP document selector that describes documents the handler is interested in.
         /// </summary>
         DocumentSelector DocumentSelector { get; } = new DocumentSelector(
@@ -95,17 +88,6 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         );
 
         /// <summary>
-        ///     Registration options for handling document events.
-        /// </summary>
-        TextDocumentRegistrationOptions DocumentRegistrationOptions
-        {
-            get => new TextDocumentRegistrationOptions
-            {
-                DocumentSelector = DocumentSelector
-            };
-        }
-
-        /// <summary>
         ///     Registration options for handling completion-request events.
         /// </summary>
         CompletionRegistrationOptions CompletionRegistrationOptions
@@ -119,16 +101,6 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
                 ResolveProvider = false
             };
         }
-
-        /// <summary>
-        ///     Has the client supplied completion capabilities?
-        /// </summary>
-        bool HaveCompletionCapabilities => CompletionCapabilities != null;
-
-        /// <summary>
-        ///     The client's completion capabilities.
-        /// </summary>
-        CompletionCapability CompletionCapabilities { get; set; }
 
         /// <summary>
         ///     Should the handler return an empty <see cref="CompletionList"/>s instead of <c>null</c>?
@@ -281,7 +253,6 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         /// </param>
         void ICapability<CompletionCapability>.SetCapability(CompletionCapability capabilities)
         {
-            CompletionCapabilities = capabilities;
         }
     }
 }

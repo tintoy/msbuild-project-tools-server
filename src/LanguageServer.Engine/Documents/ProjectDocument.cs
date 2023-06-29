@@ -2,7 +2,6 @@ using Microsoft.Build.Evaluation;
 using Microsoft.Language.Xml;
 using Nito.AsyncEx;
 using NuGet.Configuration;
-using NuGet.Credentials;
 using NuGet.Protocol;
 using NuGet.Protocol.Core.Types;
 using NuGet.Versioning;
@@ -42,7 +41,7 @@ namespace MSBuildProjectTools.LanguageServer.Documents
         ///     The project's referenced package versions, keyed by package Id.
         /// </summary>
         readonly Dictionary<string, SemanticVersion> _referencedPackageVersions = new Dictionary<string, SemanticVersion>();
-        
+
         /// <summary>
         ///     NuGet auto-complete APIs for configured package sources.
         /// </summary>
@@ -110,7 +109,7 @@ namespace MSBuildProjectTools.LanguageServer.Documents
         }
 
         /// <summary>
-        ///     Finaliser for <see cref="ProjectDocument"/>.
+        ///     Finalizer for <see cref="ProjectDocument"/>.
         /// </summary>
         ~ProjectDocument()
         {
@@ -267,7 +266,7 @@ namespace MSBuildProjectTools.LanguageServer.Documents
         /// <returns>
         ///     A task representing the load operation.
         /// </returns>
-        public virtual async Task Load(CancellationToken cancellationToken = default(CancellationToken))
+        public virtual async Task Load(CancellationToken cancellationToken = default)
         {
             ClearDiagnostics();
 
@@ -343,7 +342,7 @@ namespace MSBuildProjectTools.LanguageServer.Documents
         /// <returns>
         ///     <c>true</c>, if the package sources were loaded; otherwise, <c>false</c>.
         /// </returns>
-        public virtual async Task<bool> ConfigurePackageSources(CancellationToken cancellationToken = default(CancellationToken))
+        public virtual async Task<bool> ConfigurePackageSources(CancellationToken cancellationToken = default)
         {
             try
             {
@@ -460,7 +459,7 @@ namespace MSBuildProjectTools.LanguageServer.Documents
                             sourceRepository.PackageSource.Name ?? "<unknown>",
                             sourceRepository.PackageSource.TrySourceAsUri?.AbsoluteUri ?? "unknown:/"
                         );
-                        
+
                         continue;
                     }
 
@@ -550,9 +549,9 @@ namespace MSBuildProjectTools.LanguageServer.Documents
         /// <returns>
         ///     A task that resolves to a sorted set of suggested package Ids.
         /// </returns>
-        public virtual async Task<SortedSet<string>> SuggestPackageIds(string packageIdPrefix, bool includePrerelease, CancellationToken cancellationToken = default(CancellationToken))
+        public virtual async Task<SortedSet<string>> SuggestPackageIds(string packageIdPrefix, bool includePrerelease, CancellationToken cancellationToken = default)
         {
-            // We don't actually need a working MSBuild project for this, but we do want parseable XML.
+            // We don't actually need a working MSBuild project for this, but we do want parsable XML.
             if (!HasXml)
                 throw new InvalidOperationException($"XML for project '{ProjectFile.FullName}' is not loaded.");
 
@@ -570,7 +569,7 @@ namespace MSBuildProjectTools.LanguageServer.Documents
                 packageIdPrefix,
                 includePrerelease
             );
-            
+
             return packageIds;
         }
 
@@ -589,9 +588,9 @@ namespace MSBuildProjectTools.LanguageServer.Documents
         /// <returns>
         ///     A task that resolves to a sorted set of suggested package versions.
         /// </returns>
-        public virtual async Task<SortedSet<NuGetVersion>> SuggestPackageVersions(string packageId, bool includePrerelease, CancellationToken cancellationToken = default(CancellationToken))
+        public virtual async Task<SortedSet<NuGetVersion>> SuggestPackageVersions(string packageId, bool includePrerelease, CancellationToken cancellationToken = default)
         {
-            // We don't actually need a working MSBuild project for this, but we do want parseable XML.
+            // We don't actually need a working MSBuild project for this, but we do want parsable XML.
             if (!HasXml)
                 throw new InvalidOperationException($"XML for project '{ProjectFile.FullName}' is not loaded.");
 
@@ -621,7 +620,7 @@ namespace MSBuildProjectTools.LanguageServer.Documents
                 foreach (Exception exception in task.Exception.Flatten().InnerExceptions)
                 {
                     Log.Debug(exception,
-                        "Error initialising NuGet client. {ErrorMessage}",
+                        "Error initializing NuGet client. {ErrorMessage}",
                         exception.Message
                     );
                 }
@@ -655,8 +654,6 @@ namespace MSBuildProjectTools.LanguageServer.Documents
         {
             if (!HasXml)
                 throw new InvalidOperationException($"XML for project '{ProjectFile.FullName}' is not loaded.");
-
-            int absolutePosition = XmlPositions.GetAbsolutePosition(position);
 
             return Xml.FindNode(position, XmlPositions);
         }
@@ -715,7 +712,7 @@ namespace MSBuildProjectTools.LanguageServer.Documents
         {
             if (expression == null)
                 throw new ArgumentNullException(nameof(expression));
-            
+
             return GetRange(expression, relativeTo.Start);
         }
 
@@ -738,7 +735,7 @@ namespace MSBuildProjectTools.LanguageServer.Documents
 
             if (!HasXml)
                 throw new InvalidOperationException($"XML for project '{ProjectFile.FullName}' is not loaded.");
-                
+
             int absoluteBasePosition = XmlPositions.GetAbsolutePosition(relativeToPosition);
 
             return XmlPositions.GetRange(
@@ -759,7 +756,7 @@ namespace MSBuildProjectTools.LanguageServer.Documents
         /// <remarks>
         ///     Cache metadata (and persist cache to file).
         /// </remarks>
-        public async Task<List<MSBuildTaskAssemblyMetadata>> GetMSBuildProjectTaskAssemblies(CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<List<MSBuildTaskAssemblyMetadata>> GetMSBuildProjectTaskAssemblies(CancellationToken cancellationToken = default)
         {
             if (!HasMSBuildProject)
                 throw new InvalidOperationException($"MSBuild project '{ProjectFile.FullName}' is not loaded.");
@@ -773,7 +770,7 @@ namespace MSBuildProjectTools.LanguageServer.Documents
 
             taskAssemblyFiles.AddRange(
                 MSBuildProject.GetAllUsingTasks()
-                    .Where(usingTask => !String.IsNullOrWhiteSpace(usingTask.AssemblyFile))
+                    .Where(usingTask => !string.IsNullOrWhiteSpace(usingTask.AssemblyFile))
                     .Distinct(UsingTaskAssemblyEqualityComparer.Instance) // Ensure each assembly path is only evaluated once.
                     .Select(usingTask => Path.GetFullPath(
                         Path.Combine(
@@ -819,9 +816,9 @@ namespace MSBuildProjectTools.LanguageServer.Documents
         protected virtual Dictionary<string, string> GetMSBuildGlobalPropertyOverrides()
         {
             var propertyOverrides = new Dictionary<string, string>();
-            if (!String.IsNullOrWhiteSpace(Workspace.Configuration.MSBuild.ExtensionsPath))
+            if (!string.IsNullOrWhiteSpace(Workspace.Configuration.MSBuild.ExtensionsPath))
                 propertyOverrides[MSBuildHelper.WellKnownPropertyNames.MSBuildExtensionsPath] = Workspace.Configuration.MSBuild.ExtensionsPath;
-            if (!String.IsNullOrWhiteSpace(Workspace.Configuration.MSBuild.ExtensionsPath32))
+            if (!string.IsNullOrWhiteSpace(Workspace.Configuration.MSBuild.ExtensionsPath32))
                 propertyOverrides[MSBuildHelper.WellKnownPropertyNames.MSBuildExtensionsPath32] = Workspace.Configuration.MSBuild.ExtensionsPath32;
 
             return propertyOverrides;
@@ -868,9 +865,9 @@ namespace MSBuildProjectTools.LanguageServer.Documents
         /// </param>
         protected void AddDiagnostic(LspModels.DiagnosticSeverity severity, string message, Range range, string diagnosticCode)
         {
-            if (String.IsNullOrWhiteSpace(message))
+            if (string.IsNullOrWhiteSpace(message))
                 throw new ArgumentException("Argument cannot be null, empty, or entirely composed of whitespace: 'message'.", nameof(message));
-            
+
             _diagnostics.Add(new LspModels.Diagnostic
             {
                 Severity = severity,
@@ -946,9 +943,9 @@ namespace MSBuildProjectTools.LanguageServer.Documents
         /// <returns>
         ///     An <see cref="IDisposable"/> representing the log context.
         /// </returns>
-        protected IDisposable OperationContext(string operationDescription)
+        protected static IDisposable OperationContext(string operationDescription)
         {
-            if (String.IsNullOrWhiteSpace(operationDescription))
+            if (string.IsNullOrWhiteSpace(operationDescription))
                 throw new ArgumentException("Argument cannot be null, empty, or entirely composed of whitespace: 'operationDescription'.", nameof(operationDescription));
 
             return Serilog.Context.LogContext.PushProperty("Operation", operationDescription);

@@ -6,8 +6,7 @@ using System.Linq;
 
 namespace MSBuildProjectTools.LanguageServer.SemanticModel
 {
-    using Utilities;
- 
+
     /// <summary>
     ///     An unused item group declaration in an MSBuild project (condition evaluates to <c>false</c>).
     /// </summary>

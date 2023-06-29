@@ -1,10 +1,8 @@
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
-using Microsoft.Build.Construction;
 using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -56,7 +54,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
         /// <returns>
         ///     A <see cref="Task{TResult}"/> that resolves either a <see cref="CompletionList"/>s, or <c>null</c> if no completions are provided.
         /// </returns>
-        public override async Task<CompletionList> ProvideCompletions(XmlLocation location, ProjectDocument projectDocument, string triggerCharacters, CancellationToken cancellationToken = default(CancellationToken))
+        public override async Task<CompletionList> ProvideCompletions(XmlLocation location, ProjectDocument projectDocument, string triggerCharacters, CancellationToken cancellationToken = default)
         {
             if (location == null)
                 throw new ArgumentNullException(nameof(location));
@@ -82,12 +80,9 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
 
             Log.Verbose("Evaluate completions for {XmlLocation:l}", location);
 
-            using (await projectDocument.Lock.ReaderLockAsync())
+            using (await projectDocument.Lock.ReaderLockAsync(cancellationToken))
             {
-                XSElement taskElement;
-                XSAttribute replaceAttribute;
-                PaddingType needsPadding;
-                if (!location.CanCompleteAttribute(out taskElement, out replaceAttribute, out needsPadding))
+                if (!location.CanCompleteAttribute(out XSElement taskElement, out XSAttribute replaceAttribute, out PaddingType needsPadding))
                 {
                     Log.Verbose("Not offering any completions for {XmlLocation:l} (not a location an attribute can be created or replaced by completion).", location);
 
@@ -102,8 +97,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
                 }
 
                 Dictionary<string, MSBuildTaskMetadata> projectTasks = await GetProjectTasks(projectDocument);
-                MSBuildTaskMetadata taskMetadata;
-                if (!projectTasks.TryGetValue(taskElement.Name, out taskMetadata))
+                if (!projectTasks.TryGetValue(taskElement.Name, out MSBuildTaskMetadata taskMetadata))
                 {
                     Log.Verbose("Not offering any completions for {XmlLocation:l} (no metadata available for task {TaskName}).", location, taskElement.Name);
 
@@ -132,7 +126,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
                     existingAttributeNames.Remove(replaceAttribute.Name);
 
                 completions.AddRange(
-                    GetCompletionItems(projectDocument, taskMetadata, existingAttributeNames, replaceRange, needsPadding)
+                    GetCompletionItems(taskMetadata, existingAttributeNames, replaceRange, needsPadding)
                 );
             }
 
@@ -149,9 +143,6 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
         /// <summary>
         ///     Get task attribute completions.
         /// </summary>
-        /// <param name="projectDocument">
-        ///     The <see cref="ProjectDocument"/> for which completions will be offered.
-        /// </param>
         /// <param name="taskMetadata">
         ///     Metadata for the task whose parameters are being offered as completions.
         /// </param>
@@ -167,7 +158,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
         /// <returns>
         ///     A sequence of <see cref="CompletionItem"/>s.
         /// </returns>
-        public IEnumerable<CompletionItem> GetCompletionItems(ProjectDocument projectDocument, MSBuildTaskMetadata taskMetadata, HashSet<string> existingAttributeNames, Range replaceRange, PaddingType needsPadding)
+        public IEnumerable<CompletionItem> GetCompletionItems(MSBuildTaskMetadata taskMetadata, HashSet<string> existingAttributeNames, Range replaceRange, PaddingType needsPadding)
         {
             LspModels.Range replaceRangeLsp = replaceRange.ToLsp();
 
@@ -181,16 +172,13 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
 
                 string parameterDocumentation = MSBuildSchemaHelp.ForTaskParameter(taskMetadata.Name, taskParameter.Name);
 
-                yield return TaskParameterCompletionItem(taskMetadata.Name, taskParameter, parameterDocumentation, replaceRangeLsp, needsPadding);
+                yield return TaskParameterCompletionItem(taskParameter, parameterDocumentation, replaceRangeLsp, needsPadding);
             }
         }
 
         /// <summary>
         ///     Create a <see cref="CompletionItem"/> for the specified MSBuild task parameter.
         /// </summary>
-        /// <param name="taskName">
-        ///     The MSBuild task name.
-        /// </param>
         /// <param name="parameterMetadata">
         ///     The MSBuild task's metadata.
         /// </param>
@@ -206,7 +194,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
         /// <returns>
         ///     The <see cref="CompletionItem"/>.
         /// </returns>
-        CompletionItem TaskParameterCompletionItem(string taskName, MSBuildTaskParameterMetadata parameterMetadata, string parameterDocumentation, LspModels.Range replaceRange, PaddingType needsPadding)
+        CompletionItem TaskParameterCompletionItem(MSBuildTaskParameterMetadata parameterMetadata, string parameterDocumentation, LspModels.Range replaceRange, PaddingType needsPadding)
         {
             return new CompletionItem
             {

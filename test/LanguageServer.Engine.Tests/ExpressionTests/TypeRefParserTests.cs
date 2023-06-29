@@ -1,4 +1,3 @@
-using System;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -37,7 +36,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests.ExpressionTests
         /// <param name="expectedTypeNamespace">
         ///     The expected type namespace.
         /// </param>
-        [InlineData("[Foo]", "Foo", "")]
+        [InlineData("[Foo]",     "Foo", ""   )]
         [InlineData("[Foo.Bar]", "Bar", "Foo")]
         [Theory(DisplayName = "TypeRef parser succeeds with symbol ")]
         public void Parse_Success(string input, string expectedTypeName, string expectedTypeNamespace)
@@ -55,7 +54,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests.ExpressionTests
         /// <param name="input">
         ///     The source text to parse.
         /// </param>
-        [InlineData("[1Foo]")]
+        [InlineData("[1Foo]"   )]
         [InlineData("[Foo Bar]")]
         [Theory(DisplayName = "TypeRef parser fails ")]
         public void Parse_Symbol_Failure(string input)

@@ -1,21 +1,16 @@
 using OmniSharp.Extensions.JsonRpc;
-using OmniSharp.Extensions.LanguageServer;
 using OmniSharp.Extensions.LanguageServer.Protocol;
 using OmniSharp.Extensions.LanguageServer.Protocol.Client.Capabilities;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using OmniSharp.Extensions.LanguageServer.Server;
-using Microsoft.Language.Xml;
-using NuGet.Versioning;
 using Serilog;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace MSBuildProjectTools.LanguageServer.Handlers
 {
-    using ContentProviders;
     using Documents;
     using SemanticModel;
     using Utilities;
@@ -53,12 +48,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         Workspace Workspace { get; }
 
         /// <summary>
-        ///     The language server configuration.
-        /// </summary>
-        Configuration Configuration { get; }
-
-        /// <summary>
-        ///     The document selector that describes documents to synchronise.
+        ///     The document selector that describes documents to synchronize.
         /// </summary>
         DocumentSelector DocumentSelector { get; } = new DocumentSelector(
             new DocumentFilter
@@ -97,16 +87,6 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
                 DocumentSelector = DocumentSelector
             };
         }
-
-        /// <summary>
-        ///     Has the client supplied symbol definition capabilities?
-        /// </summary>
-        bool HaveDefinitionCapabilities => DefinitionCapabilities != null;
-
-        /// <summary>
-        ///     The client's symbol definition capabilities.
-        /// </summary>
-        DefinitionCapability DefinitionCapabilities { get; set; }
 
         /// <summary>
         ///     Called when a definition is requested.
@@ -214,7 +194,6 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         /// </param>
         void ICapability<DefinitionCapability>.SetCapability(DefinitionCapability capabilities)
         {
-            DefinitionCapabilities = capabilities;
         }
     }
 }

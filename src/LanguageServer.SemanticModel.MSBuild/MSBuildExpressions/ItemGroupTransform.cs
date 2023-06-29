@@ -1,4 +1,3 @@
-using System;
 using Sprache;
 
 namespace MSBuildProjectTools.LanguageServer.SemanticModel.MSBuildExpressions
@@ -19,7 +18,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel.MSBuildExpressions
         /// <summary>
         ///     Does te item group expression have a name?
         /// </summary>
-        public bool HasName => !String.IsNullOrWhiteSpace(Name);
+        public bool HasName => !string.IsNullOrWhiteSpace(Name);
 
         /// <summary>
         ///     The item group name.

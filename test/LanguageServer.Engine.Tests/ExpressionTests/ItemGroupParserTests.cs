@@ -61,7 +61,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests.ExpressionTests
         /// <param name="input">
         ///     The source text to parse.
         /// </param>
-        [InlineData("@(1Foo)")]
+        [InlineData("@(1Foo)"   )]
         [InlineData("@(Foo.Bar)")]
         [Theory(DisplayName = "ItemGroup parser fails ")]
         public void Parse_Failure(string input)

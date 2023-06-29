@@ -2,7 +2,6 @@ using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using Serilog;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -54,7 +53,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
         /// <returns>
         ///     A <see cref="Task{TResult}"/> that resolves either a <see cref="CompletionList"/>s, or <c>null</c> if no completions are provided.
         /// </returns>
-        public override async Task<CompletionList> ProvideCompletions(XmlLocation location, ProjectDocument projectDocument, string triggerCharacters, CancellationToken cancellationToken = default(CancellationToken))
+        public override async Task<CompletionList> ProvideCompletions(XmlLocation location, ProjectDocument projectDocument, string triggerCharacters, CancellationToken cancellationToken = default)
         {
             if (location == null)
                 throw new ArgumentNullException(nameof(location));
@@ -66,10 +65,9 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
 
             Log.Verbose("Evaluate completions for {XmlLocation:l} (trigger characters = {TriggerCharacters})", location, triggerCharacters);
 
-            using (await projectDocument.Lock.ReaderLockAsync())
+            using (await projectDocument.Lock.ReaderLockAsync(cancellationToken))
             {
-                XSElement replaceElement;
-                if (!location.CanCompleteElement(out replaceElement, parentPath: WellKnownElementPaths.Project))
+                if (!location.CanCompleteElement(out XSElement replaceElement, parentPath: WellKnownElementPaths.Project))
                 {
                     Log.Verbose("Not offering any completions for {XmlLocation:l} (not a direct child of the 'Project' element).", location);
 
@@ -126,7 +124,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
         public IEnumerable<CompletionItem> GetCompletionItems(Range replaceRange)
         {
             LspModels.Range completionRange = replaceRange.ToLsp();
-            
+
             // <PropertyGroup>
             //     $0
             // </PropertyGroup>

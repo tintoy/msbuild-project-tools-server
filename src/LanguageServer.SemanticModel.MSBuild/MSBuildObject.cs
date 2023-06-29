@@ -96,7 +96,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
         {
             if (underlyingObject == null)
                 throw new ArgumentNullException(nameof(underlyingObject));
-            
+
             UnderlyingObject = underlyingObject;
         }
 

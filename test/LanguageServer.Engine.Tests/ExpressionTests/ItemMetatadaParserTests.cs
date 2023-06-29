@@ -76,8 +76,8 @@ namespace MSBuildProjectTools.LanguageServer.Tests.ExpressionTests
         [InlineData("%( Foo.Bar )", "Foo", "Bar")]
         [InlineData("%( Foo .Bar)", "Foo", "Bar")]
         [InlineData("%(Foo.Bar )",  "Foo", "Bar")]
-        [InlineData("%(Foo.)",      "Foo",  ""  )]
-        [InlineData("%(Foo. )",     "Foo",  " " )]
+        [InlineData("%(Foo.)",      "Foo", ""   )]
+        [InlineData("%(Foo. )",     "Foo", " "  )]
         [Theory(DisplayName = "ItemMetadata parser succeeds ")]
         public void Parse_Qualified_Success(string input, string expectedItemType, string expectedMetadataName)
         {

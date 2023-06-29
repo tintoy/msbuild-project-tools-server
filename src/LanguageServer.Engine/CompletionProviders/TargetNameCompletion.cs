@@ -1,5 +1,5 @@
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using Microsoft.Build.Execution;
+using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using Serilog;
 using System;
 using System.Collections.Generic;
@@ -8,7 +8,6 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-
 using LspModels = OmniSharp.Extensions.LanguageServer.Protocol.Models;
 
 namespace MSBuildProjectTools.LanguageServer.CompletionProviders
@@ -58,7 +57,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
         /// <returns>
         ///     A <see cref="Task{TResult}"/> that resolves either a <see cref="CompletionList"/>s, or <c>null</c> if no completions are provided.
         /// </returns>
-        public override async Task<CompletionList> ProvideCompletions(XmlLocation location, ProjectDocument projectDocument, string triggerCharacters, CancellationToken cancellationToken = default(CancellationToken))
+        public override async Task<CompletionList> ProvideCompletions(XmlLocation location, ProjectDocument projectDocument, string triggerCharacters, CancellationToken cancellationToken = default)
         {
             if (location == null)
                 throw new ArgumentNullException(nameof(location));
@@ -70,10 +69,9 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
 
             List<CompletionItem> completions = new List<CompletionItem>();
 
-            using (await projectDocument.Lock.ReaderLockAsync())
+            using (await projectDocument.Lock.ReaderLockAsync(cancellationToken))
             {
-                XSAttribute attribute;
-                if (!location.CanCompleteAttributeValue(out attribute, onElementWithPath: WellKnownElementPaths.Target) || !SupportedAttributeNames.Contains(attribute.Name))
+                if (!location.CanCompleteAttributeValue(out XSAttribute attribute, onElementWithPath: WellKnownElementPaths.Target) || !SupportedAttributeNames.Contains(attribute.Name))
                 {
                     Log.Verbose("Not offering any completions for {XmlLocation:l} (not the value of a supported attribute on a 'Target' element).", location);
 
@@ -175,12 +173,12 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
                     continue;
 
                 // We can't really tell them much else about the target if it's not one of the well-known ones.
-                string targetDescription = String.Format("Originally declared in {0} (line {1}, column {2})",
+                string targetDescription = string.Format("Originally declared in {0} (line {1}, column {2})",
                     Path.GetFileName(otherTarget.Location.File),
                     otherTarget.Location.Line,
                     otherTarget.Location.Column
                 );
-                
+
                 yield return TargetNameCompletionItem(otherTarget.Name, replaceRangeLsp, otherTargetPriority, targetDescription);
             }
         }
@@ -222,7 +220,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
         /// <summary>
         ///     The names of attributes that the provider can complete.
         /// </summary>
-        public static ImmutableHashSet<string> SupportedAttributeNames = 
+        public static readonly ImmutableHashSet<string> SupportedAttributeNames =
             ImmutableHashSet.CreateRange(new string[]
             {
                 "Name",
@@ -238,18 +236,18 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
             ImmutableDictionary.CreateRange(new Dictionary<string, string>
             {
                 ["ResolveReferences"] = "Resolves all referenced assemblies, packages, and projects.",
-                
+
                 ["BeforeBuild"] = "A target guaranteed to run before the 'Build' target.",
                 ["CoreCompile"] = "The main step when compiling the project source files.",
                 ["CoreBuild"] = "The main step when building the project.",
                 ["Build"] = "Build the project.\n\nNote that this is a big target with complex behaviour; if extending or referencing it from BeforeTargets / AfterTargets, you may be better off using BeforeBuild / CoreCompile / AfterBuild or a related target instead.",
                 ["AfterBuild"] = "A target guaranteed to run after the 'Build' target.",
-                
+
                 ["BeforeClean"] = "A target guaranteed to run before the 'Clean' target.",
                 ["CoreClean"] = "The main step when cleaning the project.",
                 ["Clean"] = "Delete all intermediate and final build outputs.\n\nNote that this is a big target with complex behaviour; if extending or referencing it from BeforeTargets / AfterTargets, you may be better off using BeforeClean / CoreClean / AfterClean or a related target instead.",
                 ["AfterClean"] = "A target guaranteed to run after the 'Clean' target.",
-                
+
                 ["BeforeRebuild"] = "A target guaranteed to run before the 'Rebuild' target.",
                 ["CoreRebuild"] = "The main step when rebuilding the project.",
                 ["Rebuild"] = "Delete all intermediate and final build outputs, and then build the project from scratch.\n\nNote that this is a big target with complex behaviour; if extending or referencing it from BeforeTargets / AfterTargets, you may be better off using BeforeRebuild / CoreRebuild / AfterRebuild or a related target instead.",

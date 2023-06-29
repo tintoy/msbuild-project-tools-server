@@ -1,5 +1,4 @@
 using Sprache;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -36,7 +35,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel.MSBuildExpressions
         /// <summary>
         ///     The quoted string's textual content (without evaluation expressions).
         /// </summary>
-        public virtual string StringContent => String.Join("",
+        public virtual string StringContent => string.Join("",
             Children.OfType<StringContent>().Select(
                 stringContent => stringContent.Content
             )

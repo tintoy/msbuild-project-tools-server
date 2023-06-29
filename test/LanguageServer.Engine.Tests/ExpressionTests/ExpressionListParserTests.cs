@@ -8,7 +8,6 @@ using Xunit.Abstractions;
 
 namespace MSBuildProjectTools.LanguageServer.Tests.ExpressionTests
 {
-    using SemanticModel;
     using SemanticModel.MSBuildExpressions;
 
     /// <summary>
@@ -67,7 +66,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests.ExpressionTests
         /// <returns>
         ///     An array of test actions.
         /// </returns>
-        Action<ExpressionNode>[] HasListItems(string[] expectedValues, Action<string, ExpressionNode> testActionTemplate)
+        static Action<ExpressionNode>[] HasListItems(string[] expectedValues, Action<string, ExpressionNode> testActionTemplate)
         {
             if (expectedValues == null)
                 throw new ArgumentNullException(nameof(expectedValues));
@@ -98,7 +97,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests.ExpressionTests
 
             TestOutput.WriteLine("Input: '{0}'", input);
             TestOutput.WriteLine(
-                new String('=', input.Length + 9)
+                new string('=', input.Length + 9)
             );
 
             foreach (ExpressionNode child in list.Children)

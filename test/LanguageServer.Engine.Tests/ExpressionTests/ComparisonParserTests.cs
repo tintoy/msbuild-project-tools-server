@@ -1,4 +1,3 @@
-using System;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -31,7 +30,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests.ExpressionTests
         /// <param name="input">
         ///     The source text to parse.
         /// </param>
-        [InlineData(" '$(YetAnotherProperty)' == 'true' ")]
+        [InlineData(" '$(YetAnotherProperty)' == 'true' "     )]
         [Theory(DisplayName = "Compare parser succeeds with input ")]
         public void Parse_Success(string input)
         {
@@ -53,8 +52,8 @@ namespace MSBuildProjectTools.LanguageServer.Tests.ExpressionTests
         /// <param name="expectedRightSymbol">
         ///     The expected name of the left-hand symbol.
         /// </param>
-        [InlineData("ABC==XYZ",   ComparisonKind.Equality, "ABC", "XYZ")]
-        [InlineData("ABC == XYZ", ComparisonKind.Equality, "ABC", "XYZ")]
+        [InlineData("ABC==XYZ",   ComparisonKind.Equality,   "ABC", "XYZ")]
+        [InlineData("ABC == XYZ", ComparisonKind.Equality,   "ABC", "XYZ")]
         [InlineData("ABC!=XYZ",   ComparisonKind.Inequality, "ABC", "XYZ")]
         [InlineData("ABC != XYZ", ComparisonKind.Inequality, "ABC", "XYZ")]
         [Theory(DisplayName = "Compare parser succeeds with symbols ")]
@@ -89,9 +88,9 @@ namespace MSBuildProjectTools.LanguageServer.Tests.ExpressionTests
         /// <param name="expectedRightSymbol">
         ///     The expected name of the left-hand symbol.
         /// </param>
-        [InlineData("(ABC==XYZ)", ComparisonKind.Equality, "ABC", "XYZ")]
-        [InlineData("(ABC == XYZ)", ComparisonKind.Equality, "ABC", "XYZ")]
-        [InlineData("(ABC!=XYZ)", ComparisonKind.Inequality, "ABC", "XYZ")]
+        [InlineData("(ABC==XYZ)",   ComparisonKind.Equality,   "ABC", "XYZ")]
+        [InlineData("(ABC == XYZ)", ComparisonKind.Equality,   "ABC", "XYZ")]
+        [InlineData("(ABC!=XYZ)",   ComparisonKind.Inequality, "ABC", "XYZ")]
         [InlineData("(ABC != XYZ)", ComparisonKind.Inequality, "ABC", "XYZ")]
         [Theory(DisplayName = "GroupedExpression parser succeeds with grouped comparison of symbols ")]
         public void Parse_Grouped_Symbols_Success(string input, ComparisonKind expectedComparisonKind, string expectedLeftSymbol, string expectedRightSymbol)
@@ -126,9 +125,9 @@ namespace MSBuildProjectTools.LanguageServer.Tests.ExpressionTests
         /// <param name="expectedRightContent">
         ///     The expected content of the right-hand string.
         /// </param>
-        [InlineData("'ABC'=='XYZ'", ComparisonKind.Equality, "ABC", "XYZ")]
-        [InlineData("'ABC' == 'XYZ'", ComparisonKind.Equality, "ABC", "XYZ")]
-        [InlineData("'ABC'!='XYZ'", ComparisonKind.Inequality, "ABC", "XYZ")]
+        [InlineData("'ABC'=='XYZ'",   ComparisonKind.Equality,   "ABC", "XYZ")]
+        [InlineData("'ABC' == 'XYZ'", ComparisonKind.Equality,   "ABC", "XYZ")]
+        [InlineData("'ABC'!='XYZ'",   ComparisonKind.Inequality, "ABC", "XYZ")]
         [InlineData("'ABC' != 'XYZ'", ComparisonKind.Inequality, "ABC", "XYZ")]
         [Theory(DisplayName = "Compare parser succeeds with quoted strings ")]
         public void ParseCompare_QuotedStrings_Success(string input, ComparisonKind expectedComparisonKind, string expectedLeftContent, string expectedRightContent)
@@ -140,7 +139,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests.ExpressionTests
                 Assert.NotNull(actualComparison.Left);
                 QuotedString left = Assert.IsType<QuotedString>(actualComparison.Left);
                 Assert.Equal(expectedLeftContent, left.StringContent);
-                
+
                 Assert.NotNull(actualComparison.Right);
                 QuotedString right = Assert.IsType<QuotedString>(actualComparison.Right);
                 Assert.Equal(expectedRightContent, right.StringContent);

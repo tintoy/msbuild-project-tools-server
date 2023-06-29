@@ -24,7 +24,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         {
             if (file == null)
                 throw new ArgumentNullException(nameof(file));
-            
+
             var watcher = new FileSystemWatcher(file.FullName);
             try
             {

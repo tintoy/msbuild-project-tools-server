@@ -1,9 +1,7 @@
 using OmniSharp.Extensions.JsonRpc;
-using OmniSharp.Extensions.LanguageServer;
 using OmniSharp.Extensions.LanguageServer.Protocol;
 using OmniSharp.Extensions.LanguageServer.Protocol.Client.Capabilities;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
-using Newtonsoft.Json.Linq;
 
 namespace MSBuildProjectTools.LanguageServer.CustomProtocol
 {

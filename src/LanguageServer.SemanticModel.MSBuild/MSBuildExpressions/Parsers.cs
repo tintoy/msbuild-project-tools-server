@@ -52,7 +52,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel.MSBuildExpressions
                 from leadingEmptyItem in
                     ReturnPositioned(() => new SimpleListItem
                     {
-                        Value = String.Empty
+                        Value = string.Empty
                     })
                 from separator in Separator.Once()
                 select leadingEmptyItem.ToSequence().Concat<ExpressionNode>(separator);
@@ -317,7 +317,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel.MSBuildExpressions
         ///     The symbols between the parentheses are optional so we can still provide completions for "%()".
         ///     
         ///     We model the item type and metadata name as 2 separate symbols because we have scenarios where we want to address them separately.
-        ///     We also allow for more than 2 symbols so we can still parse metata expressions where <see cref="ItemMetadata.IsValid"/> would be <c>false</c>.
+        ///     We also allow for more than 2 symbols so we can still parse metadata expressions where <see cref="ItemMetadata.IsValid"/> would be <c>false</c>.
         /// </remarks>
         public static Parser<ItemMetadata> ItemMetadata = Parse.Positioned(
             from metadataOpen in Tokens.ItemMetadataOpen.Named("open item metadata")
@@ -407,11 +407,11 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel.MSBuildExpressions
         /// </summary>
         public static readonly Parser<Symbol> QualifiedSymbol = Parse.Positioned(
             from identifiers in Tokens.Identifier.DelimitedBy(Tokens.Period).Array().Named("identifiers")
-            
+
             select new Symbol
             {
                 Name = identifiers[identifiers.Length - 1],
-                Namespace = String.Join(".", identifiers.Take(identifiers.Length - 1))
+                Namespace = string.Join(".", identifiers.Take(identifiers.Length - 1))
             }
         ).Named("qualified symbol");
 

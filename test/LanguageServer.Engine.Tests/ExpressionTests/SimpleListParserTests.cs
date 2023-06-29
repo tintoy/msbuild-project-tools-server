@@ -56,7 +56,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests.ExpressionTests
         }
 
         /// <summary>
-        ///     Verify that the <see cref="Parsers.SimpleList"/> MSBuild expression parser can parse a simple simple list in an equivalent fashion to <see cref="String.Split(char[])"/>.
+        ///     Verify that the <see cref="Parsers.SimpleList"/> MSBuild expression parser can parse a simple simple list in an equivalent fashion to <see cref="string.Split(char[])"/>.
         /// </summary>
         /// <param name="input">
         ///     The source text to parse.
@@ -80,8 +80,8 @@ namespace MSBuildProjectTools.LanguageServer.Tests.ExpressionTests
                 {
                     Assert.Equal(ExpressionKind.SimpleListItem, actualItem.Kind);
 
-                    SimpleListItem actuaListItem = Assert.IsType<SimpleListItem>(actualItem);
-                    Assert.Equal(expectedValue, actuaListItem.Value);
+                    SimpleListItem actualListItem = Assert.IsType<SimpleListItem>(actualItem);
+                    Assert.Equal(expectedValue, actualListItem.Value);
                 }));
 
             });
@@ -134,7 +134,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests.ExpressionTests
         /// <returns>
         ///     An array of test actions.
         /// </returns>
-        Action<ExpressionNode>[] HasListItems(string[] expectedValues, Action<string, ExpressionNode> testActionTemplate)
+        static Action<ExpressionNode>[] HasListItems(string[] expectedValues, Action<string, ExpressionNode> testActionTemplate)
         {
             if (expectedValues == null)
                 throw new ArgumentNullException(nameof(expectedValues));
@@ -165,7 +165,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests.ExpressionTests
 
             TestOutput.WriteLine("Input: '{0}'", input);
             TestOutput.WriteLine(
-                new String('=', input.Length + 9)
+                new string('=', input.Length + 9)
             );
 
             foreach (ExpressionNode child in list.Children)

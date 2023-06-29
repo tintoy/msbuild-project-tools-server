@@ -55,7 +55,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
         /// <returns>
         ///     A <see cref="Task{TResult}"/> that resolves either a <see cref="CompletionList"/>s, or <c>null</c> if no completions are provided.
         /// </returns>
-        public override async Task<CompletionList> ProvideCompletions(XmlLocation location, ProjectDocument projectDocument, string triggerCharacters, CancellationToken cancellationToken = default(CancellationToken))
+        public override async Task<CompletionList> ProvideCompletions(XmlLocation location, ProjectDocument projectDocument, string triggerCharacters, CancellationToken cancellationToken = default)
         {
             if (location == null)
                 throw new ArgumentNullException(nameof(location));
@@ -67,10 +67,9 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
 
             Log.Verbose("Evaluate completions for {XmlLocation:l}", location);
 
-            using (await projectDocument.Lock.ReaderLockAsync())
+            using (await projectDocument.Lock.ReaderLockAsync(cancellationToken))
             {
-                XSElement replaceElement;
-                if (!location.CanCompleteElement(out replaceElement, parentPath: WellKnownElementPaths.PropertyGroup))
+                if (!location.CanCompleteElement(out XSElement replaceElement, parentPath: WellKnownElementPaths.PropertyGroup))
                 {
                     Log.Verbose("Not offering any completions for {XmlLocation:l} (not a direct child of a 'PropertyGroup' element).", location);
 
@@ -78,7 +77,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
                 }
 
                 Range targetRange;
-                
+
                 if (replaceElement != null)
                 {
                     targetRange = replaceElement.Range;
@@ -176,15 +175,15 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
                 if (!offeredPropertyNames.Add(wellKnownPropertyName))
                     continue;
 
-                var propertyDefaults = MSBuildSchemaHelp.DefaultsForProperty(wellKnownPropertyName);
+                var (defaultValue, defaultValues) = MSBuildSchemaHelp.DefaultsForProperty(wellKnownPropertyName);
 
                 yield return PropertyCompletionItem(wellKnownPropertyName, replaceRangeLsp,
                     description: MSBuildSchemaHelp.ForProperty(wellKnownPropertyName),
-                    defaultValue: propertyDefaults.defaultValue,
-                    defaultValues: propertyDefaults.defaultValues
+                    defaultValue: defaultValue,
+                    defaultValues: defaultValues
                 );
             }
-            
+
             if (!projectDocument.HasMSBuildProject)
                 yield break; // Without a valid MSBuild project (even a cached one will do), we can't inspect existing MSBuild properties.
 
@@ -270,7 +269,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
         /// <returns>
         ///     The completion text (in standard LSP Snippet format).
         /// </returns>
-        string GetCompletionText(string propertyName, string defaultValue, IReadOnlyList<string> defaultValues)
+        static string GetCompletionText(string propertyName, string defaultValue, IReadOnlyList<string> defaultValues)
         {
             StringBuilder completionText = new StringBuilder();
             completionText.AppendFormat("<{0}>", propertyName);
@@ -293,19 +292,19 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
                 }
                 completionText.Append("|}");
             }
-            else if (!String.IsNullOrWhiteSpace(defaultValue))
+            else if (!string.IsNullOrWhiteSpace(defaultValue))
             {
                 haveValue = true;
 
                 completionText.Append("${1:");
                 completionText.Append(defaultValue);
-                completionText.Append("}");
+                completionText.Append('}');
             }
             else
                 completionText.Append("$0");
 
             completionText.AppendFormat("</{0}>", propertyName);
-            
+
             // If we have a default value / values, then the final cursor position should be after the property element.
             if (haveValue)
                 completionText.Append("$0");

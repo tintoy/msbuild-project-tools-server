@@ -55,7 +55,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
         /// <returns>
         ///     A <see cref="Task{TResult}"/> that resolves either a <see cref="CompletionList"/>s, or <c>null</c> if no completions are provided.
         /// </returns>
-        public override async Task<CompletionList> ProvideCompletions(XmlLocation location, ProjectDocument projectDocument, string triggerCharacters, CancellationToken cancellationToken = default(CancellationToken))
+        public override async Task<CompletionList> ProvideCompletions(XmlLocation location, ProjectDocument projectDocument, string triggerCharacters, CancellationToken cancellationToken = default)
         {
             if (location == null)
                 throw new ArgumentNullException(nameof(location));
@@ -67,14 +67,12 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
 
             Log.Verbose("Evaluate completions for {XmlLocation:l}", location);
 
-            using (await projectDocument.Lock.ReaderLockAsync())
+            using (await projectDocument.Lock.ReaderLockAsync(cancellationToken))
             {
                 if (!projectDocument.EnableExpressions)
                     return null;
 
-                ExpressionNode expression;
-                Range expressionRange;
-                if (!location.IsExpression(out expression, out expressionRange))
+                if (!location.IsExpression(out ExpressionNode expression, out Range expressionRange))
                 {
                     Log.Verbose("Not offering any completions for {XmlLocation:l} (not on an expression or a location where an expression can be added).", location);
 
@@ -87,7 +85,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
 
                     return null;
                 }
-                
+
                 Log.Verbose("Offering completions to replace Evaluate expression @ {ReplaceRange:l}",
                     expressionRange
                 );
@@ -135,7 +133,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
                     description: MSBuildSchemaHelp.ForProperty(wellKnownPropertyName)
                 );
             }
-            
+
             if (!projectDocument.HasMSBuildProject)
                 yield break; // Without a valid MSBuild project (even a cached one will do), we can't inspect existing MSBuild properties.
 

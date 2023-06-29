@@ -1,4 +1,3 @@
-using System;
 using Sprache;
 
 namespace MSBuildProjectTools.LanguageServer.SemanticModel.MSBuildExpressions
@@ -29,7 +28,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel.MSBuildExpressions
                 if (HasName)
                     return GetChild<Symbol>(0).Name;
 
-                return String.Empty;
+                return string.Empty;
             }
         }
 
@@ -46,7 +45,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel.MSBuildExpressions
                 if (HasItemType)
                     return GetChild<Symbol>(0).Name;
 
-                return String.Empty;
+                return string.Empty;
             }
         }
 
@@ -63,7 +62,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel.MSBuildExpressions
         /// <summary>
         ///     Is the item metadata expression valid?
         /// </summary>
-        public override bool IsValid => !String.IsNullOrWhiteSpace(Name) && base.IsValid;
+        public override bool IsValid => !string.IsNullOrWhiteSpace(Name) && base.IsValid;
 
         /// <summary>
         ///     The node kind.

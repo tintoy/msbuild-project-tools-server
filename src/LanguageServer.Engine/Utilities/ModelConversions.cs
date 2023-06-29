@@ -1,11 +1,7 @@
-using System;
-
 using LspModels = OmniSharp.Extensions.LanguageServer.Protocol.Models;
 
 namespace MSBuildProjectTools.LanguageServer.Utilities
 {
-    using SemanticModel;
-
     /// <summary>
     ///     Extension methods for converting models between native and third-party representations.
     /// </summary>

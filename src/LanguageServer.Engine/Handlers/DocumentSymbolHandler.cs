@@ -1,21 +1,17 @@
 using OmniSharp.Extensions.JsonRpc;
-using OmniSharp.Extensions.LanguageServer;
+using OmniSharp.Extensions.LanguageServer.Protocol;
 using OmniSharp.Extensions.LanguageServer.Protocol.Client.Capabilities;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
-using OmniSharp.Extensions.LanguageServer.Protocol;
 using OmniSharp.Extensions.LanguageServer.Server;
-using Microsoft.Language.Xml;
-using NuGet.Versioning;
 using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-    
+
 namespace MSBuildProjectTools.LanguageServer.Handlers
 {
-    using ContentProviders;
     using Documents;
     using SemanticModel;
     using Utilities;
@@ -53,7 +49,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         Workspace Workspace { get; }
 
         /// <summary>
-        ///     The document selector that describes documents to synchronise.
+        ///     The document selector that describes documents to synchronize.
         /// </summary>
         DocumentSelector DocumentSelector { get; } = new DocumentSelector(
             new DocumentFilter
@@ -94,16 +90,6 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         }
 
         /// <summary>
-        ///     Has the client supplied document symbol capabilities?
-        /// </summary>
-        bool HaveDocumentSymbolCapabilities => DocumentSymbolCapabilities != null;
-
-        /// <summary>
-        ///     The client's document symbol capabilities.
-        /// </summary>
-        DocumentSymbolCapability DocumentSymbolCapabilities { get; set; }
-
-        /// <summary>
         ///     Called when completions are requested.
         /// </summary>
         /// <param name="parameters">
@@ -133,13 +119,13 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
                     {
                         symbols.AddRange(itemGroup.Includes.Select(include =>
                         {
-                            string trimmedInclude = String.Join(";",
+                            string trimmedInclude = string.Join(";",
                                 include.Split(
                                     new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries
                                 )
                                 .Select(includedItem => includedItem.Trim())
                             );
-                                
+
 
                             return new DocumentSymbolInformation
                             {
@@ -225,7 +211,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         {
             if (parameters == null)
                 throw new ArgumentNullException(nameof(parameters));
-            
+
             using (BeginOperation("OnDocumentSymbols"))
             {
                 try
@@ -249,7 +235,6 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         /// </param>
         void ICapability<DocumentSymbolCapability>.SetCapability(DocumentSymbolCapability capabilities)
         {
-            DocumentSymbolCapabilities = capabilities;
         }
     }
 }

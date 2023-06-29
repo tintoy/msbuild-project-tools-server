@@ -70,7 +70,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
         ///     The <see cref="ProjectPropertyElement"/> that results in the underlying MSBuild <see cref="ProjectProperty"/>'s current value.
         /// </summary>
         public ProjectPropertyElement DeclaringXml { get; }
-        
+
         /// <summary>
         ///     Has the property value been overridden elsewhere?
         /// </summary>

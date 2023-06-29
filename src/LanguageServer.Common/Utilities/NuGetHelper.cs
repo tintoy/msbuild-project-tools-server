@@ -4,9 +4,9 @@ using NuGet.Protocol.Core.Types;
 using NuGet.Versioning;
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace MSBuildProjectTools.LanguageServer.Utilities
 {
@@ -26,7 +26,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         /// </returns>
         public static List<PackageSource> GetWorkspacePackageSources(string workspaceRootDirectory)
         {
-            if (String.IsNullOrWhiteSpace(workspaceRootDirectory))
+            if (string.IsNullOrWhiteSpace(workspaceRootDirectory))
                 throw new ArgumentException("Argument cannot be null, empty, or entirely composed of whitespace: 'workspaceRootDirectory'.", nameof(workspaceRootDirectory));
 
             return new List<PackageSource>(
@@ -153,13 +153,10 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         /// <param name="packageSources">
         ///     The package sources.
         /// </param>
-        /// <param name="cancellationToken">
-        ///     An optional <see cref="CancellationToken"/> that can be used to cancel the operation.
-        /// </param>
         /// <returns>
         ///     A task that resolves to a list of <see cref="AutoCompleteResource"/>s.
         /// </returns>
-        public static async Task<List<AutoCompleteResource>> GetAutoCompleteResources(IEnumerable<PackageSource> packageSources, CancellationToken cancellationToken = default(CancellationToken))
+        public static async Task<List<AutoCompleteResource>> GetAutoCompleteResources(IEnumerable<PackageSource> packageSources)
         {
             if (packageSources == null)
                 throw new ArgumentNullException(nameof(packageSources));
@@ -169,7 +166,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
             List<SourceRepository> sourceRepositories = packageSources.CreateResourceRepositories();
             foreach (SourceRepository sourceRepository in sourceRepositories)
             {
-                AutoCompleteResource autoCompleteResource = await sourceRepository.GetResourceAsync<AutoCompleteResource>(cancellationToken);
+                AutoCompleteResource autoCompleteResource = await sourceRepository.GetResourceAsync<AutoCompleteResource>();
                 if (autoCompleteResource != null)
                     autoCompleteResources.Add(autoCompleteResource);
             }
@@ -198,7 +195,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         /// <returns>
         ///     A sorted set of suggested package Ids.
         /// </returns>
-        public static async Task<SortedSet<string>> SuggestPackageIds(this IEnumerable<AutoCompleteResource> autoCompleteResources, string packageIdPrefix, bool includePrerelease = false, ILogger logger = null, CancellationToken cancellationToken = default(CancellationToken))
+        public static async Task<SortedSet<string>> SuggestPackageIds(this IEnumerable<AutoCompleteResource> autoCompleteResources, string packageIdPrefix, bool includePrerelease = false, ILogger logger = null, CancellationToken cancellationToken = default)
         {
             if (autoCompleteResources == null)
                 throw new ArgumentNullException(nameof(autoCompleteResources));
@@ -241,7 +238,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         /// <returns>
         ///     A sorted set of suggested package versions.
         /// </returns>
-        public static async Task<SortedSet<NuGetVersion>> SuggestPackageVersions(this IEnumerable<AutoCompleteResource> autoCompleteResources, string packageId, bool includePrerelease = false, string versionPrefix = "", ILogger logger = null, CancellationToken cancellationToken = default(CancellationToken))
+        public static async Task<SortedSet<NuGetVersion>> SuggestPackageVersions(this IEnumerable<AutoCompleteResource> autoCompleteResources, string packageId, bool includePrerelease = false, string versionPrefix = "", ILogger logger = null, CancellationToken cancellationToken = default)
         {
             if (autoCompleteResources == null)
                 throw new ArgumentNullException(nameof(autoCompleteResources));

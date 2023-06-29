@@ -545,14 +545,13 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
             if (location.IsWhitespace(out XSWhitespace whitespace) && (parentPath == null || whitespace.HasParentPath(parentPath)))
                 return true;
 
-            XSElement element;
-            if (!location.IsElement(out element))
+            if (!location.IsElement(out XSElement element))
                 return false;
 
             if (location.IsElementBetweenAttributes())
                 return false;
 
-            // Check if we need to perform a substition of the element to be replaced (the common case is simply replacing an existing element or partial element).
+            // Check if we need to perform a substitution of the element to be replaced (the common case is simply replacing an existing element or partial element).
             if (element.IsValid)
             {
                 // Do we have an invalid parent (e.g. "<<Foo />", which yields invalid element named "" with child element named "Foo")?
@@ -606,8 +605,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
             replaceAttribute = null;
             needsPadding = PaddingType.None;
 
-            XSAttribute attribute;
-            if (location.IsAttribute(out attribute) && !location.IsValue())
+            if (location.IsAttribute(out XSAttribute attribute) && !location.IsValue())
             {
                 element = attribute.Element;
                 if (location.Position == attribute.Start)
@@ -676,11 +674,10 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
         {
             if (location == null)
                 throw new ArgumentNullException(nameof(location));
-            
+
             targetAttribute = null;
 
-            XSAttribute attribute;
-            if (!location.IsAttributeValue(out attribute))
+            if (!location.IsAttributeValue(out XSAttribute attribute))
                 return false;
 
             if (onElementWithPath != null && !attribute.HasParentPath(onElementWithPath))

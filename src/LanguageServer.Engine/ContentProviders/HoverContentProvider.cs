@@ -1,12 +1,10 @@
-using Microsoft.Build.Evaluation;
-using Microsoft.Language.Xml;
 using NuGet.Versioning;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Text;
 using System.Linq;
+using System.Text;
 
 namespace MSBuildProjectTools.LanguageServer.ContentProviders
 {
@@ -40,7 +38,7 @@ namespace MSBuildProjectTools.LanguageServer.ContentProviders
         {
             if (projectDocument == null)
                 throw new ArgumentNullException(nameof(projectDocument));
-            
+
             _projectDocument = projectDocument;
         }
 
@@ -53,11 +51,11 @@ namespace MSBuildProjectTools.LanguageServer.ContentProviders
         /// <returns>
         ///     The content, or <c>null</c> if no content is provided.
         /// </returns>
-        public MarkedStringContainer Property(MSBuildProperty property)
+        public static MarkedStringContainer Property(MSBuildProperty property)
         {
             if (property == null)
                 throw new ArgumentNullException(nameof(property));
-            
+
             List<MarkedString> content = new List<MarkedString>
             {
                 $"Property: `{property.Name}`"
@@ -101,7 +99,7 @@ namespace MSBuildProjectTools.LanguageServer.ContentProviders
                 content.Add($"Value: `{property.Value}`");
 
             string helpLink = MSBuildSchemaHelp.HelpLinkForProperty(property.Name);
-            if (!String.IsNullOrWhiteSpace(helpLink))
+            if (!string.IsNullOrWhiteSpace(helpLink))
             {
                 content.Add(
                     $"[Help]({helpLink})"
@@ -120,7 +118,7 @@ namespace MSBuildProjectTools.LanguageServer.ContentProviders
         /// <returns>
         ///     The content, or <c>null</c> if no content is provided.
         /// </returns>
-        public MarkedStringContainer UnusedProperty(MSBuildUnusedProperty unusedProperty)
+        public static MarkedStringContainer UnusedProperty(MSBuildUnusedProperty unusedProperty)
         {
             if (unusedProperty == null)
                 throw new ArgumentNullException(nameof(unusedProperty));
@@ -151,7 +149,7 @@ namespace MSBuildProjectTools.LanguageServer.ContentProviders
             );
 
             string helpLink = MSBuildSchemaHelp.HelpLinkForProperty(unusedProperty.Name);
-            if (!String.IsNullOrWhiteSpace(helpLink))
+            if (!string.IsNullOrWhiteSpace(helpLink))
             {
                 content.Add(
                     $"[Help]({helpLink})"
@@ -179,8 +177,7 @@ namespace MSBuildProjectTools.LanguageServer.ContentProviders
             {
                 string packageId = itemGroup.FirstInclude;
                 string packageRequestedVersion = itemGroup.GetFirstMetadataValue("Version");
-                SemanticVersion packageActualVersion;
-                if (!_projectDocument.ReferencedPackageVersions.TryGetValue(packageId, out packageActualVersion))
+                if (!_projectDocument.ReferencedPackageVersions.TryGetValue(packageId, out SemanticVersion packageActualVersion))
                 {
                     return new MarkedStringContainer(
                         $"NuGet Package: {itemGroup.FirstInclude}",
@@ -189,7 +186,7 @@ namespace MSBuildProjectTools.LanguageServer.ContentProviders
                     );
                 }
 
-                // TODO: Verify package is from NuGet (later, we can also recognise MyGet)
+                // TODO: Verify package is from NuGet (later, we can also recognize MyGet)
 
                 return new MarkedStringContainer(
                     $"NuGet Package: [{itemGroup.FirstInclude}](https://nuget.org/packages/{itemGroup.FirstInclude}/{packageActualVersion})",
@@ -217,7 +214,7 @@ namespace MSBuildProjectTools.LanguageServer.ContentProviders
                 $"Evaluates to {itemGroup.Items.Count} item"
             );
             if (!itemGroup.HasSingleItem)
-                itemIncludeContent.Append("s");
+                itemIncludeContent.Append('s');
             itemIncludeContent.AppendLine(".");
 
             foreach (string include in includes.Take(5))
@@ -235,14 +232,14 @@ namespace MSBuildProjectTools.LanguageServer.ContentProviders
             );
 
             string helpLink = MSBuildSchemaHelp.HelpLinkForItem(itemGroup.Name);
-            if (!String.IsNullOrWhiteSpace(helpLink))
+            if (!string.IsNullOrWhiteSpace(helpLink))
             {
                 content.Add(
                     $"[Help]({helpLink})"
                 );
             }
 
-            return new MarkedStringContainer(content);  
+            return new MarkedStringContainer(content);
         }
 
         /// <summary>
@@ -254,13 +251,10 @@ namespace MSBuildProjectTools.LanguageServer.ContentProviders
         /// <returns>
         ///     The content, or <c>null</c> if no content is provided.
         /// </returns>
-        public MarkedStringContainer UnusedItemGroup(MSBuildUnusedItemGroup unusedItemGroup)
+        public static MarkedStringContainer UnusedItemGroup(MSBuildUnusedItemGroup unusedItemGroup)
         {
             if (unusedItemGroup == null)
                 throw new ArgumentNullException(nameof(unusedItemGroup));
-            
-            string condition = unusedItemGroup.Condition;
-            string evaluatedCondition = _projectDocument.MSBuildProject.ExpandString(condition);
 
             List<MarkedString> content = new List<MarkedString>
             {
@@ -272,7 +266,7 @@ namespace MSBuildProjectTools.LanguageServer.ContentProviders
                 content.Add(itemTypeHelp);
 
             StringBuilder descriptionContent = new StringBuilder();
-            
+
             string[] includes = unusedItemGroup.Includes.ToArray();
             descriptionContent.AppendLine(
                 $"Include: `{unusedItemGroup.OriginatingElement.Include}`  "
@@ -282,7 +276,7 @@ namespace MSBuildProjectTools.LanguageServer.ContentProviders
                 $"Would have evaluated to {unusedItemGroup.Items.Count} item"
             );
             if (!unusedItemGroup.HasSingleItem)
-                descriptionContent.Append("s");
+                descriptionContent.Append('s');
             descriptionContent.AppendLine(":");
 
             foreach (string include in includes.Take(5))
@@ -300,14 +294,14 @@ namespace MSBuildProjectTools.LanguageServer.ContentProviders
             );
 
             string helpLink = MSBuildSchemaHelp.HelpLinkForItem(unusedItemGroup.Name);
-            if (!String.IsNullOrWhiteSpace(helpLink))
+            if (!string.IsNullOrWhiteSpace(helpLink))
             {
                 content.Add(
                     $"[Help]({helpLink})"
                 );
             }
 
-            return new MarkedStringContainer(content);  
+            return new MarkedStringContainer(content);
         }
 
         /// <summary>
@@ -324,10 +318,10 @@ namespace MSBuildProjectTools.LanguageServer.ContentProviders
         /// </returns>
         public MarkedStringContainer Condition(string elementName, string condition)
         {
-            if (String.IsNullOrWhiteSpace(elementName))
+            if (string.IsNullOrWhiteSpace(elementName))
                 throw new ArgumentException("Argument cannot be null, empty, or entirely composed of whitespace: 'elementName'.", nameof(elementName));
 
-            if (String.IsNullOrWhiteSpace(condition))
+            if (string.IsNullOrWhiteSpace(condition))
                 return null;
 
             string evaluatedCondition = _projectDocument.MSBuildProject.ExpandString(condition);
@@ -339,13 +333,13 @@ namespace MSBuildProjectTools.LanguageServer.ContentProviders
             };
 
             string helpLink = MSBuildSchemaHelp.HelpLinkForElement("*.Condition");
-            if (!String.IsNullOrWhiteSpace(helpLink))
+            if (!string.IsNullOrWhiteSpace(helpLink))
             {
                 content.Add(
                     $"[Help]({helpLink})"
                 );
             }
-            
+
             return new MarkedStringContainer(content);
         }
 
@@ -366,7 +360,7 @@ namespace MSBuildProjectTools.LanguageServer.ContentProviders
             if (itemGroup == null)
                 throw new ArgumentNullException(nameof(itemGroup));
 
-            if (String.IsNullOrWhiteSpace(metadataName))
+            if (string.IsNullOrWhiteSpace(metadataName))
                 throw new ArgumentException("Argument cannot be null, empty, or entirely composed of whitespace: 'metadataName'.", nameof(metadataName));
 
             if (itemGroup.Name == "PackageReference")
@@ -389,7 +383,7 @@ namespace MSBuildProjectTools.LanguageServer.ContentProviders
 
             string[] metadataValues =
                 itemGroup.GetMetadataValues(metadataName).Where(
-                    value => !String.IsNullOrWhiteSpace(value)
+                    value => !string.IsNullOrWhiteSpace(value)
                 )
                 .Distinct()
                 .ToArray();
@@ -413,7 +407,7 @@ namespace MSBuildProjectTools.LanguageServer.ContentProviders
             );
 
             string helpLink = MSBuildSchemaHelp.HelpLinkForItem(itemGroup.Name);
-            if (!String.IsNullOrWhiteSpace(helpLink))
+            if (!string.IsNullOrWhiteSpace(helpLink))
             {
                 content.Add(
                     $"[Help]({helpLink})"
@@ -440,7 +434,7 @@ namespace MSBuildProjectTools.LanguageServer.ContentProviders
             if (itemGroup == null)
                 throw new ArgumentNullException(nameof(itemGroup));
 
-            if (String.IsNullOrWhiteSpace(metadataName))
+            if (string.IsNullOrWhiteSpace(metadataName))
                 throw new ArgumentException("Argument cannot be null, empty, or entirely composed of whitespace: 'metadataName'.", nameof(metadataName));
 
             if (itemGroup.Name == "PackageReference")
@@ -463,7 +457,7 @@ namespace MSBuildProjectTools.LanguageServer.ContentProviders
 
             string[] metadataValues =
                 itemGroup.GetMetadataValues(metadataName).Where(
-                    value => !String.IsNullOrWhiteSpace(value)
+                    value => !string.IsNullOrWhiteSpace(value)
                 )
                 .Distinct()
                 .ToArray();
@@ -498,7 +492,7 @@ namespace MSBuildProjectTools.LanguageServer.ContentProviders
         /// <returns>
         ///     The content, or <c>null</c> if no content is provided.
         /// </returns>
-        public MarkedStringContainer Target(MSBuildTarget target)
+        public static MarkedStringContainer Target(MSBuildTarget target)
         {
             if (target == null)
                 throw new ArgumentNullException(nameof(target));
@@ -509,13 +503,13 @@ namespace MSBuildProjectTools.LanguageServer.ContentProviders
             };
 
             string helpLink = MSBuildSchemaHelp.HelpLinkForElement(target.Element.Name);
-            if (!String.IsNullOrWhiteSpace(helpLink))
+            if (!string.IsNullOrWhiteSpace(helpLink))
             {
                 content.Add(
                     $"[Help]({helpLink})"
                 );
             }
-            
+
             return new MarkedStringContainer(content);
         }
 
@@ -528,7 +522,7 @@ namespace MSBuildProjectTools.LanguageServer.ContentProviders
         /// <returns>
         ///     The content, or <c>null</c> if no content is provided.
         /// </returns>
-        public MarkedStringContainer Import(MSBuildImport import)
+        public static MarkedStringContainer Import(MSBuildImport import)
         {
             if (import == null)
                 throw new ArgumentNullException(nameof(import));
@@ -537,7 +531,7 @@ namespace MSBuildProjectTools.LanguageServer.ContentProviders
             {
                 $"Import: `{import.Name}`"
             };
-            
+
             StringBuilder imports = new StringBuilder("Imports:");
             imports.AppendLine();
             foreach (string projectFile in import.ImportedProjectFiles)
@@ -548,7 +542,7 @@ namespace MSBuildProjectTools.LanguageServer.ContentProviders
             );
 
             string helpLink = MSBuildSchemaHelp.HelpLinkForElement(import.Element.Name);
-            if (!String.IsNullOrWhiteSpace(helpLink))
+            if (!string.IsNullOrWhiteSpace(helpLink))
             {
                 content.Add(
                     $"[Help]({helpLink})"
@@ -602,7 +596,7 @@ namespace MSBuildProjectTools.LanguageServer.ContentProviders
             };
 
             string helpLink = MSBuildSchemaHelp.HelpLinkForElement(unresolvedImport.Element.Name);
-            if (!String.IsNullOrWhiteSpace(helpLink))
+            if (!string.IsNullOrWhiteSpace(helpLink))
             {
                 content.Add(
                     $"[Help]({helpLink})"
@@ -621,11 +615,11 @@ namespace MSBuildProjectTools.LanguageServer.ContentProviders
         /// <returns>
         ///     The content, or <c>null</c> if no content is provided.
         /// </returns>
-        public MarkedStringContainer SdkImport(MSBuildSdkImport sdkImport)
+        public static MarkedStringContainer SdkImport(MSBuildSdkImport sdkImport)
         {
             if (sdkImport == null)
                 throw new ArgumentNullException(nameof(sdkImport));
-            
+
             StringBuilder imports = new StringBuilder("Imports:");
             imports.AppendLine();
             foreach (string projectFile in sdkImport.ImportedProjectFiles)
@@ -650,7 +644,7 @@ namespace MSBuildProjectTools.LanguageServer.ContentProviders
         {
             if (unresolvedSdkImport == null)
                 throw new ArgumentNullException(nameof(unresolvedSdkImport));
-            
+
             string condition = unresolvedSdkImport.Condition;
             string evaluatedCondition = _projectDocument.MSBuildProject.ExpandString(condition);
 
@@ -678,13 +672,13 @@ namespace MSBuildProjectTools.LanguageServer.ContentProviders
         /// <returns>
         ///     The content, or <c>null</c> if no content is provided.
         /// </returns>
-        public MarkedStringContainer Element(XSElement element)
+        public static MarkedStringContainer Element(XSElement element)
         {
             if (element == null)
                 throw new ArgumentNullException(nameof(element));
-            
+
             string elementDescription = MSBuildSchemaHelp.ForElement(element.Name);
-            if (String.IsNullOrWhiteSpace(elementDescription))
+            if (string.IsNullOrWhiteSpace(elementDescription))
                 return null;
 
             List<MarkedString> content = new List<MarkedString>
@@ -693,7 +687,7 @@ namespace MSBuildProjectTools.LanguageServer.ContentProviders
             };
 
             string helpLink = MSBuildSchemaHelp.HelpLinkForElement(element.Name);
-            if (!String.IsNullOrWhiteSpace(helpLink))
+            if (!string.IsNullOrWhiteSpace(helpLink))
             {
                 content.Add(
                     $"[Help]({helpLink})"

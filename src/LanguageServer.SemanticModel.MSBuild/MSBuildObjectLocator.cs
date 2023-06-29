@@ -1,6 +1,5 @@
 using Microsoft.Build.Construction;
 using Microsoft.Build.Evaluation;
-using Microsoft.Language.Xml;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -69,15 +68,15 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
 
             if (projectXmlLocator == null)
                 throw new ArgumentNullException(nameof(projectXmlLocator));
-            
+
             if (xmlPositions == null)
                 throw new ArgumentNullException(nameof(xmlPositions));
-            
+
             _project = project;
-            _projectFile = _project.FullPath ?? String.Empty;
+            _projectFile = _project.FullPath ?? string.Empty;
             _projectXmlLocator = projectXmlLocator;
             _xmlPositions = xmlPositions;
-            
+
             AddTargets();
             AddProperties();
             AddItems();
@@ -142,25 +141,8 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
 
             if (element.Location == null)
                 return false;
-            
-            return String.Equals(element.Location.File, _projectFile, StringComparison.OrdinalIgnoreCase);
-        }
 
-        /// <summary>
-        ///     Get a <see cref="Range"/> representing the span of XML within the source text.
-        /// </summary>
-        /// <param name="xml">
-        ///     A <see cref="SyntaxNode"/> representing the XML.
-        /// </param>
-        /// <returns>
-        ///     The <see cref="Range"/>.
-        /// </returns>
-        Range GetRange(SyntaxNode xml)
-        {
-            if (xml == null)
-                throw new ArgumentNullException(nameof(xml));
-            
-            return xml.Span.ToNative(_xmlPositions);
+            return string.Equals(element.Location.File, _projectFile, StringComparison.OrdinalIgnoreCase);
         }
 
         /// <summary>
@@ -192,8 +174,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
             if (targetLocation == null)
                 return;
 
-            XSElement targetElement;
-            if (!targetLocation.IsElement(out targetElement))
+            if (!targetLocation.IsElement(out XSElement targetElement))
                 return;
 
             Add(
@@ -223,17 +204,16 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
         {
             if (property == null)
                 throw new ArgumentNullException(nameof(property));
-            
+
             XmlLocation propertyLocation = _projectXmlLocator.Inspect(
                 property.Location.ToNative()
             );
             if (propertyLocation == null)
                 return;
 
-            XSElement propertyElement;
-            if (!propertyLocation.IsElement(out propertyElement))
+            if (!propertyLocation.IsElement(out XSElement propertyElement))
                 return;
-                
+
             ProjectProperty evaluatedProperty = _project.GetProperty(property.Name);
             if (evaluatedProperty != null)
             {
@@ -262,15 +242,12 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
                 if (!IsFromCurrentProject(item.Xml))
                     continue;
 
-                Position itemStartPosition = item.Xml.Location.ToNative();
-
-                List<ProjectItem> itemsFromXml;
-                if (!itemsByXml.TryGetValue(item.Xml, out itemsFromXml))
+                if (!itemsByXml.TryGetValue(item.Xml, out List<ProjectItem> itemsFromXml))
                 {
                     itemsFromXml = new List<ProjectItem>();
                     itemsByXml.Add(item.Xml, itemsFromXml);
                 }
-                
+
                 itemsFromXml.Add(item);
             }
 
@@ -284,12 +261,10 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
                 if (itemLocation == null)
                     continue;
 
-                XSElement itemElement;
-                if (!itemLocation.IsElement(out itemElement))
+                if (!itemLocation.IsElement(out XSElement itemElement))
                     continue;
 
-                List<ProjectItem> itemsFromXml;
-                if (!itemsByXml.TryGetValue(itemXml, out itemsFromXml)) // AF: Should not happen.
+                if (!itemsByXml.TryGetValue(itemXml, out List<ProjectItem> itemsFromXml)) // AF: Should not happen.
                     throw new InvalidOperationException($"Found item XML at {itemLocation.Node.Range} with no corresponding items in the MSBuild project (irrespective of condition).");
 
                 if (usedItems.Contains(itemsFromXml[0]))
@@ -328,7 +303,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
             foreach (var importGroup in importsBySdk)
             {
                 string importingSdk = importGroup.Key;
-                if (importingSdk != String.Empty)
+                if (importingSdk != string.Empty)
                     AddSdkImport(importGroup);
                 else
                     AddImport(importGroup);
@@ -343,7 +318,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
 
             foreach (ProjectImportElement importElement in unresolvedImportElements)
             {
-                if (!String.IsNullOrWhiteSpace(importElement.Sdk))
+                if (!string.IsNullOrWhiteSpace(importElement.Sdk))
                     AddUnresolvedSdkImport(importElement);
                 else
                     AddUnresolvedImport(importElement);
@@ -360,22 +335,21 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
         {
             if (resolvedImports == null)
                 throw new ArgumentNullException(nameof(resolvedImports));
-            
+
             ResolvedImport firstImport = resolvedImports.First();
             Position importStart = firstImport.ImportingElement.Location.ToNative();
 
             // If the Sdk attribute is on the Project element rather than an import element, then the location reported by MSBuild will be invalid (go figure).
             if (importStart == Position.Invalid)
                 importStart = Position.Origin;
-            
+
             XmlLocation importLocation = _projectXmlLocator.Inspect(importStart);
             if (importLocation == null)
                 return;
 
-            XSElement importElement;
-            if (!importLocation.IsElement(out importElement))
+            if (!importLocation.IsElement(out XSElement importElement))
                 return;
-            
+
             XSAttribute sdkAttribute = importElement["Sdk"];
             if (sdkAttribute == null)
                 return;
@@ -400,13 +374,12 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
             foreach (var importsForImportingElement in importsByImportingElement)
             {
                 Position importStart = importsForImportingElement.Key.Location.ToNative();
-                
+
                 XmlLocation importLocation = _projectXmlLocator.Inspect(importStart);
                 if (importLocation == null)
                     continue;
 
-                XSElement importElement;
-                if (!importLocation.IsElement(out importElement))
+                if (!importLocation.IsElement(out XSElement importElement))
                     continue;
 
                 Add(
@@ -425,15 +398,14 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
         {
             if (import == null)
                 throw new ArgumentNullException(nameof(import));
-            
+
             Position importStart = import.Location.ToNative();
 
             XmlLocation importLocation = _projectXmlLocator.Inspect(importStart);
             if (importLocation == null)
                 return;
 
-            XSElement importElement;
-            if (!importLocation.IsElement(out importElement))
+            if (!importLocation.IsElement(out XSElement importElement))
                 return;
 
             XSAttribute sdkAttribute = importElement["Sdk"];
@@ -460,8 +432,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
             if (importLocation == null)
                 return;
 
-            XSElement importElement;
-            if (!importLocation.IsElement(out importElement))
+            if (!importLocation.IsElement(out XSElement importElement))
                 return;
 
             Add(

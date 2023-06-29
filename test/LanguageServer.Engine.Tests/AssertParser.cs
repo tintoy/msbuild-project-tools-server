@@ -6,8 +6,6 @@ using System.Linq;
 
 namespace MSBuildProjectTools.LanguageServer.Tests
 {
-    using SemanticModel.MSBuildExpressions;
-
     /// <summary>
     ///     Assertions for testing parsers.
     /// </summary>
@@ -99,8 +97,8 @@ namespace MSBuildProjectTools.LanguageServer.Tests
         {
             IResult<TResult> result = parser.TryParse(input);
 
-            string expectations = String.Join(", ", result.Expectations.Select(
-                expectation => String.Format("'{0}'", expectation)
+            string expectations = string.Join(", ", result.Expectations.Select(
+                expectation => string.Format("'{0}'", expectation)
             ));
 
             Assert.True(result.WasSuccessful, $"Parsing of '{input}' failed unexpectedly (expected [{expectations}] at {result.Remainder}).");

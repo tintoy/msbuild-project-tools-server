@@ -1,11 +1,9 @@
 using OmniSharp.Extensions.JsonRpc;
-using OmniSharp.Extensions.LanguageServer;
 using OmniSharp.Extensions.LanguageServer.Server;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reactive.Disposables;
 using System.Threading.Tasks;
 
@@ -68,9 +66,9 @@ namespace MSBuildProjectTools.LanguageServer.Tests.Stubs
         /// </returns>
         public IDisposable AddHandler(string method, IJsonRpcHandler handler)
         {
-            if (String.IsNullOrWhiteSpace(method))
+            if (string.IsNullOrWhiteSpace(method))
                 throw new ArgumentException("Argument cannot be null, empty, or entirely composed of whitespace: 'method'.", nameof(method));
-            
+
             if (handler == null)
                 throw new ArgumentNullException(nameof(handler));
 
@@ -90,7 +88,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests.Stubs
         {
             if (handlers == null)
                 throw new ArgumentNullException(nameof(handlers));
-            
+
             return Disposable.Empty;
         }
 
@@ -107,7 +105,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests.Stubs
         {
             if (handlers == null)
                 throw new ArgumentNullException(nameof(handlers));
-            
+
             return Disposable.Empty;
         }
 
@@ -139,7 +137,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests.Stubs
         /// </param>
         public virtual void SendNotification<TNotification>(string method, TNotification notification)
         {
-            if (String.IsNullOrWhiteSpace(method))
+            if (string.IsNullOrWhiteSpace(method))
                 throw new ArgumentException("Argument cannot be null, empty, or entirely composed of whitespace: 'method'.", nameof(method));
         }
 
@@ -163,7 +161,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests.Stubs
         /// </returns>
         public virtual Task<TResponse> SendRequest<TRequest, TResponse>(string method, TRequest request)
         {
-            if (String.IsNullOrWhiteSpace(method))
+            if (string.IsNullOrWhiteSpace(method))
                 throw new ArgumentException("Argument cannot be null, empty, or entirely composed of whitespace: 'method'.", nameof(method));
 
             return Task.FromResult(

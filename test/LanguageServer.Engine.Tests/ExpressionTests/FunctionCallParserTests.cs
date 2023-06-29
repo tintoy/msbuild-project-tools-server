@@ -1,5 +1,3 @@
-using Sprache;
-using System;
 using System.Linq;
 using Xunit;
 using Xunit.Abstractions;
@@ -86,11 +84,11 @@ namespace MSBuildProjectTools.LanguageServer.Tests.ExpressionTests
         /// <param name="expectedArgumentKind">
         ///     The expected argument kind.
         /// </param>
-        [InlineData("[Foo]::Exists(Bar)", ExpressionKind.Symbol)]
-        [InlineData("[Foo]::Exists($(Bar))", ExpressionKind.Evaluate)]
-        [InlineData("[Foo]::Exists('Bar.txt')", ExpressionKind.QuotedString)]
-        [InlineData("[Foo.Bar]::Exists(Baz)", ExpressionKind.Symbol)]
-        [InlineData("[Foo.Bar]::Exists($(Baz))", ExpressionKind.Evaluate)]
+        [InlineData("[Foo]::Exists(Bar)",           ExpressionKind.Symbol      )]
+        [InlineData("[Foo]::Exists($(Bar))",        ExpressionKind.Evaluate    )]
+        [InlineData("[Foo]::Exists('Bar.txt')",     ExpressionKind.QuotedString)]
+        [InlineData("[Foo.Bar]::Exists(Baz)",       ExpressionKind.Symbol      )]
+        [InlineData("[Foo.Bar]::Exists($(Baz))",    ExpressionKind.Evaluate    )]
         [InlineData("[Foo.Bar]::Exists('Baz.txt')", ExpressionKind.QuotedString)]
         [Theory(DisplayName = "FunctionCall parser succeeds for static method call with a single argument ")]
         public void Parse_StaticMethod_SingleArgument_String_Success(string input, ExpressionKind expectedArgumentKind)
@@ -114,8 +112,8 @@ namespace MSBuildProjectTools.LanguageServer.Tests.ExpressionTests
         /// <param name="expectedArgumentCount">
         ///     The expected number of arguments.
         /// </param>
-        [InlineData("()", 0)]
-        [InlineData("('a')", 1)]
+        [InlineData("()",         0)]
+        [InlineData("('a')",      1)]
         [InlineData("('a', 'b')", 2)]
         [Theory(DisplayName = "ArgumentList parser succeeds ")]
         public void ArgumentList_Success(string input, int expectedArgumentCount)

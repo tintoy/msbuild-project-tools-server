@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Text;
 using Xunit.Abstractions;
 
 namespace MSBuildProjectTools.LanguageServer.Tests
@@ -126,9 +123,9 @@ namespace MSBuildProjectTools.LanguageServer.Tests
         /// <param name="basePath">
         ///     The base path.
         /// </param>
-        [InlineData("/", "/")]
-        [InlineData("/A", "/")]
-        [InlineData("/A", "/A")]
+        [InlineData("/",    "/" )]
+        [InlineData("/A",   "/" )]
+        [InlineData("/A",   "/A")]
         [InlineData("/A/B", "/A")]
         [Theory(DisplayName = "XSPath.StartsWith succeeds with absolute base path ")]
         public void Path_StartsWith_Absolute_Success(string path, string basePath)
@@ -232,8 +229,8 @@ namespace MSBuildProjectTools.LanguageServer.Tests
         /// <param name="basePath">
         ///     The base path.
         /// </param>
-        [InlineData("B",    "A/B"   )]
-        [InlineData("C",    "A/B"   )]
+        [InlineData("B",   "A/B"    )]
+        [InlineData("C",   "A/B"    )]
         [InlineData("C/D", "A/B/C/D")]
         [Theory(DisplayName = "XSPath.IsChildOf fails with relative base path ")]
         public void Path_IsChildOf_Relative_Failure(string path, string ancestorPath)

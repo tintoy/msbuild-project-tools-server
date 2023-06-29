@@ -1,19 +1,12 @@
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
-using Microsoft.Build.Construction;
 using Serilog;
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace MSBuildProjectTools.LanguageServer.CompletionProviders
 {
     using Documents;
     using SemanticModel;
-    using Utilities;
 
     /// <summary>
     ///     Base class for MSBuild task completion providers.
@@ -41,11 +34,11 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
         /// <returns>
         ///     A dictionary of task metadata, keyed by task name.
         /// </returns>
-        protected async Task<Dictionary<string, MSBuildTaskMetadata>> GetProjectTasks(ProjectDocument projectDocument)
+        protected static async Task<Dictionary<string, MSBuildTaskMetadata>> GetProjectTasks(ProjectDocument projectDocument)
         {
             if (projectDocument == null)
                 throw new ArgumentNullException(nameof(projectDocument));
-            
+
             // We trust that all tasks discovered via GetMSBuildProjectTaskAssemblies are accessible in the current project.
 
             Dictionary<string, MSBuildTaskMetadata> tasks = new Dictionary<string, MSBuildTaskMetadata>();

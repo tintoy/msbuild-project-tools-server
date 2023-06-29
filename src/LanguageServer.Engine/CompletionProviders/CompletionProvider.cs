@@ -1,7 +1,6 @@
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using Serilog;
 using System;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -64,7 +63,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
         /// <returns>
         ///     A <see cref="Task{TResult}"/> that resolves either a <see cref="CompletionList"/>, or <c>null</c> if no completions are provided.
         /// </returns>
-        public abstract Task<CompletionList> ProvideCompletions(XmlLocation location, ProjectDocument projectDocument, string triggerCharacters, CancellationToken cancellationToken = default(CancellationToken));
+        public abstract Task<CompletionList> ProvideCompletions(XmlLocation location, ProjectDocument projectDocument, string triggerCharacters, CancellationToken cancellationToken = default);
 
         /// <summary>
         ///     Get the textual representation used to sort the completion item with the specified label.

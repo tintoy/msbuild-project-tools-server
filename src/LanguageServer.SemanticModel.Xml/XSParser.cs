@@ -36,7 +36,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
 
             XSParserVisitor parserVisitor = new XSParserVisitor(xmlPositions);
             parserVisitor.Visit(document);
-            parserVisitor.FinaliseModel();
+            parserVisitor.FinalizeModel();
 
             return parserVisitor.DiscoveredNodes;
         }
@@ -63,7 +63,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
 
             XSParserVisitor parserVisitor = new XSParserVisitor(xmlPositions);
             parserVisitor.Visit(node);
-            parserVisitor.FinaliseModel();
+            parserVisitor.FinalizeModel();
 
             return parserVisitor.DiscoveredNodes;
         }
@@ -74,11 +74,6 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
         class XSParserVisitor
             : SyntaxVisitor
         {
-            /// <summary>
-            ///     Spans for whitespace that has already been processed.
-            /// </summary>
-            readonly SortedSet<TextSpan> _whitespaceSpans = new SortedSet<TextSpan>();
-
             /// <summary>
             ///     The stack of <see cref="XSElement"/>s being processed.
             /// </summary>
@@ -121,7 +116,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
             /// <summary>
             ///     Perform final processing of discovered nodes.
             /// </summary>
-            public void FinaliseModel()
+            public void FinalizeModel()
             {
                 ComputeWhitespace();
                 DiscoveredNodes.Sort(
@@ -254,8 +249,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
             /// </returns>
             public override SyntaxNode VisitXmlDocument(XmlDocumentSyntax document)
             {
-                XmlElementSyntaxBase root = document.Root as XmlElementSyntaxBase;
-                if (root == null)
+                if (document.Root is not XmlElementSyntaxBase root)
                     return document;
 
                 if (root is XmlElementSyntax rootElement && rootElement.StartTag == null)
@@ -296,7 +290,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
 
                 // All the ways an XML element can go wrong.
                 XSElement xsElement;
-                if (String.IsNullOrWhiteSpace(element.Name))
+                if (string.IsNullOrWhiteSpace(element.Name))
                 {
                     if (element.StartTag.Width == 2) // <> surrounded by whitespace
                         xsElement = new XSInvalidElement(element, openingTagRange, nameRange, attributesRange: openingTagRange, parent: CurrentElement, hasContent: false);
@@ -314,7 +308,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
                     else // Fuck knows.
                         xsElement = new XSInvalidElement(element, elementRange, nameRange, attributesRange: openingTagRange, parent: CurrentElement, hasContent: true);
                 }
-                else if (String.IsNullOrWhiteSpace(element.EndTag.Name)) // <XXX> with no </XXX>
+                else if (string.IsNullOrWhiteSpace(element.EndTag.Name)) // <XXX> with no </XXX>
                     xsElement = new XSInvalidElement(element, openingTagRange, nameRange, attributesRange: openingTagRange, parent: CurrentElement, hasContent: false);
                 else
                     xsElement = new XSElementWithContent(element, elementRange, nameRange, openingTagRange, attributesRange, contentRange, closingTagRange, parent: CurrentElement);
@@ -358,7 +352,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
                 Range attributesRange = emptyElement.AttributesNode?.FullSpan.ToNative(_textPositions) ?? elementRange;
 
                 XSElement xsElement;
-                if (String.IsNullOrWhiteSpace(emptyElement.Name))
+                if (string.IsNullOrWhiteSpace(emptyElement.Name))
                     xsElement = new XSInvalidElement(emptyElement, elementRange, nameRange, attributesRange, parent: CurrentElement, hasContent: false);
                 else
                     xsElement = new XSEmptyElement(emptyElement, elementRange, nameRange, attributesRange, parent: CurrentElement);
@@ -399,7 +393,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
                     valueRange = nameRange;
 
                 XSAttribute xsAttribute;
-                if (String.IsNullOrWhiteSpace(attribute.Name) || nameRange == attributeRange || valueRange == attributeRange)
+                if (string.IsNullOrWhiteSpace(attribute.Name) || nameRange == attributeRange || valueRange == attributeRange)
                     xsAttribute = new XSInvalidAttribute(attribute, CurrentElement, attributeRange, nameRange, valueRange);
                 else
                     xsAttribute = new XSAttribute(attribute, CurrentElement, attributeRange, nameRange, valueRange);

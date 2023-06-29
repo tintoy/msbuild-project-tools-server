@@ -59,8 +59,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         /// </returns>
         public static DotNetRuntimeInfo GetCurrent(string baseDirectory = null, ILogger logger = null)
         {
-            if (logger == null)
-                logger = Log.Logger;
+            logger ??= Log.Logger;
 
             SemanticVersion sdkVersion;
 
@@ -85,10 +84,10 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
                 using (TextReader dotnetListSdksOutput = InvokeDotNetHost("--list-sdks", baseDirectory, logger))
                 {
                     List<DotnetSdkInfo> discoveredSdks = ParseDotNetListSdksOutput(dotnetListSdksOutput);
-                    
+
                     targetSdk = discoveredSdks.Find(sdk => sdk.Version == sdkVersion);
                     if (targetSdk != null)
-                        logger.Verbose("Target .NET SDK is v{SdkVersion:l} in {SdkBaseDirectory}.", targetSdk.Version, targetSdk.BaseDirectory); 
+                        logger.Verbose("Target .NET SDK is v{SdkVersion:l} in {SdkBaseDirectory}.", targetSdk.Version, targetSdk.BaseDirectory);
                     else
                         logger.Error("Cannot find SDK v{SdkVersion} via 'dotnet --list-sdks'.", sdkVersion);
                 }
@@ -105,7 +104,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
                         .Where(runtime => runtime.Name == WellKnownDotnetRuntimes.NetCore)
                         .OrderByDescending(runtime => runtime.Version)
                         .FirstOrDefault();
-                    
+
                     if (hostRuntime != null)
                         logger.Verbose(".NET host runtime is v{RuntimeVersion:l} ({RuntimeName}).", hostRuntime.Version, hostRuntime.Name);
                     else
@@ -124,10 +123,8 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
                 // Fall back to legacy parser.
                 logger.Verbose("Using legacy (pre-v6) SDK discovery logic because .NET SDK v{SdkVersion:l} is less than the minimum required v6 SDK version (v{MinSdkVersion:l}).", sdkVersion, Sdk60Version);
 
-                using (TextReader dotnetInfoOutput = InvokeDotNetHost("--info", baseDirectory, logger))
-                {
-                    return ParseDotNetInfoOutput(dotnetInfoOutput);
-                }
+                using TextReader dotnetInfoOutput = InvokeDotNetHost("--info", baseDirectory, logger);
+                return ParseDotNetInfoOutput(dotnetInfoOutput);
             }
         }
 
@@ -150,8 +147,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
             if (rawVersion.Length == 0)
                 throw new InvalidOperationException("The 'dotnet --version' command did not return any output.");
 
-            SemanticVersion parsedVersion;
-            if (!SemanticVersion.TryParse(rawVersion, out parsedVersion))
+            if (!SemanticVersion.TryParse(rawVersion, out SemanticVersion parsedVersion))
                 throw new FormatException($"The 'dotnet --version' command did not return valid version information ('{rawVersion}' is not a valid semantic version).");
 
             return parsedVersion;
@@ -180,8 +176,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
                 if (!parseResult.Success)
                     continue;
 
-                SemanticVersion sdkVersion;
-                if (!SemanticVersion.TryParse(parseResult.Groups["SdkVersion"].Value, out sdkVersion))
+                if (!SemanticVersion.TryParse(parseResult.Groups["SdkVersion"].Value, out SemanticVersion sdkVersion))
                     continue;
 
                 string sdkBaseDirectory = Path.Combine(parseResult.Groups["SdkBaseDirectory"].Value, sdkVersion.ToString());
@@ -217,8 +212,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
                 if (!parseResult.Success)
                     continue;
 
-                SemanticVersion runtimeVersion;
-                if (!SemanticVersion.TryParse(parseResult.Groups["RuntimeVersion"].Value, out runtimeVersion))
+                if (!SemanticVersion.TryParse(parseResult.Groups["RuntimeVersion"].Value, out SemanticVersion runtimeVersion))
                     continue;
 
                 string runtimeName = parseResult.Groups["RuntimeName"].Value;
@@ -332,12 +326,12 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
 
                 if (dotnetHostProcess.ExitCode != 0 || logger.IsEnabled(Serilog.Events.LogEventLevel.Verbose))
                 {
-                    if (!String.IsNullOrWhiteSpace(stdOut))
+                    if (!string.IsNullOrWhiteSpace(stdOut))
                         logger.Debug("{Command} returned the following text on STDOUT:\n\n{DotNetOutput:l}", command, stdOut);
                     else
                         logger.Debug("{Command} returned no output on STDOUT.", command);
 
-                    if (!String.IsNullOrWhiteSpace(stdErr))
+                    if (!string.IsNullOrWhiteSpace(stdErr))
                         logger.Debug("{Command} returned the following text on STDERR:\n\n{DotNetOutput:l}", command, stdErr);
                     else
                         logger.Debug("{Command} returned no output on STDERR.", command);
@@ -368,7 +362,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
             string currentLine;
             while ((currentLine = dotnetInfoOutput.ReadLine()) != null)
             {
-                if (String.IsNullOrWhiteSpace(currentLine))
+                if (string.IsNullOrWhiteSpace(currentLine))
                     continue;
 
                 if (!currentLine.StartsWith(" ") && currentLine.EndsWith(":"))
@@ -442,7 +436,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         ///     Well-known sections returned by "dotnet --info".
         /// </summary>
         /// <remarks>
-        ///     Since the section titles returned by "dotnet --info" are now localised, we have to resort to this (more-fragile) method of parsing the output.
+        ///     Since the section titles returned by "dotnet --info" are now localized, we have to resort to this (more-fragile) method of parsing the output.
         /// </remarks>
         enum DotnetInfoSection
         {

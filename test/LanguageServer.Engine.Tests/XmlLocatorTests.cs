@@ -177,11 +177,10 @@ namespace MSBuildProjectTools.LanguageServer.Tests
             XmlDocumentSyntax document = Parser.ParseText(testXml);
 
             XmlLocator locator = new XmlLocator(document, positions);
-            XmlLocation result = locator.Inspect(testPosition);        
+            XmlLocation result = locator.Inspect(testPosition);
             Assert.NotNull(result);
 
-            XSAttribute attribute;
-            Assert.True(result.IsAttribute(out attribute), "IsAttribute");
+            Assert.True(result.IsAttribute(out XSAttribute attribute), "IsAttribute");
             Assert.True(result.IsAttributeValue(), "IsAttributeValue");
 
             Assert.Equal(expectedAttributeName, attribute.Name);
@@ -220,8 +219,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests
             XmlLocation location = locator.Inspect(testPosition);
             Assert.NotNull(location);
 
-            XSElement replacingElement;
-            Assert.True(location.CanCompleteElement(out replacingElement), "CanCompleteElement");
+            Assert.True(location.CanCompleteElement(out XSElement replacingElement), "CanCompleteElement");
             Assert.NotNull(replacingElement);
         }
 
@@ -259,9 +257,8 @@ namespace MSBuildProjectTools.LanguageServer.Tests
 
             XSPath expectedParentPath = XSPath.Parse(expectedParent);
 
-            XSElement replaceElement;
             Assert.True(
-                location.CanCompleteElement(out replaceElement, parentPath: expectedParentPath),
+                location.CanCompleteElement(out XSElement replaceElement, parentPath: expectedParentPath),
                 "CanCompleteElement"
             );
             Assert.NotNull(replaceElement);
@@ -302,9 +299,8 @@ namespace MSBuildProjectTools.LanguageServer.Tests
 
             XSPath expectedParentPath = XSPath.Parse(expectedParent);
 
-            XSElement replaceElement;
             Assert.True(
-                location.CanCompleteElement(out replaceElement, parentPath: expectedParentPath),
+                location.CanCompleteElement(out XSElement replaceElement, parentPath: expectedParentPath),
                 "CanCompleteElement"
             );
             Assert.NotNull(replaceElement);
@@ -349,11 +345,8 @@ namespace MSBuildProjectTools.LanguageServer.Tests
 
             XSPath elementPath = XSPath.Parse(expectedElementName);
 
-            XSElement element;
-            XSAttribute replaceAttribute;
-            PaddingType needsPadding;
             Assert.True(
-                location.CanCompleteAttribute(out element, out replaceAttribute, out needsPadding, onElementWithPath: elementPath),
+                location.CanCompleteAttribute(out XSElement element, out XSAttribute replaceAttribute, out PaddingType needsPadding, onElementWithPath: elementPath),
                 "CanCompleteAttribute"
             );
             Assert.NotNull(element);
@@ -374,7 +367,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests
         {
             if (relativePathSegments == null)
                 throw new ArgumentNullException(nameof(relativePathSegments));
-            
+
             return File.ReadAllText(
                 Path.Combine(
                     TestDirectory.FullName,
