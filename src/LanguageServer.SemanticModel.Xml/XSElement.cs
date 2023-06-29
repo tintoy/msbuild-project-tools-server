@@ -14,7 +14,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
         /// <summary>
         ///     The element's path within the XML.
         /// </summary>
-        private readonly XSPath _path;
+        readonly XSPath _path;
 
         /// <summary>
         ///     Create a new <see cref="XSElement"/>.

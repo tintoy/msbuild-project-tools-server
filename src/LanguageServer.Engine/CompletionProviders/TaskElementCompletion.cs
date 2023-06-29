@@ -162,7 +162,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
         /// <returns>
         ///     The <see cref="CompletionItem"/>.
         /// </returns>
-        private CompletionItem TaskElementCompletionItem(string taskName, MSBuildTaskMetadata taskMetadata, LspModels.Range replaceRange)
+        CompletionItem TaskElementCompletionItem(string taskName, MSBuildTaskMetadata taskMetadata, LspModels.Range replaceRange)
         {
             MSBuildTaskParameterMetadata[] requiredParameters = taskMetadata.Parameters.Where(parameter => parameter.IsRequired).ToArray();
             string requiredAttributes = string.Join(" ", requiredParameters.Select(

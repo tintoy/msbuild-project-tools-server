@@ -234,7 +234,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
         /// <returns>
         ///     The <see cref="CompletionItem"/>.
         /// </returns>
-        private CompletionItem PropertyCompletionItem(string propertyName, LspModels.Range replaceRange, int? priority = null, string description = null, string defaultValue = null, IReadOnlyList<string> defaultValues = null)
+        CompletionItem PropertyCompletionItem(string propertyName, LspModels.Range replaceRange, int? priority = null, string description = null, string defaultValue = null, IReadOnlyList<string> defaultValues = null)
         {
             return new CompletionItem
             {
@@ -269,7 +269,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
         /// <returns>
         ///     The completion text (in standard LSP Snippet format).
         /// </returns>
-        private static string GetCompletionText(string propertyName, string defaultValue, IReadOnlyList<string> defaultValues)
+        static string GetCompletionText(string propertyName, string defaultValue, IReadOnlyList<string> defaultValues)
         {
             StringBuilder completionText = new StringBuilder();
             completionText.AppendFormat("<{0}>", propertyName);

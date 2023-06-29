@@ -8,7 +8,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel.MSBuildExpressions
     /// <summary>
     ///     Helper methods for working with <see cref="ExpressionNode"/>s.
     /// </summary>
-    internal static class ExpressionHelper
+    static class ExpressionHelper
     {
         /// <summary>
         ///     Perform post-parse processing on the node to ensure that <see cref="ExpressionNode.Range"/>s are populated and children are connected via the usual relationships (<see cref="ExpressionNode.Parent"/>, <see cref="ExpressionNode.PreviousSibling"/>, and <see cref="ExpressionNode.NextSibling"/>).

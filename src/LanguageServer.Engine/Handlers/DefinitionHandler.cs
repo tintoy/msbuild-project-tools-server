@@ -45,12 +45,12 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         /// <summary>
         ///     The document workspace.
         /// </summary>
-        private Workspace Workspace { get; }
+        Workspace Workspace { get; }
 
         /// <summary>
         ///     The document selector that describes documents to synchronize.
         /// </summary>
-        private DocumentSelector DocumentSelector { get; } = new DocumentSelector(
+        DocumentSelector DocumentSelector { get; } = new DocumentSelector(
             new DocumentFilter
             {
                 Pattern = "**/*.*",
@@ -80,7 +80,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         /// <summary>
         ///     Get registration options for handling document events.
         /// </summary>
-        private TextDocumentRegistrationOptions DocumentRegistrationOptions
+        TextDocumentRegistrationOptions DocumentRegistrationOptions
         {
             get => new TextDocumentRegistrationOptions
             {
@@ -100,7 +100,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         /// <returns>
         ///     A <see cref="Task"/> representing the operation whose result is the definition location or <c>null</c> if no definition is provided.
         /// </returns>
-        private async Task<LocationOrLocations> OnDefinition(TextDocumentPositionParams parameters, CancellationToken cancellationToken)
+        async Task<LocationOrLocations> OnDefinition(TextDocumentPositionParams parameters, CancellationToken cancellationToken)
         {
             ProjectDocument projectDocument = await Workspace.GetProjectDocument(parameters.TextDocument.Uri);
 

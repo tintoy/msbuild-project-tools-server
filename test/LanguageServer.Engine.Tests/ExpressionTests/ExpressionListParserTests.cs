@@ -32,7 +32,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests.ExpressionTests
         /// <summary>
         ///     Output for the current test.
         /// </summary>
-        private ITestOutputHelper TestOutput { get; }
+        ITestOutputHelper TestOutput { get; }
 
         /// <summary>
         ///     Verify that the SimpleListItem parser can successfully parse the specified input.
@@ -66,7 +66,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests.ExpressionTests
         /// <returns>
         ///     An array of test actions.
         /// </returns>
-        private static Action<ExpressionNode>[] HasListItems(string[] expectedValues, Action<string, ExpressionNode> testActionTemplate)
+        static Action<ExpressionNode>[] HasListItems(string[] expectedValues, Action<string, ExpressionNode> testActionTemplate)
         {
             if (expectedValues == null)
                 throw new ArgumentNullException(nameof(expectedValues));
@@ -90,7 +90,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests.ExpressionTests
         /// <param name="input">
         ///     The original (unparsed) input.
         /// </param>
-        private void DumpList(SimpleList list, string input)
+        void DumpList(SimpleList list, string input)
         {
             if (list == null)
                 throw new ArgumentNullException(nameof(list));

@@ -32,7 +32,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests.ExpressionTests
         /// <summary>
         ///     Output for the current test.
         /// </summary>
-        private ITestOutputHelper TestOutput { get; }
+        ITestOutputHelper TestOutput { get; }
 
         /// <summary>
         ///     Verify that the Root parser can successfully parse the specified input.
@@ -212,7 +212,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests.ExpressionTests
             });
         }
 
-        private void DumpExpression(ExpressionNode expression, int currentDepth = 0)
+        void DumpExpression(ExpressionNode expression, int currentDepth = 0)
         {
             if (expression == null)
                 throw new ArgumentNullException(nameof(expression));

@@ -18,7 +18,7 @@ namespace MSBuildProjectTools.LanguageServer.TaskReflection
         /// <summary>
         ///     The fully-qualified names of supported task parameter types.
         /// </summary>
-        private static readonly HashSet<string> SupportedTaskParameterTypes = new HashSet<string>
+        static readonly HashSet<string> SupportedTaskParameterTypes = new HashSet<string>
         {
             typeof(string).FullName,
             typeof(bool).FullName,
@@ -216,7 +216,7 @@ namespace MSBuildProjectTools.LanguageServer.TaskReflection
         /// <param name="formatArgs">
         ///     Optional message-format arguments.
         /// </param>
-        private static void WriteErrorJson(string messageOrFormat, params object[] formatArgs)
+        static void WriteErrorJson(string messageOrFormat, params object[] formatArgs)
         {
             string message = formatArgs.Length > 0 ? string.Format(messageOrFormat, formatArgs) : messageOrFormat;
 

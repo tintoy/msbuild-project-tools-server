@@ -11,7 +11,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
         /// <summary>
         ///     The whitespace's path within the XML.
         /// </summary>
-        private readonly XSPath _path;
+        readonly XSPath _path;
 
         /// <summary>
         ///     Create new <see cref="XSWhitespace"/>.

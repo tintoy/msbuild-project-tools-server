@@ -31,7 +31,7 @@ namespace MSBuildProjectTools.LanguageServer
         /// <summary>
         ///     A <see cref="Process"/> representing the parent process.
         /// </summary>
-        private Process _parentProcess;
+        Process _parentProcess;
 
         /// <summary>
         ///     Create a new <see cref="Terminator"/>.
@@ -56,7 +56,7 @@ namespace MSBuildProjectTools.LanguageServer
         /// <summary>
         ///     The terminator's logger.
         /// </summary>
-        private ILogger Log { get; }
+        ILogger Log { get; }
 
         /// <summary>
         /// Initialize the process terminator.
@@ -96,7 +96,7 @@ namespace MSBuildProjectTools.LanguageServer
         /// <param name="args">
         ///     The event arguments.
         /// </param>
-        private async void ParentProcess_Exit(object sender, EventArgs args)
+        async void ParentProcess_Exit(object sender, EventArgs args)
         {
             Log.Warning("Parent process (PID:{ParentPID}) has exited; the language server (PID:{PID}) will immediately self-terminate.", _parentProcess.Id, CurrentProcessId);
 
@@ -115,6 +115,6 @@ namespace MSBuildProjectTools.LanguageServer
         /// <summary>
         ///     Terminate the current process.
         /// </summary>
-        private static void Terminate() => Environment.Exit(9);
+        static void Terminate() => Environment.Exit(9);
     }
 }

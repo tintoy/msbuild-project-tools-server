@@ -30,22 +30,22 @@ namespace MSBuildProjectTools.LanguageServer.Documents
         /// <summary>
         ///     Diagnostics (if any) for the project.
         /// </summary>
-        private readonly List<LspModels.Diagnostic> _diagnostics = new List<LspModels.Diagnostic>();
+        readonly List<LspModels.Diagnostic> _diagnostics = new List<LspModels.Diagnostic>();
 
         /// <summary>
         ///     The project's configured package sources.
         /// </summary>
-        private readonly List<PackageSource> _configuredPackageSources = new List<PackageSource>();
+        readonly List<PackageSource> _configuredPackageSources = new List<PackageSource>();
 
         /// <summary>
         ///     The project's referenced package versions, keyed by package Id.
         /// </summary>
-        private readonly Dictionary<string, SemanticVersion> _referencedPackageVersions = new Dictionary<string, SemanticVersion>();
+        readonly Dictionary<string, SemanticVersion> _referencedPackageVersions = new Dictionary<string, SemanticVersion>();
 
         /// <summary>
         ///     NuGet auto-complete APIs for configured package sources.
         /// </summary>
-        private readonly List<AutoCompleteResource> _autoCompleteResources = new List<AutoCompleteResource>();
+        readonly List<AutoCompleteResource> _autoCompleteResources = new List<AutoCompleteResource>();
 
         /// <summary>
         ///     The underlying MSBuild project collection.

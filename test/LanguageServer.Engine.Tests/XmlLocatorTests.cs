@@ -16,7 +16,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests
         /// <summary>
         ///     The directory for test files.
         /// </summary>
-        private static readonly DirectoryInfo TestDirectory = new DirectoryInfo(Path.GetDirectoryName(
+        static readonly DirectoryInfo TestDirectory = new DirectoryInfo(Path.GetDirectoryName(
             typeof(XmlLocatorTests).Assembly.Location
         ));
 
@@ -363,7 +363,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests
         /// <returns>
         ///     The file content, as a string.
         /// </returns>
-        private static string LoadTestFile(params string[] relativePathSegments)
+        static string LoadTestFile(params string[] relativePathSegments)
         {
             if (relativePathSegments == null)
                 throw new ArgumentNullException(nameof(relativePathSegments));

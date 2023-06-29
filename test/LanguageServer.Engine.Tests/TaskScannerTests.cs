@@ -64,7 +64,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests
         /// <returns>
         ///     The full path of the task assembly.
         /// </returns>
-        private string GetFrameworkTaskAssemblyFile(string assemblyFileName)
+        string GetFrameworkTaskAssemblyFile(string assemblyFileName)
         {
             if (string.IsNullOrWhiteSpace(assemblyFileName))
                 throw new System.ArgumentException($"Argument cannot be null, empty, or entirely composed of whitespace: {nameof(assemblyFileName)}.", nameof(assemblyFileName));

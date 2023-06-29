@@ -20,7 +20,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests
         /// <summary>
         ///     An <see cref="IDisposable"/> representing the log context for the current test.
         /// </summary>
-        private readonly IDisposable _logContext;
+        readonly IDisposable _logContext;
 
         /// <summary>
         ///     Create a new test-suite.

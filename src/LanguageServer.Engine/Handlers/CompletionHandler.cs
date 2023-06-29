@@ -55,12 +55,12 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         /// <summary>
         ///     The document workspace.
         /// </summary>
-        private Workspace Workspace { get; }
+        Workspace Workspace { get; }
 
         /// <summary>
         ///     The LSP document selector that describes documents the handler is interested in.
         /// </summary>
-        private DocumentSelector DocumentSelector { get; } = new DocumentSelector(
+        DocumentSelector DocumentSelector { get; } = new DocumentSelector(
             new DocumentFilter
             {
                 Pattern = "**/*.*",
@@ -90,7 +90,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         /// <summary>
         ///     Registration options for handling completion-request events.
         /// </summary>
-        private CompletionRegistrationOptions CompletionRegistrationOptions
+        CompletionRegistrationOptions CompletionRegistrationOptions
         {
             get => new CompletionRegistrationOptions
             {
@@ -105,12 +105,12 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         /// <summary>
         ///     Should the handler return an empty <see cref="CompletionList"/>s instead of <c>null</c>?
         /// </summary>
-        private bool ReturnEmptyCompletionLists => Workspace.Configuration.EnableExperimentalFeatures.Contains("empty-completion-lists");
+        bool ReturnEmptyCompletionLists => Workspace.Configuration.EnableExperimentalFeatures.Contains("empty-completion-lists");
 
         /// <summary>
         ///     A <see cref="CompletionList"/> (or <c>null</c>) representing no completions.
         /// </summary>
-        private CompletionList NoCompletions => ReturnEmptyCompletionLists ? new CompletionList(Enumerable.Empty<CompletionItem>(), isIncomplete: false) : null;
+        CompletionList NoCompletions => ReturnEmptyCompletionLists ? new CompletionList(Enumerable.Empty<CompletionItem>(), isIncomplete: false) : null;
 
         /// <summary>
         ///     Called when completions are requested.
@@ -124,7 +124,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         /// <returns>
         ///     A <see cref="Task"/> representing the operation whose result is the completion list or <c>null</c> if no completions are provided.
         /// </returns>
-        private async Task<CompletionList> OnCompletion(CompletionParams parameters, CancellationToken cancellationToken)
+        async Task<CompletionList> OnCompletion(CompletionParams parameters, CancellationToken cancellationToken)
         {
             ProjectDocument projectDocument = await Workspace.GetProjectDocument(parameters.TextDocument.Uri);
 

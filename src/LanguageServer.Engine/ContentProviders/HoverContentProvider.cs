@@ -23,7 +23,7 @@ namespace MSBuildProjectTools.LanguageServer.ContentProviders
         /// <remarks>
         ///     Because async-friendly locks are not re-entrant, the provider assumes that the project document's state lock is already held by any callers of its public methods.
         /// </remarks>
-        private readonly ProjectDocument _projectDocument;
+        readonly ProjectDocument _projectDocument;
 
         /// <summary>
         ///     Create a new <see cref="HoverContentProvider"/>.

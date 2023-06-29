@@ -45,12 +45,12 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         /// <summary>
         ///     The document workspace.
         /// </summary>
-        private Workspace Workspace { get; }
+        Workspace Workspace { get; }
 
         /// <summary>
         ///     The document selector that describes documents to synchronize.
         /// </summary>
-        private DocumentSelector DocumentSelector { get; } = new DocumentSelector(
+        DocumentSelector DocumentSelector { get; } = new DocumentSelector(
             new DocumentFilter
             {
                 Pattern = "**/*.*",
@@ -80,7 +80,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         /// <summary>
         ///     Get registration options for handling document events.
         /// </summary>
-        private TextDocumentRegistrationOptions DocumentRegistrationOptions
+        TextDocumentRegistrationOptions DocumentRegistrationOptions
         {
             get => new TextDocumentRegistrationOptions
             {
@@ -100,7 +100,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         /// <returns>
         ///     A <see cref="Task{TResult}"/> whose result is the hover details, or <c>null</c> if no hover details are provided by the handler.
         /// </returns>
-        private async Task<Hover> OnHover(TextDocumentPositionParams parameters, CancellationToken cancellationToken)
+        async Task<Hover> OnHover(TextDocumentPositionParams parameters, CancellationToken cancellationToken)
         {
             if (Workspace.Configuration.Language.DisableFeature.Hover)
                 return null;

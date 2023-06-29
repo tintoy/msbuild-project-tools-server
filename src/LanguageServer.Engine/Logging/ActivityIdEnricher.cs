@@ -9,7 +9,7 @@ namespace MSBuildProjectTools.LanguageServer.Logging
     /// <summary>
     ///     Serilog event enricher that adds the current logical activity Id.
     /// </summary>
-    internal class ActivityIdEnricher
+    class ActivityIdEnricher
         : ILogEventEnricher
     {
         /// <summary>

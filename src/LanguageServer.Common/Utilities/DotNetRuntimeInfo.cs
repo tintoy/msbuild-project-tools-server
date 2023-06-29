@@ -18,17 +18,17 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         /// <summary>
         ///     The minimum SDK version to be considered .NET 6.x.
         /// </summary>
-        private static readonly SemanticVersion Sdk60Version = new SemanticVersion(6, 0, 101);
+        static readonly SemanticVersion Sdk60Version = new SemanticVersion(6, 0, 101);
 
         /// <summary>
         ///     Regular expression to parse SDK information from "dotnet --list-sdks".
         /// </summary>
-        private static readonly Regex SdkInfoParser = new Regex(@"(?<SdkVersion>.*) \[(?<SdkBaseDirectory>.*)\]");
+        static readonly Regex SdkInfoParser = new Regex(@"(?<SdkVersion>.*) \[(?<SdkBaseDirectory>.*)\]");
 
         /// <summary>
         ///     Regular expression to parse SDK information from "dotnet --list-runtimes".
         /// </summary>
-        private static readonly Regex RuntimeInfoParser = new Regex(@"(?<RuntimeName>.*) (?<RuntimeVersion>.*) \[(?<RuntimeBaseDirectory>.*)\]");
+        static readonly Regex RuntimeInfoParser = new Regex(@"(?<RuntimeName>.*) (?<RuntimeVersion>.*) \[(?<RuntimeBaseDirectory>.*)\]");
 
         /// <summary>
         ///     The .NET runtime (host) version.
@@ -243,7 +243,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         /// <returns>
         ///     A <see cref="TextReader"/> containing the program output (STDOUT and STDERR).
         /// </returns>
-        private static TextReader InvokeDotNetHost(string commandLineArguments, string baseDirectory, ILogger logger, bool enableHostTracing = false)
+        static TextReader InvokeDotNetHost(string commandLineArguments, string baseDirectory, ILogger logger, bool enableHostTracing = false)
         {
             if (logger == null)
                 throw new ArgumentNullException(nameof(logger));
@@ -438,7 +438,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         /// <remarks>
         ///     Since the section titles returned by "dotnet --info" are now localized, we have to resort to this (more-fragile) method of parsing the output.
         /// </remarks>
-        private enum DotnetInfoSection
+        enum DotnetInfoSection
         {
             /// <summary>
             ///     Start of output.

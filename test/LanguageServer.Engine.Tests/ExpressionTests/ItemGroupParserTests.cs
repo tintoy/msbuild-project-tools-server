@@ -30,7 +30,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests.ExpressionTests
         /// <summary>
         ///     Output for the current test.
         /// </summary>
-        private ITestOutputHelper TestOutput { get; }
+        ITestOutputHelper TestOutput { get; }
 
         /// <summary>
         ///     Verify that the ItemGroup parser can successfully parse the specified input.

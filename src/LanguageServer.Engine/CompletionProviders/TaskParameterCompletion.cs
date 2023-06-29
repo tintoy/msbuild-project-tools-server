@@ -194,7 +194,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
         /// <returns>
         ///     The <see cref="CompletionItem"/>.
         /// </returns>
-        private CompletionItem TaskParameterCompletionItem(MSBuildTaskParameterMetadata parameterMetadata, string parameterDocumentation, LspModels.Range replaceRange, PaddingType needsPadding)
+        CompletionItem TaskParameterCompletionItem(MSBuildTaskParameterMetadata parameterMetadata, string parameterDocumentation, LspModels.Range replaceRange, PaddingType needsPadding)
         {
             return new CompletionItem
             {

@@ -49,7 +49,7 @@ namespace MSBuildProjectTools.LanguageServer
         /// <param name="isZeroBased">
         ///     If true, then the position will be treated as 0-based.
         /// </param>
-        private Position(int lineNumber, int columnNumber, bool isZeroBased)
+        Position(int lineNumber, int columnNumber, bool isZeroBased)
         {
             LineNumber = lineNumber;
             ColumnNumber = columnNumber;

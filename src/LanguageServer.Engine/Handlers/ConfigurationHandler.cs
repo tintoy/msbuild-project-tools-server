@@ -48,7 +48,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         /// <returns>
         ///     A <see cref="Task"/> representing the operation.
         /// </returns>
-        private Task OnDidChangeConfiguration(DidChangeConfigurationObjectParams parameters)
+        Task OnDidChangeConfiguration(DidChangeConfigurationObjectParams parameters)
         {
             Configuration.UpdateFrom(parameters);
 
@@ -114,7 +114,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         /// <returns>
         ///     An <see cref="IDisposable"/> representing the log-context scope.
         /// </returns>
-        private static IDisposable BeginOperation(string operationName)
+        static IDisposable BeginOperation(string operationName)
         {
             if (string.IsNullOrWhiteSpace(operationName))
                 throw new ArgumentException("Argument cannot be null, empty, or entirely composed of whitespace: 'operationName'.", nameof(operationName));

@@ -27,7 +27,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
         /// <param name="name">
         ///     The path segment's name.
         /// </param>
-        private XSPathSegment(string name)
+        XSPathSegment(string name)
         {
             if (string.IsNullOrWhiteSpace(name) && name != string.Empty)
                 throw new ArgumentException($"Argument cannot be null or entirely composed of whitespace: {nameof(name)}.", nameof(name));

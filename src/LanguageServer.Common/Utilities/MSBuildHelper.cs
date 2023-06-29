@@ -44,12 +44,12 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         /// <remarks>
         ///     2.1.599 is the theoretical highest version number of the 2.1.5xx feature band, which is the last .NET SDK that ships .NET 2.1 (LTS).
         /// </remarks>
-        private static readonly SemanticVersion NetCoreLastSdkVersionFor150Folder = new SemanticVersion(major: 2, minor: 1, patch: 599);
+        static readonly SemanticVersion NetCoreLastSdkVersionFor150Folder = new SemanticVersion(major: 2, minor: 1, patch: 599);
 
         /// <summary>
         ///     A <see cref="VisualStudioInstance"/> representing the currently-registered instance of MSBuild.
         /// </summary>
-        private static VisualStudioInstance _registeredMSBuildInstance;
+        static VisualStudioInstance _registeredMSBuildInstance;
 
         /// <summary>
         ///     Has a compatible (with the current .NET SDK) version of MSBuild been discovered?

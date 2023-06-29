@@ -201,7 +201,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
         /// <returns>
         ///     The <see cref="CompletionItem"/>.
         /// </returns>
-        private CompletionItem TargetNameCompletionItem(string targetName, LspModels.Range replaceRange, int? priority = null, string description = null)
+        CompletionItem TargetNameCompletionItem(string targetName, LspModels.Range replaceRange, int? priority = null, string description = null)
         {
             return new CompletionItem
             {

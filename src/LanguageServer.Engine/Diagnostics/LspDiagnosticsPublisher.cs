@@ -10,13 +10,13 @@ namespace MSBuildProjectTools.LanguageServer.Diagnostics
     /// <summary>
     ///     An implementation of <see cref="IPublishDiagnostics"/> that publishes diagnostics via LSP.
     /// </summary>
-    internal class LspDiagnosticsPublisher
+    class LspDiagnosticsPublisher
         : IPublishDiagnostics
     {
         /// <summary>
         ///     The LSP <see cref="ILanguageServer"/>.
         /// </summary>
-        private readonly ILanguageServer _languageServer;
+        readonly ILanguageServer _languageServer;
 
         /// <summary>
         ///     Create a new <see cref="LspDiagnosticsPublisher"/>.

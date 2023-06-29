@@ -14,12 +14,12 @@ namespace MSBuildProjectTools.LanguageServer.Tests.Logging
         /// <summary>
         ///     The language server to which events will be logged.
         /// </summary>
-        private readonly ITestOutputHelper _testOutput;
+        readonly ITestOutputHelper _testOutput;
 
         /// <summary>
         ///     The <see cref="LoggingLevelSwitch"/> that controls logging.
         /// </summary>
-        private readonly LoggingLevelSwitch _levelSwitch;
+        readonly LoggingLevelSwitch _levelSwitch;
 
         /// <summary>
         ///     Create a new language-server event sink.
