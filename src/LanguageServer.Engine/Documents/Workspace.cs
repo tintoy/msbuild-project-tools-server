@@ -188,7 +188,11 @@ namespace MSBuildProjectTools.LanguageServer.Documents
             {
                 isNewProject = true;
 
-                MasterProject ??= new MasterProjectDocument(this, documentUri, Log);
+                if (MasterProject == null)
+                {
+                    MasterProject = new MasterProjectDocument(this, documentUri, Log);
+                    return MasterProject;
+                }
 
                 SubProjectDocument subProject = new SubProjectDocument(this, documentUri, Log, MasterProject);
                 MasterProject.AddSubProject(subProject);
