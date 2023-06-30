@@ -1,9 +1,9 @@
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text.Json;
 
 namespace MSBuildProjectTools.LanguageServer.TaskReflection
 {
@@ -18,7 +18,7 @@ namespace MSBuildProjectTools.LanguageServer.TaskReflection
         /// <summary>
         ///     The fully-qualified names of supported task parameter types.
         /// </summary>
-        static readonly HashSet<string> SupportedTaskParameterTypes = new HashSet<string>
+        private static readonly HashSet<string> s_supportedTaskParameterTypes = new HashSet<string>
         {
             typeof(string).FullName,
             typeof(bool).FullName,
@@ -101,95 +101,86 @@ namespace MSBuildProjectTools.LanguageServer.TaskReflection
                     )
                     .ToArray();
 
-                using StringWriter output = new StringWriter();
-                using JsonTextWriter json = new JsonTextWriter(output);
-                json.Formatting = Formatting.Indented;
-                json.WriteStartObject();
-
-                json.WritePropertyName("assemblyName");
-                json.WriteValue(tasksAssembly.FullName);
-
-                json.WritePropertyName("assemblyPath");
-                json.WriteValue(tasksAssemblyFile.FullName);
-
-                json.WritePropertyName("timestampUtc");
-                json.WriteValue(tasksAssemblyFile.LastWriteTimeUtc);
-
-                json.WritePropertyName("tasks");
-                json.WriteStartArray();
-
-                foreach (Type taskType in taskTypes)
+                JsonWriterOptions jsonOptions = new JsonWriterOptions
                 {
-                    json.WriteStartObject();
+                    Indented = true,
+                };
 
-                    json.WritePropertyName("taskName");
-                    json.WriteValue(taskType.Name);
+                MemoryStream memoryStream = new MemoryStream();
+                using (Utf8JsonWriter jsonWriter = new Utf8JsonWriter(memoryStream, jsonOptions))
+                {
+                    jsonWriter.WriteStartObject();
 
-                    json.WritePropertyName("typeName");
-                    json.WriteValue(taskType.FullName);
+                    jsonWriter.WriteString("assemblyName", tasksAssembly.FullName);
+                    jsonWriter.WriteString("assemblyPath", tasksAssemblyFile.FullName);
+                    jsonWriter.WriteString("timestampUtc", tasksAssemblyFile.LastWriteTimeUtc);
 
-                    PropertyInfo[] properties =
-                        taskType.GetProperties()
-                            .Where(property =>
-                                (property.CanRead && property.GetGetMethod().IsPublic)
-                                ||
-                                (property.CanWrite && property.GetSetMethod().IsPublic)
-                            )
-                            .ToArray();
+                    jsonWriter.WritePropertyName("tasks");
+                    jsonWriter.WriteStartArray();
 
-                    json.WritePropertyName("parameters");
-                    json.WriteStartArray();
-                    foreach (PropertyInfo property in properties)
+                    foreach (Type taskType in taskTypes)
                     {
-                        if (!SupportedTaskParameterTypes.Contains(property.PropertyType.FullName) && !SupportedTaskParameterTypes.Contains(property.PropertyType.FullName + "[]") && !property.PropertyType.IsEnum)
-                            continue;
+                        jsonWriter.WriteStartObject();
 
-                        json.WriteStartObject();
+                        jsonWriter.WriteString("taskName", taskType.Name);
+                        jsonWriter.WriteString("typeName", taskType.FullName);
 
-                        json.WritePropertyName("parameterName");
-                        json.WriteValue(property.Name);
+                        PropertyInfo[] properties =
+                            taskType.GetProperties()
+                                .Where(property =>
+                                    (property.CanRead && property.GetGetMethod().IsPublic) ||
+                                    (property.CanWrite && property.GetSetMethod().IsPublic)
+                                )
+                                .ToArray();
 
-                        json.WritePropertyName("parameterType");
-                        json.WriteValue(property.PropertyType.FullName);
+                        jsonWriter.WritePropertyName("parameters");
+                        jsonWriter.WriteStartArray();
 
-                        if (property.PropertyType.IsEnum)
+                        foreach (PropertyInfo property in properties)
                         {
-                            json.WritePropertyName("enum");
-                            json.WriteStartArray();
-                            foreach (string enumMember in Enum.GetNames(property.PropertyType))
-                                json.WriteValue(enumMember);
-                            json.WriteEndArray();
+                            if (!s_supportedTaskParameterTypes.Contains(property.PropertyType.FullName) && !s_supportedTaskParameterTypes.Contains(property.PropertyType.FullName + "[]") && !property.PropertyType.IsEnum)
+                                continue;
+
+                            jsonWriter.WriteStartObject();
+
+                            jsonWriter.WriteString("parameterName", property.Name);
+                            jsonWriter.WriteString("parameterType", property.PropertyType.FullName);
+
+                            if (property.PropertyType.IsEnum)
+                            {
+                                jsonWriter.WritePropertyName("enum");
+                                jsonWriter.WriteStartArray();
+
+                                foreach (string enumMember in Enum.GetNames(property.PropertyType))
+                                    jsonWriter.WriteStringValue(enumMember);
+
+                                jsonWriter.WriteEndArray();
+                            }
+
+                            bool isRequired = property.GetCustomAttributes().Any(attribute => attribute.GetType().FullName == "Microsoft.Build.Framework.RequiredAttribute");
+                            if (isRequired)
+                                jsonWriter.WriteBoolean("required", true);
+
+                            bool isOutput = property.GetCustomAttributes().Any(attribute => attribute.GetType().FullName == "Microsoft.Build.Framework.OutputAttribute");
+                            if (isOutput)
+                                jsonWriter.WriteBoolean("output", true);
+
+                            jsonWriter.WriteEndObject();
                         }
 
-                        bool isRequired = property.GetCustomAttributes().Any(attribute => attribute.GetType().FullName == "Microsoft.Build.Framework.RequiredAttribute");
-                        if (isRequired)
-                        {
-                            json.WritePropertyName("required");
-                            json.WriteValue(true);
-                        }
+                        jsonWriter.WriteEndArray();
 
-                        bool isOutput = property.GetCustomAttributes().Any(attribute => attribute.GetType().FullName == "Microsoft.Build.Framework.OutputAttribute");
-                        if (isOutput)
-                        {
-                            json.WritePropertyName("output");
-                            json.WriteValue(true);
-                        }
-
-                        json.WriteEndObject();
+                        jsonWriter.WriteEndObject();
                     }
-                    json.WriteEndArray();
 
-                    json.WriteEndObject();
+                    jsonWriter.WriteEndArray();
+
+                    jsonWriter.WriteEndObject();
                 }
 
-                json.WriteEndArray();
-
-                json.WriteEndObject();
-                json.Flush();
-                output.Flush();
-
-                Console.Out.WriteLine(output);
-                Console.Out.Flush();
+                memoryStream.Position = 0;
+                StreamReader reader = new StreamReader(memoryStream);
+                Console.WriteLine(reader.ReadToEnd());
 
                 return 0;
             }
@@ -219,21 +210,25 @@ namespace MSBuildProjectTools.LanguageServer.TaskReflection
         static void WriteErrorJson(string messageOrFormat, params object[] formatArgs)
         {
             string message = formatArgs.Length > 0 ? string.Format(messageOrFormat, formatArgs) : messageOrFormat;
+            ErrorMessageModel messageModel = new ErrorMessageModel(message);
 
-            using StringWriter output = new StringWriter();
-            using JsonTextWriter jsonWriter = new JsonTextWriter(output);
-            jsonWriter.Formatting = Formatting.Indented;
-
-            jsonWriter.WriteStartObject();
+            JsonSerializerOptions jsonOptions = new JsonSerializerOptions()
             {
-                jsonWriter.WritePropertyName("Message");
-                jsonWriter.WriteValue(message);
-            }
-            jsonWriter.WriteEndObject();
+                WriteIndented = true,
+            };
 
-            jsonWriter.Flush();
-            Console.Out.WriteLine(output);
-            Console.Out.Flush();
+            string json = JsonSerializer.Serialize(messageModel, jsonOptions);
+            Console.WriteLine(json);
+        }
+
+        private class ErrorMessageModel
+        {
+            public string Message { get; init; }
+
+            public ErrorMessageModel(string message)
+            {
+                Message = message;
+            }
         }
     }
 }
