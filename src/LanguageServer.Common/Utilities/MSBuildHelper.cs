@@ -1,8 +1,6 @@
 using Microsoft.Build.Construction;
 using Microsoft.Build.Evaluation;
 using Microsoft.Build.Locator;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using NuGet.Versioning;
 using Serilog;
 using System;
@@ -10,8 +8,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
+using System.Text.Json.Nodes;
 
 namespace MSBuildProjectTools.LanguageServer.Utilities
 {
@@ -390,13 +387,10 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         /// <param name="project">
         ///     The MSBuild <see cref="Project"/>.
         /// </param>
-        /// <param name="cancellationToken">
-        ///     An optional <see cref="CancellationToken"/> that can be used to cancel the asynchronous operation.
-        /// </param>
         /// <returns>
         ///     A dictionary of package semantic versions (keyed by package Id), or <c>null</c> if the project does not have a <see cref="WellKnownPropertyNames.ProjectAssetsFile"/> property (or the project assets file does not exist or has an invalid format).
         /// </returns>
-        public static async Task<Dictionary<string, SemanticVersion>> GetReferencedPackageVersions(this Project project, CancellationToken cancellationToken = default)
+        public static Dictionary<string, SemanticVersion> GetReferencedPackageVersions(this Project project)
         {
             if (project == null)
                 throw new ArgumentNullException(nameof(project));
@@ -408,12 +402,10 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
             if (!projectAssetsFile.Exists)
                 return null;
 
-            JObject projectAssetsJson;
+            JsonNode rootNode;
             try
             {
-                using TextReader reader = projectAssetsFile.OpenText();
-                using JsonReader jsonReader = new JsonTextReader(reader);
-                projectAssetsJson = await JObject.LoadAsync(jsonReader, cancellationToken);
+                rootNode = JsonNode.Parse(projectAssetsFile.OpenRead());
             }
             catch (Exception cannotLoadProjectAssetsJson)
             {
@@ -422,7 +414,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
                 return null;
             }
 
-            JObject libraries = projectAssetsJson.Value<JObject>("libraries");
+            JsonNode libraries = rootNode["libraries"];
             if (libraries == null)
             {
                 Log.Warning("Project assets file {ProjectAssetsFile} has invalid format (missing 'libraries' property on root object).", projectAssetsFile.FullName);
@@ -432,13 +424,14 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
 
             var referencedPackageVersions = new Dictionary<string, SemanticVersion>(StringComparer.OrdinalIgnoreCase);
 
-            foreach (JProperty library in libraries.Properties())
+            foreach (var (libraryName, _) in libraries.AsObject())
             {
                 // Property names should be in the format "libName/semVer".
-                string[] nameComponents = library.Name.Split(
-                    separator: new[] { '/' },
+                string[] nameComponents = libraryName.Split(
+                    separator: '/',
                     count: 2
                 );
+
                 if (nameComponents.Length != 2)
                     continue; // Invalid format.
 

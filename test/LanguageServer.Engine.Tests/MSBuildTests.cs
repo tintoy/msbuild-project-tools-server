@@ -3,7 +3,6 @@ using Microsoft.Build.Evaluation;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -81,7 +80,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests
         /// </summary>
         [InlineData("Autofac", "4.6.1")]
         [Theory(DisplayName = "Get referenced package version from the current test project ")]
-        public async Task GetReferencedPackageVersion(string packageId, string expectedPackageVersion)
+        public void GetReferencedPackageVersion(string packageId, string expectedPackageVersion)
         {
             var projectFile = new FileInfo(
                 Path.Combine(TestDirectory.FullName, "..", "..", "..", "LanguageServer.Engine.Tests.csproj")
@@ -93,7 +92,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests
             Project project = LoadTestProject(projectFile.FullName);
             using (project.ProjectCollection)
             {
-                Dictionary<string, SemanticVersion> referencedPackageVersions = await project.GetReferencedPackageVersions();
+                Dictionary<string, SemanticVersion> referencedPackageVersions = project.GetReferencedPackageVersions();
                 Assert.NotNull(referencedPackageVersions);
                 Assert.NotEmpty(referencedPackageVersions);
 

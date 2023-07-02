@@ -295,7 +295,7 @@ namespace MSBuildProjectTools.LanguageServer.Documents
 
             IsMSBuildProjectCached = !loaded;
 
-            await UpdatePackageReferences(cancellationToken);
+            UpdatePackageReferences();
         }
 
         /// <summary>
@@ -304,13 +304,10 @@ namespace MSBuildProjectTools.LanguageServer.Documents
         /// <param name="xml">
         ///     The project XML.
         /// </param>
-        /// <param name="cancellationToken">
-        ///     An optional <see cref="CancellationToken"/> that can be used to cancel the operation.
-        /// </param>
         /// <returns>
         ///     A task representing the update operation.
         /// </returns>
-        public virtual async Task Update(string xml, CancellationToken cancellationToken = default)
+        public virtual void Update(string xml)
         {
             if (xml == null)
                 throw new ArgumentNullException(nameof(xml));
@@ -330,7 +327,7 @@ namespace MSBuildProjectTools.LanguageServer.Documents
 
             IsMSBuildProjectCached = !loaded;
 
-            await UpdatePackageReferences(cancellationToken);
+            UpdatePackageReferences();
         }
 
         /// <summary>
@@ -479,13 +476,10 @@ namespace MSBuildProjectTools.LanguageServer.Documents
         /// <summary>
         ///     Re-scan referenced packages for the current project.
         /// </summary>
-        /// <param name="cancellationToken">
-        ///     An optional <see cref="CancellationToken"/> that can be used to cancel the operation.
-        /// </param>
         /// <returns>
         ///     <c>true</c>, if the package references were successfully scanned and updated; otherwise, <c>false</c>.
         /// </returns>
-        public virtual async Task<bool> UpdatePackageReferences(CancellationToken cancellationToken = default)
+        public virtual bool UpdatePackageReferences()
         {
             try
             {
@@ -518,7 +512,7 @@ namespace MSBuildProjectTools.LanguageServer.Documents
                     return false;
                 }
 
-                Dictionary<string, SemanticVersion> referencedPackageVersions = await MSBuildProject.GetReferencedPackageVersions(cancellationToken);
+                Dictionary<string, SemanticVersion> referencedPackageVersions = MSBuildProject.GetReferencedPackageVersions();
                 if (referencedPackageVersions == null)
                     return false;
 
