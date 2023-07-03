@@ -1,6 +1,5 @@
-using Newtonsoft.Json;
-using System;
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
 namespace MSBuildProjectTools.LanguageServer.Help
 {
@@ -12,37 +11,17 @@ namespace MSBuildProjectTools.LanguageServer.Help
         /// <summary>
         ///     A description of the task.
         /// </summary>
-        [JsonProperty("description")]
-        public string Description { get; set; }
+        public string Description { get; init; }
 
         /// <summary>
         ///     A link to the task's documentation (if available).
         /// </summary>
-        [JsonProperty("helpLink")]
-        public string HelpLink { get; set; }
+        public string HelpLink { get; init; }
 
         /// <summary>
         ///     The task's parameters.
         /// </summary>
-        [JsonProperty("parameters", ObjectCreationHandling = ObjectCreationHandling.Reuse)]
-        public SortedDictionary<string, TaskParameterHelp> Parameters { get; } = new SortedDictionary<string, TaskParameterHelp>();
-
-        /// <summary>
-        ///     Load task help from JSON.
-        /// </summary>
-        /// <param name="json">
-        ///     A <see cref="JsonReader"/> representing the JSON.
-        /// </param>
-        /// <returns>
-        ///     A sorted dictionary of task help, keyed by task name.
-        /// </returns>
-        public static SortedDictionary<string, TaskHelp> FromJson(JsonReader json)
-        {
-            if (json == null)
-                throw new ArgumentNullException(nameof(json));
-
-            return new JsonSerializer().Deserialize<SortedDictionary<string, TaskHelp>>(json);
-        }
+        public SortedDictionary<string, TaskParameterHelp> Parameters { get; init; }
     }
 
     /// <summary>
@@ -53,19 +32,17 @@ namespace MSBuildProjectTools.LanguageServer.Help
         /// <summary>
         ///     A description of the task parameter.
         /// </summary>
-        [JsonProperty("description")]
-        public string Description { get; set; }
+        public string Description { get; init; }
 
         /// <summary>
         ///     A link to the task parameter's documentation (if available).
         /// </summary>
-        [JsonProperty("helpLink")]
-        public string HelpLink { get; set; }
+        public string HelpLink { get; init; }
 
         /// <summary>
         ///     A description of the task parameter data-type.
         /// </summary>
-        [JsonProperty("type")]
-        public string TypeDescription { get; set; }
+        [JsonPropertyName("type")]
+        public string TypeDescription { get; init; }
     }
 }

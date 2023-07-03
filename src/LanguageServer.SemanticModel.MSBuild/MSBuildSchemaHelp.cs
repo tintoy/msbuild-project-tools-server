@@ -1,9 +1,9 @@
 using MSBuildProjectTools.LanguageServer.Help;
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.Json;
 
 namespace MSBuildProjectTools.LanguageServer.SemanticModel
 {
@@ -38,29 +38,31 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
                 Path.Combine(HelpDirectory.FullName, "tasks.json")
             );
 
-            using (StreamReader input = ElementHelpFile.OpenText())
-            using (JsonTextReader json = new JsonTextReader(input))
+            JsonSerializerOptions jsonOptions = new JsonSerializerOptions()
             {
-                ElementHelp = Help.ElementHelp.FromJson(json);
+                PropertyNameCaseInsensitive = true,
+            };
+
+            using (FileStream stream = ElementHelpFile.OpenRead())
+            {
+                ElementHelp = JsonSerializer.Deserialize<SortedDictionary<string, ElementHelp>>(stream, jsonOptions);
             }
 
-            using (StreamReader input = PropertyHelpFile.OpenText())
-            using (JsonTextReader json = new JsonTextReader(input))
+            using (FileStream stream = PropertyHelpFile.OpenRead())
             {
-                PropertyHelp = Help.PropertyHelp.FromJson(json);
+                PropertyHelp = JsonSerializer.Deserialize<SortedDictionary<string, PropertyHelp>>(stream, jsonOptions);
             }
 
-            using (StreamReader input = ItemHelpFile.OpenText())
-            using (JsonTextReader json = new JsonTextReader(input))
+            using (FileStream stream = ItemHelpFile.OpenRead())
             {
-                ItemHelp = Help.ItemHelp.FromJson(json);
-                GlobalItemMetadataHelp = ItemHelp.ContainsKey("*") ? ItemHelp["*"].Metadata : new SortedDictionary<string, string>();
+                ItemHelp = JsonSerializer.Deserialize<SortedDictionary<string, ItemHelp>>(stream, jsonOptions);
             }
 
-            using (StreamReader input = TaskHelpFile.OpenText())
-            using (JsonTextReader json = new JsonTextReader(input))
+            GlobalItemMetadataHelp = ItemHelp.ContainsKey("*") ? ItemHelp["*"].Metadata : new SortedDictionary<string, string>();
+
+            using (FileStream stream = TaskHelpFile.OpenRead())
             {
-                TaskHelp = Help.TaskHelp.FromJson(json);
+                TaskHelp = JsonSerializer.Deserialize<SortedDictionary<string, TaskHelp>>(stream, jsonOptions);
             }
         }
 

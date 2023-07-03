@@ -1,5 +1,3 @@
-using Newtonsoft.Json;
-using System;
 using System.Collections.Generic;
 
 namespace MSBuildProjectTools.LanguageServer.Help
@@ -12,36 +10,16 @@ namespace MSBuildProjectTools.LanguageServer.Help
         /// <summary>
         ///     A description of the item.
         /// </summary>
-        [JsonProperty("description")]
-        public string Description { get; set; }
+        public string Description { get; init; }
 
         /// <summary>
         ///     A link to the item type's documentation (if available).
         /// </summary>
-        [JsonProperty("helpLink")]
-        public string HelpLink { get; set; }
+        public string HelpLink { get; init; }
 
         /// <summary>
         ///     Descriptions for the item's metadata.
         /// </summary>
-        [JsonProperty("metadata", ObjectCreationHandling = ObjectCreationHandling.Reuse)]
-        public SortedDictionary<string, string> Metadata { get; } = new SortedDictionary<string, string>();
-
-        /// <summary>
-        ///     Load item help from JSON.
-        /// </summary>
-        /// <param name="json">
-        ///     A <see cref="JsonReader"/> representing the JSON.
-        /// </param>
-        /// <returns>
-        ///     A sorted dictionary of item help, keyed by item name.
-        /// </returns>
-        public static SortedDictionary<string, ItemHelp> FromJson(JsonReader json)
-        {
-            if (json == null)
-                throw new ArgumentNullException(nameof(json));
-
-            return new JsonSerializer().Deserialize<SortedDictionary<string, ItemHelp>>(json);
-        }
+        public SortedDictionary<string, string> Metadata { get; init; }
     }
 }
