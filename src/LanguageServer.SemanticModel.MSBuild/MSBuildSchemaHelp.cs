@@ -22,45 +22,31 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
                 throw new InvalidOperationException("Cannot determine current extension directory ('MSBUILD_PROJECT_TOOLS_DIR' environment variable is not present).");
 
             extensionDirectory = Path.GetFullPath(extensionDirectory);
-            HelpDirectory = new DirectoryInfo(
-                Path.Combine(extensionDirectory, "help")
-            );
-            ElementHelpFile = new FileInfo(
-                Path.Combine(HelpDirectory.FullName, "elements.json")
-            );
-            PropertyHelpFile = new FileInfo(
-                Path.Combine(HelpDirectory.FullName, "properties.json")
-            );
-            ItemHelpFile = new FileInfo(
-                Path.Combine(HelpDirectory.FullName, "items.json")
-            );
-            TaskHelpFile = new FileInfo(
-                Path.Combine(HelpDirectory.FullName, "tasks.json")
-            );
+            var helpDirectory = Path.Combine(extensionDirectory, "help");
 
             JsonSerializerOptions jsonOptions = new JsonSerializerOptions()
             {
                 PropertyNameCaseInsensitive = true,
             };
 
-            using (FileStream stream = ElementHelpFile.OpenRead())
+            using (FileStream stream = File.OpenRead(Path.Combine(helpDirectory, "elements.json")))
             {
                 ElementHelp = JsonSerializer.Deserialize<SortedDictionary<string, ElementHelp>>(stream, jsonOptions);
             }
 
-            using (FileStream stream = PropertyHelpFile.OpenRead())
+            using (FileStream stream = File.OpenRead(Path.Combine(helpDirectory, "properties.json")))
             {
                 PropertyHelp = JsonSerializer.Deserialize<SortedDictionary<string, PropertyHelp>>(stream, jsonOptions);
             }
 
-            using (FileStream stream = ItemHelpFile.OpenRead())
+            using (FileStream stream = File.OpenRead(Path.Combine(helpDirectory, "items.json")))
             {
                 ItemHelp = JsonSerializer.Deserialize<SortedDictionary<string, ItemHelp>>(stream, jsonOptions);
             }
 
             GlobalItemMetadataHelp = ItemHelp.ContainsKey("*") ? ItemHelp["*"].Metadata : new SortedDictionary<string, string>();
 
-            using (FileStream stream = TaskHelpFile.OpenRead())
+            using (FileStream stream = File.OpenRead(Path.Combine(helpDirectory, "tasks.json")))
             {
                 TaskHelp = JsonSerializer.Deserialize<SortedDictionary<string, TaskHelp>>(stream, jsonOptions);
             }
@@ -90,31 +76,6 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
         ///     Help for MSBuild tasks.
         /// </summary>
         static SortedDictionary<string, TaskHelp> TaskHelp { get; }
-
-        /// <summary>
-        ///     The directory where extension help files are stored.
-        /// </summary>
-        public static DirectoryInfo HelpDirectory { get; }
-
-        /// <summary>
-        ///     The file that stores help for well-known MSBuild elements.
-        /// </summary>
-        public static FileInfo ElementHelpFile { get; }
-
-        /// <summary>
-        ///     The file that stores help for well-known MSBuild properties.
-        /// </summary>
-        public static FileInfo PropertyHelpFile { get; }
-
-        /// <summary>
-        ///     The file that stores help for well-known MSBuild item types and their metadata.
-        /// </summary>
-        public static FileInfo ItemHelpFile { get; }
-
-        /// <summary>
-        ///     The file that stores help for well-known MSBuild tasks.
-        /// </summary>
-        public static FileInfo TaskHelpFile { get; }
 
         /// <summary>
         ///     The names of well-known MSBuild properties.
