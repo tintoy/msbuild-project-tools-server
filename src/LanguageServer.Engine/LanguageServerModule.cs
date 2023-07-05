@@ -113,15 +113,7 @@ namespace MSBuildProjectTools.LanguageServer
 
             builder.RegisterType<CompletionHandler>()
                 .AsSelf().As<Handler>()
-                .SingleInstance()
-                .OnActivated(activated =>
-                {
-                    CompletionHandler completionHandler = activated.Instance;
-
-                    completionHandler.Providers.AddRange(
-                        activated.Context.Resolve<IEnumerable<ICompletionProvider>>()
-                    );
-                });
+                .SingleInstance();
 
             Type completionProviderType = typeof(CompletionProvider);
             builder.RegisterAssemblyTypes(ThisAssembly)

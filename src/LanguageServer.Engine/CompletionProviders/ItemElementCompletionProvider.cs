@@ -12,22 +12,21 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
 {
     using Documents;
     using SemanticModel;
-    using SemanticModel.MSBuildExpressions;
     using Utilities;
 
     /// <summary>
-    ///     Completion provider for item group expressions.
+    ///     Completion provider for the common item elements.
     /// </summary>
-    public class ItemGroupExpressionCompletion
+    public class ItemElementCompletionProvider
         : CompletionProvider
     {
         /// <summary>
-        ///     Create a new <see cref="ItemGroupExpressionCompletion"/>.
+        ///     Create a new <see cref="ItemElementCompletionProvider"/>.
         /// </summary>
         /// <param name="logger">
         ///     The application logger.
         /// </param>
-        public ItemGroupExpressionCompletion(ILogger logger)
+        public ItemElementCompletionProvider(ILogger logger)
             : base(logger)
         {
         }
@@ -35,7 +34,12 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
         /// <summary>
         ///     The provider display name.
         /// </summary>
-        public override string Name => "ItemGroup Expressions";
+        public override string Name => "Item Elements";
+
+        /// <summary>
+        ///     The provider's default priority for completion items.
+        /// </summary>
+        public override int Priority => 1000;
 
         /// <summary>
         ///     Provide completions for the specified location.
@@ -55,7 +59,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
         /// <returns>
         ///     A <see cref="Task{TResult}"/> that resolves either a <see cref="CompletionList"/>s, or <c>null</c> if no completions are provided.
         /// </returns>
-        public override async Task<CompletionList> ProvideCompletions(XmlLocation location, ProjectDocument projectDocument, string triggerCharacters, CancellationToken cancellationToken = default)
+        public override async Task<CompletionList> ProvideCompletionsAsync(XmlLocation location, ProjectDocument projectDocument, string triggerCharacters, CancellationToken cancellationToken)
         {
             if (location == null)
                 throw new ArgumentNullException(nameof(location));
@@ -65,33 +69,42 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
 
             List<CompletionItem> completions = new List<CompletionItem>();
 
-            Log.Verbose("Evaluate completions for {XmlLocation:l}", location);
+            Log.Verbose("Evaluate completions for {XmlLocation:l} (trigger characters = {TriggerCharacters})", location, triggerCharacters);
 
             using (await projectDocument.Lock.ReaderLockAsync(cancellationToken))
             {
-                if (!projectDocument.EnableExpressions)
-                    return null;
-
-                if (!location.IsExpression(out ExpressionNode expression, out Range expressionRange))
+                if (!location.CanCompleteElement(out XSElement replaceElement, parentPath: WellKnownElementPaths.ItemGroup))
                 {
-                    Log.Verbose("Not offering any completions for {XmlLocation:l} (not on an expression or a location where an expression can be added).", location);
+                    Log.Verbose("Not offering any completions for {XmlLocation:l} (not a direct child of a 'ItemGroup' element).", location);
 
                     return null;
                 }
 
-                if (expression.Kind != ExpressionKind.ItemGroup)
-                {
-                    Log.Verbose("Not offering any completions for {XmlLocation:l} (this provider only supports MSBuild ItemGroup expressions or ItemGroupMetadata expressions without metadata names, not {ExpressionKind} expressions).", location, expression.Kind);
+                Range targetRange;
 
-                    return null;
+                if (replaceElement != null)
+                {
+                    targetRange = replaceElement.Range;
+
+                    Log.Verbose("Offering completions to replace element {ElementName} @ {ReplaceRange:l}",
+                        replaceElement.Name,
+                        targetRange
+                    );
+                }
+                else
+                {
+                    targetRange = location.Position.ToEmptyRange();
+
+                    Log.Verbose("Offering completions to create element @ {ReplaceRange:l}",
+                        targetRange
+                    );
                 }
 
-                Log.Verbose("Offering completions to replace ItemGroup expression @ {ReplaceRange:l}",
-                    expressionRange
-                );
+                // Replace any characters that were typed to trigger the completion.
+                HandleTriggerCharacters(triggerCharacters, projectDocument, ref targetRange);
 
                 completions.AddRange(
-                    GetCompletionItems(projectDocument, expressionRange)
+                    GetCompletionItems(projectDocument, targetRange)
                 );
             }
 
@@ -106,7 +119,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
         }
 
         /// <summary>
-        ///     Get item group element completions.
+        ///     Get item element completions.
         /// </summary>
         /// <param name="projectDocument">
         ///     The <see cref="ProjectDocument"/> for which completions will be offered.
@@ -121,51 +134,53 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
         {
             LspModels.Range replaceRangeLsp = replaceRange.ToLsp();
 
-            HashSet<string> offeredItemGroupNames = new HashSet<string>
+            HashSet<string> offeredItemNames = new HashSet<string>
             {
-                "*" // Skip virtual item type representing well-known metadata.
+                "PackageReference",
+                "DotNetCliToolReference"
             };
 
-            // Well-known item types.
-            foreach (string itemType in MSBuildSchemaHelp.WellKnownItemTypes)
+            // Well-known (but standard-format) properties.
+
+            foreach (string wellKnownItemName in MSBuildSchemaHelp.WellKnownItemTypes)
             {
-                if (!offeredItemGroupNames.Add(itemType))
+                if (!offeredItemNames.Add(wellKnownItemName))
                     continue;
 
-                yield return ItemGroupCompletionItem(itemType, replaceRangeLsp,
-                    description: MSBuildSchemaHelp.ForItemType(itemType)
+                yield return ItemCompletion(wellKnownItemName, replaceRangeLsp,
+                    description: MSBuildSchemaHelp.ForItemType(wellKnownItemName)
                 );
             }
 
             if (!projectDocument.HasMSBuildProject)
                 yield break; // Without a valid MSBuild project (even a cached one will do), we can't inspect existing MSBuild properties.
 
-
             if (!projectDocument.Workspace.Configuration.Language.CompletionsFromProject.Contains(CompletionSource.ItemType))
                 yield break;
 
-            int otherItemGroupPriority = Priority + 10;
+            int otherItemPriority = Priority + 10;
 
-            string[] otherItemTypes =
-                projectDocument.MSBuildProject.ItemTypes
-                    .Where(itemType => !itemType.StartsWith("_")) // Ignore private item groups.
+            string[] otherItemNames =
+                projectDocument.MSBuildProject.Properties
+                    .Select(item => item.Name)
+                    .Where(itemName => !itemName.StartsWith("_")) // Ignore private item types.
                     .ToArray();
-            foreach (string otherItemType in otherItemTypes)
+            foreach (string itemName in otherItemNames)
             {
-                if (!offeredItemGroupNames.Add(otherItemType))
+                if (!offeredItemNames.Add(itemName))
                     continue;
 
-                yield return ItemGroupCompletionItem(otherItemType, replaceRangeLsp, otherItemGroupPriority,
-                    description: "Item group defined in this project (or a project it imports)."
+                yield return ItemCompletion(itemName, replaceRangeLsp, otherItemPriority,
+                    description: $"I don't know anything about the '{itemName}' item type, but it's defined in this project (or a project that it imports); you can override its value by specifying it here."
                 );
             }
         }
 
         /// <summary>
-        ///     Create a standard <see cref="CompletionItem"/> for the specified MSBuild item group.
+        ///     Create a standard <see cref="CompletionItem"/> for the specified MSBuild item.
         /// </summary>
-        /// <param name="itemType">
-        ///     The MSBuild item group name.
+        /// <param name="itemName">
+        ///     The MSBuild item name.
         /// </param>
         /// <param name="replaceRange">
         ///     The range of text that will be replaced by the completion.
@@ -179,20 +194,21 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
         /// <returns>
         ///     The <see cref="CompletionItem"/>.
         /// </returns>
-        CompletionItem ItemGroupCompletionItem(string itemType, LspModels.Range replaceRange, int? priority = null, string description = null)
+        CompletionItem ItemCompletion(string itemName, LspModels.Range replaceRange, int? priority = null, string description = null)
         {
             return new CompletionItem
             {
-                Label = $"@({itemType})",
-                Detail = "Item Group",
-                Kind = CompletionItemKind.Class,
+                Label = $"<{itemName}>",
+                Detail = "Item",
                 Documentation = description,
-                SortText = $"{priority ?? Priority:0000}@({itemType})",
+                Kind = CompletionItemKind.Class,
+                SortText = $"{priority ?? Priority:0000}<{itemName}>",
                 TextEdit = new TextEdit
                 {
-                    NewText = $"@({itemType})",
+                    NewText = $"<{itemName} Include=\"$1\" />$0",
                     Range = replaceRange
-                }
+                },
+                InsertTextFormat = InsertTextFormat.Snippet
             };
         }
     }

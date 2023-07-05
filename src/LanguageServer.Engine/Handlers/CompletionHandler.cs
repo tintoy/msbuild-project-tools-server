@@ -26,11 +26,16 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
     public sealed class CompletionHandler
         : Handler, ICustomCompletionHandler
     {
+        private readonly IEnumerable<ICompletionProvider> _completionProviders;
+
         /// <summary>
         ///     Create a new <see cref="CompletionHandler"/>.
         /// </summary>
         /// <param name="server">
         ///     The language server.
+        /// </param>
+        /// <param name="completionProviders">
+        ///     Available completion providers.
         /// </param>
         /// <param name="workspace">
         ///     The document workspace.
@@ -38,19 +43,15 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         /// <param name="logger">
         ///     The application logger.
         /// </param>
-        public CompletionHandler(ILanguageServer server, Workspace workspace, ILogger logger)
+        public CompletionHandler(ILanguageServer server, IEnumerable<ICompletionProvider> completionProviders, Workspace workspace, ILogger logger)
             : base(server, logger)
         {
             if (workspace == null)
                 throw new ArgumentNullException(nameof(workspace));
 
+            _completionProviders = completionProviders;
             Workspace = workspace;
         }
-
-        /// <summary>
-        ///     Registered completion providers.
-        /// </summary>
-        public List<ICompletionProvider> Providers { get; } = new List<ICompletionProvider>();
 
         /// <summary>
         ///     The document workspace.
@@ -159,8 +160,8 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
                     triggerCharacters = parameters.Context.TriggerCharacter;
 
                 List<Task<CompletionList>> allProviderCompletions =
-                    Providers.Select(
-                        provider => provider.ProvideCompletions(location, projectDocument, triggerCharacters, cancellationToken)
+                    _completionProviders.Select(
+                        provider => provider.ProvideCompletionsAsync(location, projectDocument, triggerCharacters, cancellationToken)
                     )
                     .ToList();
 

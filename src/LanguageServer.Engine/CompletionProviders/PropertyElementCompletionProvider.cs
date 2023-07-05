@@ -3,6 +3,7 @@ using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -12,22 +13,21 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
 {
     using Documents;
     using SemanticModel;
-    using SemanticModel.MSBuildExpressions;
     using Utilities;
 
     /// <summary>
-    ///     Completion provider for property expressions.
+    ///     Completion provider for the common property elements.
     /// </summary>
-    public class PropertyExpressionCompletion
+    public class PropertyElementCompletionProvider
         : CompletionProvider
     {
         /// <summary>
-        ///     Create a new <see cref="PropertyExpressionCompletion"/>.
+        ///     Create a new <see cref="PropertyElementCompletionProvider"/>.
         /// </summary>
         /// <param name="logger">
         ///     The application logger.
         /// </param>
-        public PropertyExpressionCompletion(ILogger logger)
+        public PropertyElementCompletionProvider(ILogger logger)
             : base(logger)
         {
         }
@@ -35,7 +35,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
         /// <summary>
         ///     The provider display name.
         /// </summary>
-        public override string Name => "Property Expressions";
+        public override string Name => "Property Elements";
 
         /// <summary>
         ///     Provide completions for the specified location.
@@ -55,7 +55,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
         /// <returns>
         ///     A <see cref="Task{TResult}"/> that resolves either a <see cref="CompletionList"/>s, or <c>null</c> if no completions are provided.
         /// </returns>
-        public override async Task<CompletionList> ProvideCompletions(XmlLocation location, ProjectDocument projectDocument, string triggerCharacters, CancellationToken cancellationToken = default)
+        public override async Task<CompletionList> ProvideCompletionsAsync(XmlLocation location, ProjectDocument projectDocument, string triggerCharacters, CancellationToken cancellationToken)
         {
             if (location == null)
                 throw new ArgumentNullException(nameof(location));
@@ -69,29 +69,38 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
 
             using (await projectDocument.Lock.ReaderLockAsync(cancellationToken))
             {
-                if (!projectDocument.EnableExpressions)
-                    return null;
-
-                if (!location.IsExpression(out ExpressionNode expression, out Range expressionRange))
+                if (!location.CanCompleteElement(out XSElement replaceElement, parentPath: WellKnownElementPaths.PropertyGroup))
                 {
-                    Log.Verbose("Not offering any completions for {XmlLocation:l} (not on an expression or a location where an expression can be added).", location);
+                    Log.Verbose("Not offering any completions for {XmlLocation:l} (not a direct child of a 'PropertyGroup' element).", location);
 
                     return null;
                 }
 
-                if (expression.Kind != ExpressionKind.Evaluate)
-                {
-                    Log.Verbose("Not offering any completions for {XmlLocation:l} (this provider only supports MSBuild Evaluation expressions, not {ExpressionKind} expressions).", location, expression.Kind);
+                Range targetRange;
 
-                    return null;
+                if (replaceElement != null)
+                {
+                    targetRange = replaceElement.Range;
+
+                    Log.Verbose("Offering completions to replace element {ElementName} @ {ReplaceRange:l}",
+                        replaceElement.Name,
+                        targetRange
+                    );
+                }
+                else
+                {
+                    targetRange = location.Position.ToEmptyRange();
+
+                    Log.Verbose("Offering completions to create element @ {ReplaceRange:l}",
+                        targetRange
+                    );
                 }
 
-                Log.Verbose("Offering completions to replace Evaluate expression @ {ReplaceRange:l}",
-                    expressionRange
-                );
+                // Replace any characters that were typed to trigger the completion.
+                HandleTriggerCharacters(triggerCharacters, projectDocument, ref targetRange);
 
                 completions.AddRange(
-                    GetCompletionItems(projectDocument, expressionRange)
+                    GetCompletionItems(projectDocument, targetRange)
                 );
             }
 
@@ -123,14 +132,19 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
 
             HashSet<string> offeredPropertyNames = new HashSet<string>();
 
-            // Well-known properties.
+            // Well-known (but standard-format) properties.
+
             foreach (string wellKnownPropertyName in MSBuildSchemaHelp.WellKnownPropertyNames)
             {
                 if (!offeredPropertyNames.Add(wellKnownPropertyName))
                     continue;
 
+                var (defaultValue, defaultValues) = MSBuildSchemaHelp.DefaultsForProperty(wellKnownPropertyName);
+
                 yield return PropertyCompletionItem(wellKnownPropertyName, replaceRangeLsp,
-                    description: MSBuildSchemaHelp.ForProperty(wellKnownPropertyName)
+                    description: MSBuildSchemaHelp.ForProperty(wellKnownPropertyName),
+                    defaultValue: defaultValue,
+                    defaultValues: defaultValues
                 );
             }
 
@@ -153,7 +167,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
                     continue;
 
                 yield return PropertyCompletionItem(propertyName, replaceRangeLsp, otherPropertyPriority,
-                    description: "Property defined in this project (or a project it imports)."
+                    description: $"I don't know anything about the '{propertyName}' property, but it's defined in this project (or a project that it imports); you can override its value by specifying it here."
                 );
             }
         }
@@ -171,25 +185,95 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
         ///     The item sort priority (defaults to <see cref="CompletionProvider.Priority"/>).
         /// </param>
         /// <param name="description">
-        ///     An optional description for the item.
+        ///     An optional description for the property.
+        /// </param>
+        /// <param name="defaultValue">
+        ///     An optional default value for the property.
+        /// </param>
+        /// <param name="defaultValues">
+        ///     An optional list of default values for the property.
+        /// 
+        ///     If specified, then the inserted property's snippet will offer these as a drop-down list.
         /// </param>
         /// <returns>
         ///     The <see cref="CompletionItem"/>.
         /// </returns>
-        CompletionItem PropertyCompletionItem(string propertyName, LspModels.Range replaceRange, int? priority = null, string description = null)
+        CompletionItem PropertyCompletionItem(string propertyName, LspModels.Range replaceRange, int? priority = null, string description = null, string defaultValue = null, IReadOnlyList<string> defaultValues = null)
         {
             return new CompletionItem
             {
-                Label = $"$({propertyName})",
+                Label = $"<{propertyName}>",
                 Detail = "Property",
                 Documentation = description,
-                SortText = $"{priority ?? Priority:0000}$({propertyName})",
+                Kind = CompletionItemKind.Property,
+                SortText = $"{priority ?? Priority:0000}<{propertyName}>",
                 TextEdit = new TextEdit
                 {
-                    NewText = $"$({propertyName})",
+                    NewText = GetCompletionText(propertyName, defaultValue, defaultValues),
                     Range = replaceRange
-                }
+                },
+                InsertTextFormat = InsertTextFormat.Snippet
             };
+        }
+
+        /// <summary>
+        ///     Get the completion text for the specified property and its default value(s), if any.
+        /// </summary>
+        /// <param name="propertyName">
+        ///     The property name.
+        /// </param>
+        /// <param name="defaultValue">
+        ///     The property's default value (if any).
+        /// </param>
+        /// <param name="defaultValues">
+        ///     The property's default values (if any).
+        /// 
+        ///     If specified, then the inserted property's snippet will offer these as a drop-down list.
+        /// </param>
+        /// <returns>
+        ///     The completion text (in standard LSP Snippet format).
+        /// </returns>
+        static string GetCompletionText(string propertyName, string defaultValue, IReadOnlyList<string> defaultValues)
+        {
+            StringBuilder completionText = new StringBuilder();
+            completionText.AppendFormat("<{0}>", propertyName);
+
+            bool haveValue = false;
+            if (defaultValues != null && defaultValues.Count > 0)
+            {
+                haveValue = true;
+
+                completionText.Append("${1|");
+                completionText.Append(
+                    defaultValues[0]
+                );
+                for (int valueIndex = 1; valueIndex < defaultValues.Count; valueIndex++)
+                {
+                    completionText.Append(',');
+                    completionText.Append(
+                        defaultValues[valueIndex]
+                    );
+                }
+                completionText.Append("|}");
+            }
+            else if (!string.IsNullOrWhiteSpace(defaultValue))
+            {
+                haveValue = true;
+
+                completionText.Append("${1:");
+                completionText.Append(defaultValue);
+                completionText.Append('}');
+            }
+            else
+                completionText.Append("$0");
+
+            completionText.AppendFormat("</{0}>", propertyName);
+
+            // If we have a default value / values, then the final cursor position should be after the property element.
+            if (haveValue)
+                completionText.Append("$0");
+
+            return completionText.ToString();
         }
     }
 }

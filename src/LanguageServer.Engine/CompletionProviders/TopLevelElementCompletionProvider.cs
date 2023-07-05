@@ -16,16 +16,16 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
     /// <summary>
     ///     Completion provider for the top-level elements (e.g. PropertyGroup, ItemGroup, Target, etc).
     /// </summary>
-    public class TopLevelElementCompletion
+    public class TopLevelElementCompletionProvider
         : CompletionProvider
     {
         /// <summary>
-        ///     Create a new <see cref="TopLevelElementCompletion"/>.
+        ///     Create a new <see cref="TopLevelElementCompletionProvider"/>.
         /// </summary>
         /// <param name="logger">
         ///     The application logger.
         /// </param>
-        public TopLevelElementCompletion(ILogger logger)
+        public TopLevelElementCompletionProvider(ILogger logger)
             : base(logger)
         {
         }
@@ -53,7 +53,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
         /// <returns>
         ///     A <see cref="Task{TResult}"/> that resolves either a <see cref="CompletionList"/>s, or <c>null</c> if no completions are provided.
         /// </returns>
-        public override async Task<CompletionList> ProvideCompletions(XmlLocation location, ProjectDocument projectDocument, string triggerCharacters, CancellationToken cancellationToken = default)
+        public override async Task<CompletionList> ProvideCompletionsAsync(XmlLocation location, ProjectDocument projectDocument, string triggerCharacters, CancellationToken cancellationToken)
         {
             if (location == null)
                 throw new ArgumentNullException(nameof(location));
