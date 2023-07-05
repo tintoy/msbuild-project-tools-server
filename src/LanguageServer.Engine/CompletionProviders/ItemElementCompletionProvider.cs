@@ -3,7 +3,6 @@ using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -16,18 +15,18 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
     using Utilities;
 
     /// <summary>
-    ///     Completion provider for the common property elements.
+    ///     Completion provider for the common item elements.
     /// </summary>
-    public class PropertyElementCompletion
+    public class ItemElementCompletionProvider
         : CompletionProvider
     {
         /// <summary>
-        ///     Create a new <see cref="PropertyElementCompletion"/>.
+        ///     Create a new <see cref="ItemElementCompletionProvider"/>.
         /// </summary>
         /// <param name="logger">
         ///     The application logger.
         /// </param>
-        public PropertyElementCompletion(ILogger logger)
+        public ItemElementCompletionProvider(ILogger logger)
             : base(logger)
         {
         }
@@ -35,7 +34,12 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
         /// <summary>
         ///     The provider display name.
         /// </summary>
-        public override string Name => "Property Elements";
+        public override string Name => "Item Elements";
+
+        /// <summary>
+        ///     The provider's default priority for completion items.
+        /// </summary>
+        public override int Priority => 1000;
 
         /// <summary>
         ///     Provide completions for the specified location.
@@ -65,13 +69,13 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
 
             List<CompletionItem> completions = new List<CompletionItem>();
 
-            Log.Verbose("Evaluate completions for {XmlLocation:l}", location);
+            Log.Verbose("Evaluate completions for {XmlLocation:l} (trigger characters = {TriggerCharacters})", location, triggerCharacters);
 
             using (await projectDocument.Lock.ReaderLockAsync(cancellationToken))
             {
-                if (!location.CanCompleteElement(out XSElement replaceElement, parentPath: WellKnownElementPaths.PropertyGroup))
+                if (!location.CanCompleteElement(out XSElement replaceElement, parentPath: WellKnownElementPaths.ItemGroup))
                 {
-                    Log.Verbose("Not offering any completions for {XmlLocation:l} (not a direct child of a 'PropertyGroup' element).", location);
+                    Log.Verbose("Not offering any completions for {XmlLocation:l} (not a direct child of a 'ItemGroup' element).", location);
 
                     return null;
                 }
@@ -115,7 +119,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
         }
 
         /// <summary>
-        ///     Get property element completions.
+        ///     Get item element completions.
         /// </summary>
         /// <param name="projectDocument">
         ///     The <see cref="ProjectDocument"/> for which completions will be offered.
@@ -130,53 +134,53 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
         {
             LspModels.Range replaceRangeLsp = replaceRange.ToLsp();
 
-            HashSet<string> offeredPropertyNames = new HashSet<string>();
+            HashSet<string> offeredItemNames = new HashSet<string>
+            {
+                "PackageReference",
+                "DotNetCliToolReference"
+            };
 
             // Well-known (but standard-format) properties.
 
-            foreach (string wellKnownPropertyName in MSBuildSchemaHelp.WellKnownPropertyNames)
+            foreach (string wellKnownItemName in MSBuildSchemaHelp.WellKnownItemTypes)
             {
-                if (!offeredPropertyNames.Add(wellKnownPropertyName))
+                if (!offeredItemNames.Add(wellKnownItemName))
                     continue;
 
-                var (defaultValue, defaultValues) = MSBuildSchemaHelp.DefaultsForProperty(wellKnownPropertyName);
-
-                yield return PropertyCompletionItem(wellKnownPropertyName, replaceRangeLsp,
-                    description: MSBuildSchemaHelp.ForProperty(wellKnownPropertyName),
-                    defaultValue: defaultValue,
-                    defaultValues: defaultValues
+                yield return ItemCompletion(wellKnownItemName, replaceRangeLsp,
+                    description: MSBuildSchemaHelp.ForItemType(wellKnownItemName)
                 );
             }
 
             if (!projectDocument.HasMSBuildProject)
                 yield break; // Without a valid MSBuild project (even a cached one will do), we can't inspect existing MSBuild properties.
 
-            if (!projectDocument.Workspace.Configuration.Language.CompletionsFromProject.Contains(CompletionSource.Property))
+            if (!projectDocument.Workspace.Configuration.Language.CompletionsFromProject.Contains(CompletionSource.ItemType))
                 yield break;
 
-            int otherPropertyPriority = Priority + 10;
+            int otherItemPriority = Priority + 10;
 
-            string[] otherPropertyNames =
+            string[] otherItemNames =
                 projectDocument.MSBuildProject.Properties
-                    .Select(property => property.Name)
-                    .Where(propertyName => !propertyName.StartsWith("_")) // Ignore private properties.
+                    .Select(item => item.Name)
+                    .Where(itemName => !itemName.StartsWith("_")) // Ignore private item types.
                     .ToArray();
-            foreach (string propertyName in otherPropertyNames)
+            foreach (string itemName in otherItemNames)
             {
-                if (!offeredPropertyNames.Add(propertyName))
+                if (!offeredItemNames.Add(itemName))
                     continue;
 
-                yield return PropertyCompletionItem(propertyName, replaceRangeLsp, otherPropertyPriority,
-                    description: $"I don't know anything about the '{propertyName}' property, but it's defined in this project (or a project that it imports); you can override its value by specifying it here."
+                yield return ItemCompletion(itemName, replaceRangeLsp, otherItemPriority,
+                    description: $"I don't know anything about the '{itemName}' item type, but it's defined in this project (or a project that it imports); you can override its value by specifying it here."
                 );
             }
         }
 
         /// <summary>
-        ///     Create a standard <see cref="CompletionItem"/> for the specified MSBuild property.
+        ///     Create a standard <see cref="CompletionItem"/> for the specified MSBuild item.
         /// </summary>
-        /// <param name="propertyName">
-        ///     The MSBuild property name.
+        /// <param name="itemName">
+        ///     The MSBuild item name.
         /// </param>
         /// <param name="replaceRange">
         ///     The range of text that will be replaced by the completion.
@@ -185,95 +189,27 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
         ///     The item sort priority (defaults to <see cref="CompletionProvider.Priority"/>).
         /// </param>
         /// <param name="description">
-        ///     An optional description for the property.
-        /// </param>
-        /// <param name="defaultValue">
-        ///     An optional default value for the property.
-        /// </param>
-        /// <param name="defaultValues">
-        ///     An optional list of default values for the property.
-        /// 
-        ///     If specified, then the inserted property's snippet will offer these as a drop-down list.
+        ///     An optional description for the item.
         /// </param>
         /// <returns>
         ///     The <see cref="CompletionItem"/>.
         /// </returns>
-        CompletionItem PropertyCompletionItem(string propertyName, LspModels.Range replaceRange, int? priority = null, string description = null, string defaultValue = null, IReadOnlyList<string> defaultValues = null)
+        CompletionItem ItemCompletion(string itemName, LspModels.Range replaceRange, int? priority = null, string description = null)
         {
             return new CompletionItem
             {
-                Label = $"<{propertyName}>",
-                Detail = "Property",
+                Label = $"<{itemName}>",
+                Detail = "Item",
                 Documentation = description,
-                Kind = CompletionItemKind.Property,
-                SortText = $"{priority ?? Priority:0000}<{propertyName}>",
+                Kind = CompletionItemKind.Class,
+                SortText = $"{priority ?? Priority:0000}<{itemName}>",
                 TextEdit = new TextEdit
                 {
-                    NewText = GetCompletionText(propertyName, defaultValue, defaultValues),
+                    NewText = $"<{itemName} Include=\"$1\" />$0",
                     Range = replaceRange
                 },
                 InsertTextFormat = InsertTextFormat.Snippet
             };
-        }
-
-        /// <summary>
-        ///     Get the completion text for the specified property and its default value(s), if any.
-        /// </summary>
-        /// <param name="propertyName">
-        ///     The property name.
-        /// </param>
-        /// <param name="defaultValue">
-        ///     The property's default value (if any).
-        /// </param>
-        /// <param name="defaultValues">
-        ///     The property's default values (if any).
-        /// 
-        ///     If specified, then the inserted property's snippet will offer these as a drop-down list.
-        /// </param>
-        /// <returns>
-        ///     The completion text (in standard LSP Snippet format).
-        /// </returns>
-        static string GetCompletionText(string propertyName, string defaultValue, IReadOnlyList<string> defaultValues)
-        {
-            StringBuilder completionText = new StringBuilder();
-            completionText.AppendFormat("<{0}>", propertyName);
-
-            bool haveValue = false;
-            if (defaultValues != null && defaultValues.Count > 0)
-            {
-                haveValue = true;
-
-                completionText.Append("${1|");
-                completionText.Append(
-                    defaultValues[0]
-                );
-                for (int valueIndex = 1; valueIndex < defaultValues.Count; valueIndex++)
-                {
-                    completionText.Append(',');
-                    completionText.Append(
-                        defaultValues[valueIndex]
-                    );
-                }
-                completionText.Append("|}");
-            }
-            else if (!string.IsNullOrWhiteSpace(defaultValue))
-            {
-                haveValue = true;
-
-                completionText.Append("${1:");
-                completionText.Append(defaultValue);
-                completionText.Append('}');
-            }
-            else
-                completionText.Append("$0");
-
-            completionText.AppendFormat("</{0}>", propertyName);
-
-            // If we have a default value / values, then the final cursor position should be after the property element.
-            if (haveValue)
-                completionText.Append("$0");
-
-            return completionText.ToString();
         }
     }
 }

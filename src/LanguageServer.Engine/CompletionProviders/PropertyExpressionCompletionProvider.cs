@@ -18,16 +18,16 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
     /// <summary>
     ///     Completion provider for property expressions.
     /// </summary>
-    public class PropertyExpressionCompletion
+    public class PropertyExpressionCompletionProvider
         : CompletionProvider
     {
         /// <summary>
-        ///     Create a new <see cref="PropertyExpressionCompletion"/>.
+        ///     Create a new <see cref="PropertyExpressionCompletionProvider"/>.
         /// </summary>
         /// <param name="logger">
         ///     The application logger.
         /// </param>
-        public PropertyExpressionCompletion(ILogger logger)
+        public PropertyExpressionCompletionProvider(ILogger logger)
             : base(logger)
         {
         }

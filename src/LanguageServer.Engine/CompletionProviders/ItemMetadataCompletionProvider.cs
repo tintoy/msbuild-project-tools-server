@@ -14,16 +14,16 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
     /// <summary>
     ///     Completion provider for metadata elements / attributes of items.
     /// </summary>
-    public class ItemMetadataCompletion
+    public class ItemMetadataCompletionProvider
         : CompletionProvider
     {
         /// <summary>
-        ///     Create a new <see cref="ItemMetadataCompletion"/>.
+        ///     Create a new <see cref="ItemMetadataCompletionProvider"/>.
         /// </summary>
         /// <param name="logger">
         ///     The application logger.
         /// </param>
-        public ItemMetadataCompletion(ILogger logger)
+        public ItemMetadataCompletionProvider(ILogger logger)
             : base(logger)
         {
         }

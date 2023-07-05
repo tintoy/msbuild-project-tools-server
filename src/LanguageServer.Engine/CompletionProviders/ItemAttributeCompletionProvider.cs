@@ -16,7 +16,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
     /// <summary>
     ///     Completion provider for attributes of items.
     /// </summary>
-    public class ItemAttributeCompletion
+    public class ItemAttributeCompletionProvider
         : CompletionProvider
     {
         /// <summary>
@@ -32,12 +32,12 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
             });
 
         /// <summary>
-        ///     Create a new <see cref="ItemAttributeCompletion"/>.
+        ///     Create a new <see cref="ItemAttributeCompletionProvider"/>.
         /// </summary>
         /// <param name="logger">
         ///     The application logger.
         /// </param>
-        public ItemAttributeCompletion(ILogger logger)
+        public ItemAttributeCompletionProvider(ILogger logger)
             : base(logger)
         {
         }

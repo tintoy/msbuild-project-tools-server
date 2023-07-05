@@ -20,16 +20,16 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
     /// <summary>
     ///     Completion provider for attributes on Target elements that refer to the names of other targets.
     /// </summary>
-    public class TargetNameCompletion
+    public class TargetNameCompletionProvider
         : CompletionProvider
     {
         /// <summary>
-        ///     Create a new <see cref="TargetNameCompletion"/>.
+        ///     Create a new <see cref="TargetNameCompletionProvider"/>.
         /// </summary>
         /// <param name="logger">
         ///     The application logger.
         /// </param>
-        public TargetNameCompletion(ILogger logger)
+        public TargetNameCompletionProvider(ILogger logger)
             : base(logger)
         {
         }

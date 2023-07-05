@@ -18,7 +18,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
     /// <summary>
     ///     Completion provider for "PackageReference" and "DotNetCliToolReference" items.
     /// </summary>
-    public class PackageReferenceCompletion
+    public class PackageReferenceCompletionProvider
         : CompletionProvider
     {
         /// <summary>
@@ -31,12 +31,12 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
         };
 
         /// <summary>
-        ///     Create a new <see cref="PackageReferenceCompletion"/>.
+        ///     Create a new <see cref="PackageReferenceCompletionProvider"/>.
         /// </summary>
         /// <param name="logger">
         ///     The application logger.
         /// </param>
-        public PackageReferenceCompletion(ILogger logger)
+        public PackageReferenceCompletionProvider(ILogger logger)
             : base(logger)
         {
         }

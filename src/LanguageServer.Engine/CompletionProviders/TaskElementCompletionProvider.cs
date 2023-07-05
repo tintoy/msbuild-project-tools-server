@@ -17,16 +17,16 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
     /// <summary>
     ///     Completion provider for the MSBuild task elements.
     /// </summary>
-    public class TaskElementCompletion
+    public class TaskElementCompletionProvider
         : TaskCompletionProvider
     {
         /// <summary>
-        ///     Create a new <see cref="TaskElementCompletion"/>.
+        ///     Create a new <see cref="TaskElementCompletionProvider"/>.
         /// </summary>
         /// <param name="logger">
         ///     The application logger.
         /// </param>
-        public TaskElementCompletion(ILogger logger)
+        public TaskElementCompletionProvider(ILogger logger)
             : base(logger)
         {
         }

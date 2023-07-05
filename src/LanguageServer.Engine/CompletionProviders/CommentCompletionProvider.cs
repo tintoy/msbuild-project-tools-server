@@ -16,16 +16,16 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
     /// <summary>
     ///     Completion provider for XML comments.
     /// </summary>
-    public class CommentCompletion
+    public class CommentCompletionProvider
         : CompletionProvider
     {
         /// <summary>
-        ///     Create a new <see cref="CommentCompletion"/> provider.
+        ///     Create a new <see cref="CommentCompletionProvider"/> provider.
         /// </summary>
         /// <param name="logger">
         ///     The application logger.
         /// </param>
-        public CommentCompletion(ILogger logger)
+        public CommentCompletionProvider(ILogger logger)
             : base(logger)
         {
         }

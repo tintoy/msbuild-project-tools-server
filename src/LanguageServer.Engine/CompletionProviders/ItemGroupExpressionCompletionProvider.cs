@@ -18,16 +18,16 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
     /// <summary>
     ///     Completion provider for item group expressions.
     /// </summary>
-    public class ItemGroupExpressionCompletion
+    public class ItemGroupExpressionCompletionProvider
         : CompletionProvider
     {
         /// <summary>
-        ///     Create a new <see cref="ItemGroupExpressionCompletion"/>.
+        ///     Create a new <see cref="ItemGroupExpressionCompletionProvider"/>.
         /// </summary>
         /// <param name="logger">
         ///     The application logger.
         /// </param>
-        public ItemGroupExpressionCompletion(ILogger logger)
+        public ItemGroupExpressionCompletionProvider(ILogger logger)
             : base(logger)
         {
         }

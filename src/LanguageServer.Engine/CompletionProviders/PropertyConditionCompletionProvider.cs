@@ -16,16 +16,16 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
     /// <summary>
     ///     Completion provider the Condition attribute of a property element.
     /// </summary>
-    public class PropertyConditionCompletion
+    public class PropertyConditionCompletionProvider
         : CompletionProvider
     {
         /// <summary>
-        ///     Create a new <see cref="PropertyConditionCompletion"/>.
+        ///     Create a new <see cref="PropertyConditionCompletionProvider"/>.
         /// </summary>
         /// <param name="logger">
         ///     The application logger.
         /// </param>
-        public PropertyConditionCompletion(ILogger logger)
+        public PropertyConditionCompletionProvider(ILogger logger)
             : base(logger)
         {
         }

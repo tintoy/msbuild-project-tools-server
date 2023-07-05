@@ -16,16 +16,16 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
     /// <summary>
     ///     Completion provider for the top-level elements (e.g. PropertyGroup, ItemGroup, Target, etc).
     /// </summary>
-    public class TopLevelElementCompletion
+    public class TopLevelElementCompletionProvider
         : CompletionProvider
     {
         /// <summary>
-        ///     Create a new <see cref="TopLevelElementCompletion"/>.
+        ///     Create a new <see cref="TopLevelElementCompletionProvider"/>.
         /// </summary>
         /// <param name="logger">
         ///     The application logger.
         /// </param>
-        public TopLevelElementCompletion(ILogger logger)
+        public TopLevelElementCompletionProvider(ILogger logger)
             : base(logger)
         {
         }
