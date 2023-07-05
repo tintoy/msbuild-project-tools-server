@@ -160,7 +160,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
 
                 List<Task<CompletionList>> allProviderCompletions =
                     Providers.Select(
-                        provider => provider.ProvideCompletions(location, projectDocument, triggerCharacters, cancellationToken)
+                        provider => provider.ProvideCompletionsAsync(location, projectDocument, triggerCharacters, cancellationToken)
                     )
                     .ToList();
 
