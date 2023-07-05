@@ -426,6 +426,13 @@
     "GeneratePackageOnBuild": {
         "description": "Value indicating whether a NuGet package will be generated when the project is built"
     },
+    "GenerateDocumentationFile": {
+        "description": "Enable or disable XML comment file generation.",
+        "defaultValues": [
+            "true",
+            "false"
+        ]
+    },
     "IncludeBuiltProjectOutputGroup": {
         "description": "Flag indicating whether to include primary build outputs into the app package payload."
     },
@@ -549,7 +556,13 @@
         "description": "Path to output folder, with trailing slash"
     },
     "OutputType": {
-        "description": "Type of output to generate (WinExe, Exe, or Library)"
+        "description": "Type of output to generate (WinExe, Exe, or Library)",
+        "defaultValues": [
+            "Library",
+            "Exe",
+            "Module",
+            "WinExe"
+        ]
     },
     "PackageCertificateKeyFile": {
         "description": "App package certificate key file."
@@ -672,7 +685,37 @@
         "description": "Name of the store manifest file."
     },
     "TargetFramework": {
-        "description": "Framework that this project targets. Must be a Target Framework Moniker (e.g. netcoreapp1.0)"
+        "description": "Framework that this project targets. Must be a Target Framework Moniker (e.g. netcoreapp1.0)",
+        "defaultValues": [
+            "netstandard1.0",
+            "netstandard1.1",
+            "netstandard1.2",
+            "netstandard1.3",
+            "netstandard1.4",
+            "netstandard1.5",
+            "netstandard1.6",
+            "netstandard2.0",
+            "netstandard2.1",
+            "netcoreapp1.0",
+            "netcoreapp1.1",
+            "netcoreapp2.0",
+            "netcoreapp2.1",
+            "netcoreapp3.0",
+            "netcoreapp3.1",
+            "net4",
+            "net451",
+            "net452",
+            "net46",
+            "net461",
+            "net462",
+            "net47",
+            "net472",
+            "net48",
+            "net5.0",
+            "net6.0",
+            "net7.0",
+            "net8.0"
+        ]
     },
     "TargetFrameworks": {
         "description": "Semicolon separated list of frameworks that this project targets. Must be a Target Framework Moniker (e.g. netcoreapp1.0;net461)"

@@ -132,42 +132,6 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
 
             HashSet<string> offeredPropertyNames = new HashSet<string>();
 
-            // Special-case properties
-
-            // Output type
-            yield return new CompletionItem
-            {
-                Label = "<OutputType>",
-                Detail = "Property",
-                Kind = CompletionItemKind.Property,
-                Documentation = MSBuildSchemaHelp.ForProperty("OutputType"),
-                SortText = Priority + "<OutputType>",
-                TextEdit = new TextEdit
-                {
-                    NewText = "<OutputType>${1|Library,Exe|}</OutputType>",
-                    Range = replaceRangeLsp
-                },
-                InsertTextFormat = InsertTextFormat.Snippet
-            };
-            offeredPropertyNames.Add("OutputType");
-
-            // Target framework
-            yield return new CompletionItem
-            {
-                Label = "<TargetFramework>",
-                Detail = "Property",
-                Kind = CompletionItemKind.Property,
-                Documentation = MSBuildSchemaHelp.ForProperty("TargetFramework"),
-                SortText = Priority + "<TargetFramework>",
-                TextEdit = new TextEdit
-                {
-                    NewText = "<TargetFramework>${1|netstandard1.0,netstandard1.1,netstandard1.2,netstandard1.3,netstandard1.4,netstandard1.5,netstandard1.6,netstandard2.0,netcoreapp1.0,netcoreapp1.1,netcoreapp3.0,netcoreapp3.1,net4,net451,net452,net46,net461,net462,net47,net5.0,net6.0|}</TargetFramework>",
-                    Range = replaceRangeLsp
-                },
-                InsertTextFormat = InsertTextFormat.Snippet
-            };
-            offeredPropertyNames.Add("TargetFramework");
-
             // Well-known (but standard-format) properties.
 
             foreach (string wellKnownPropertyName in MSBuildSchemaHelp.WellKnownPropertyNames)
