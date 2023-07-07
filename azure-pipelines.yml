@@ -51,6 +51,7 @@ steps:
     modifyOutputPath: false
 
 - task: ArchiveFiles@2
+  displayName: 'Package language-server artifact'
   inputs:
     rootFolderOrFile: './out/language-server'
     includeRootFolder: false
@@ -59,6 +60,7 @@ steps:
     replaceExistingArchive: true
 
 - task: PublishBuildArtifacts@1
+  displayName: 'Publish language-server artifact'
   inputs:
     PathtoPublish: '$(Build.ArtifactStagingDirectory)/language-server.zip'
     ArtifactName: 'language-server'
@@ -74,6 +76,7 @@ steps:
     modifyOutputPath: false
 
 - task: ArchiveFiles@2
+  displayName: 'Package task-reflector artifact'
   inputs:
     rootFolderOrFile: './out/task-reflection'
     includeRootFolder: false
@@ -82,9 +85,10 @@ steps:
     replaceExistingArchive: true
 
 - task: PublishBuildArtifacts@1
+  displayName: 'Publish task-reflector artifact'
   inputs:
     PathtoPublish: '$(Build.ArtifactStagingDirectory)/task-reflection.zip'
-    ArtifactName: 'task-reflection'
+    ArtifactName: 'task-reflector'
     publishLocation: 'Container'
 
 - task: GitHubRelease@1
@@ -99,5 +103,3 @@ steps:
     addChangeLog: false
     assets: '$(Build.ArtifactStagingDirectory)/*.zip'
     assetUploadMode: replace
-
-
