@@ -58,6 +58,12 @@ steps:
     archiveFile: '$(Build.ArtifactStagingDirectory)/language-server.zip'
     replaceExistingArchive: true
 
+- task: PublishBuildArtifacts@1
+  inputs:
+    PathtoPublish: '$(Build.ArtifactStagingDirectory)/language-server.zip'
+    ArtifactName: 'language-server'
+    publishLocation: 'Container'
+
 - task: DotNetCoreCLI@2
   displayName: 'Publish task reflector'
   inputs:
@@ -75,6 +81,12 @@ steps:
     archiveFile: '$(Build.ArtifactStagingDirectory)/task-reflection.zip'
     replaceExistingArchive: true
 
+- task: PublishBuildArtifacts@1
+  inputs:
+    PathtoPublish: '$(Build.ArtifactStagingDirectory)/task-reflection.zip'
+    ArtifactName: 'task-reflection'
+    publishLocation: 'Container'
+
 - task: GitHubRelease@1
   inputs:
     gitHubConnection: 'github.com_tintoy'
@@ -85,3 +97,7 @@ steps:
     tagPattern: '^v\d+\.\d+(-[A-Za-z0-9%\.]+)?$'
     releaseNotesFilePath: './CHANGELOG.md'
     addChangeLog: false
+    assets: '$(Build.ArtifactStagingDirectory)/*.zip'
+    assetUploadMode: replace
+
+
