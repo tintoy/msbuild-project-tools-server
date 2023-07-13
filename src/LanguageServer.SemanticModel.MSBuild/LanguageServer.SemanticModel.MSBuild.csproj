@@ -22,4 +22,12 @@
     <ItemGroup>
         <ProjectReference Include="../LanguageServer.SemanticModel.Xml/LanguageServer.SemanticModel.Xml.csproj" />
     </ItemGroup>
+
+    <ItemGroup>
+        <!-- Copy `help` folder from solution root to output and publish directories -->
+        <Content Include="..\..\help\**" LinkBase="help">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+            <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+        </Content>
+    </ItemGroup>
 </Project>

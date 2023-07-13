@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text.Json;
 
 namespace MSBuildProjectTools.LanguageServer.SemanticModel
@@ -17,12 +18,8 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
         /// </summary>
         static MSBuildSchemaHelp()
         {
-            string extensionDirectory = Environment.GetEnvironmentVariable("MSBUILD_PROJECT_TOOLS_DIR");
-            if (string.IsNullOrWhiteSpace(extensionDirectory))
-                throw new InvalidOperationException("Cannot determine current extension directory ('MSBUILD_PROJECT_TOOLS_DIR' environment variable is not present).");
-
-            extensionDirectory = Path.GetFullPath(extensionDirectory);
-            var helpDirectory = Path.Combine(extensionDirectory, "help");
+            var currentAssemblyDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            var helpDirectory = Path.Combine(currentAssemblyDirectory, "help");
 
             JsonSerializerOptions jsonOptions = new JsonSerializerOptions()
             {
