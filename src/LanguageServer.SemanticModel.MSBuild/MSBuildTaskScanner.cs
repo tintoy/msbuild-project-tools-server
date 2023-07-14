@@ -11,6 +11,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
     /// <summary>
     ///     Scans for MSBuild task assemblies for metadata.
     /// </summary>
+    [Obsolete("This class is obsolete; use MSBuildTaskScannerV2, instead.")]
     public static class MSBuildTaskScanner
     {
         /// <summary>

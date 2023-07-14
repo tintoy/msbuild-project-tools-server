@@ -1,6 +1,5 @@
 using System.IO;
 using System.Linq;
-using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -9,6 +8,8 @@ using Xunit.Abstractions;
 namespace MSBuildProjectTools.LanguageServer.Tests
 {
     using SemanticModel;
+    using System;
+    using System.Runtime.InteropServices;
     using Utilities;
 
     /// <summary>
@@ -27,7 +28,21 @@ namespace MSBuildProjectTools.LanguageServer.Tests
             : base(testOutput)
         {
             LogLevelSwitch.MinimumLevel = Serilog.Events.LogEventLevel.Verbose;
+
+            Log.Information("IntPtr.Size = {IntPtrSize}", IntPtr.Size);
+            Log.Information("Runtime Directory = {RuntimeDirectory}", RuntimeEnvironment.GetRuntimeDirectory());
+
+            Environment.SetEnvironmentVariable("MSBUILD_PROJECT_TOOLS_DOTNET_HOST_DIAGNOSTICS", "1");
+            RuntimeInfo = DotNetRuntimeInfo.GetCurrent(logger: Log);
+            Environment.SetEnvironmentVariable("MSBUILD_PROJECT_TOOLS_DOTNET_HOST_DIAGNOSTICS", null);
+            
+            Assert.NotNull(RuntimeInfo.BaseDirectory);
         }
+
+        /// <summary>
+        ///     Information about the current .NET runtime.
+        /// </summary>
+        DotNetRuntimeInfo RuntimeInfo { get; }
 
         /// <summary>
         ///     Verify that the task scanner can retrieve task metadata from an assembly.
@@ -39,17 +54,18 @@ namespace MSBuildProjectTools.LanguageServer.Tests
         [InlineData("Microsoft.Build.Tasks.Core.dll")]
         [InlineData("Sdks/Microsoft.NET.Sdk/tools/net6.0/Microsoft.NET.Build.Tasks.dll")]
         [Theory(
-            DisplayName = "TaskScanner can get tasks from framework task assembly ",
-            Skip = "Temporarily disabled until we switch to using an in-process task scanner." // Too difficult to figure out where the base directory is for the task-scanner assembly (output directories for Debug/Release config).
+            DisplayName = "TaskScanner can get tasks from framework task assembly "//,
+            //Skip = "Temporarily disabled until we switch to using an in-process task scanner." // Too difficult to figure out where the base directory is for the task-scanner assembly (output directories for Debug/Release config).
         )]
-        public async Task Scan_FrameworkTaskAssembly_Success(string fileName)
+        public void Scan_FrameworkTaskAssembly_Success(string fileName)
         {
             string taskAssemblyFile = GetFrameworkTaskAssemblyFile(fileName);
             Assert.True(File.Exists(taskAssemblyFile),
                 $"Task assembly '{taskAssemblyFile}' exists"
             );
 
-            MSBuildTaskAssemblyMetadata metadata = await MSBuildTaskScanner.GetAssemblyTaskMetadata(taskAssemblyFile);
+            //MSBuildTaskAssemblyMetadata metadata = await MSBuildTaskScanner.GetAssemblyTaskMetadata(taskAssemblyFile);
+            MSBuildTaskAssemblyMetadata metadata = MSBuildTaskScannerV2.GetAssemblyTaskMetadata(taskAssemblyFile, RuntimeInfo.Sdk);
             Assert.NotNull(metadata);
 
             Assert.NotEqual(0, metadata.Tasks.Count);
@@ -72,30 +88,8 @@ namespace MSBuildProjectTools.LanguageServer.Tests
             if (string.IsNullOrWhiteSpace(assemblyFileName))
                 throw new System.ArgumentException($"Argument cannot be null, empty, or entirely composed of whitespace: {nameof(assemblyFileName)}.", nameof(assemblyFileName));
 
-            var runtimeInfo = DotNetRuntimeInfo.GetCurrent(logger: Log);
-
-            Assert.NotNull(runtimeInfo.BaseDirectory);
-
-            return Path.Combine(runtimeInfo.BaseDirectory,
+            return Path.Combine(RuntimeInfo.BaseDirectory,
                 assemblyFileName.Replace('/', Path.DirectorySeparatorChar)
-            );
-        }
-
-        /// <summary>
-        ///     Type initialiser for <see cref="TaskScannerTests"/>.
-        /// </summary>
-        /// <remarks>
-        ///     TODO: Use a collection / fixture.
-        /// </remarks>
-        static TaskScannerTests()
-        {
-            // Ensure that the scanner can find the task reflector.
-            MSBuildTaskScanner.TaskReflectorAssemblyFile = new FileInfo(
-                Path.Combine(
-                    Path.GetDirectoryName(typeof(TaskScannerTests).Assembly.Location),
-                    "..", "..", "..", "..", "..", "src", "LanguageServer.TaskReflection", "bin", "debug", "net6.0",
-                    "MSBuildProjectTools.LanguageServer.TaskReflection.dll"
-                )
             );
         }
     }
