@@ -1,4 +1,3 @@
-using Microsoft.Language.Xml;
 using System;
 
 namespace MSBuildProjectTools.LanguageServer.SemanticModel
@@ -12,7 +11,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
         ///     Create a new <see cref="MSBuildObject"/>.
         /// </summary>
         /// <param name="xml">
-        ///     A <see cref="SyntaxNode"/> representing the item's corresponding XML.
+        ///     An <see cref="XSNode"/> representing the item's corresponding XML.
         /// </param>
         protected MSBuildObject(XSNode xml)
         {
@@ -23,7 +22,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
         }
 
         /// <summary>
-        ///     A <see cref="SyntaxNode"/> representing the item's corresponding XML.
+        ///     An <see cref="XSNode"/> representing the item's corresponding XML.
         /// </summary>
         public XSNode Xml { get; }
 
@@ -89,7 +88,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
         ///     The underlying MSBuild object.
         /// </param>
         /// <param name="declaringXml">
-        ///     A <see cref="SyntaxNode"/> representing the object's declaring XML.
+        ///     An <see cref="XSNode"/> representing the object's declaring XML.
         /// </param>
         protected MSBuildObject(TUnderlyingObject underlyingObject, XSNode declaringXml)
             : base(declaringXml)
