@@ -13,8 +13,6 @@ build_script:
     & $dotnet pack -o "$PWD\out\packages" /p:Version="$env:APPVEYOR_BUILD_VERSION"
 
     & $dotnet publish "$PWD\src\LanguageServer\LanguageServer.csproj" -f net6.0 -o "$PWD\out\language-server" /p:Version="$env:APPVEYOR_BUILD_VERSION"
-
-    & $dotnet publish "$PWD\src\LanguageServer.TaskReflection\LanguageServer.TaskReflection.csproj" -f net6.0 -o "$PWD\out\task-reflection" /p:Version="$env:APPVEYOR_BUILD_VERSION"
 test_script:
 - ps: >-
     $dotnet = Get-Command 'dotnet'
@@ -23,8 +21,6 @@ test_script:
 artifacts:
 - path: out\language-server
   name: MSBuildProjectTools.Server.$(APPVEYOR_BUILD_VERSION)
-- path: out\task-reflection
-  name: MSBuildProjectTools.Server.TaskReflection-$(APPVEYOR_BUILD_VERSION)
 - path: out\packages\*.nupkg
 deploy:
 - provider: NuGet
