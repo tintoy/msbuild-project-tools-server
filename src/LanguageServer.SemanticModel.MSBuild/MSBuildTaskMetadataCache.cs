@@ -52,21 +52,27 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
         /// <param name="assemblyPath">
         ///     The full path to the assembly.
         /// </param>
+        /// <param name="sdkBaseDirectory">
+        ///     The base directory for the target .NET SDK.
+        /// </param>
         /// <returns>
         ///     The assembly metadata.
         /// </returns>
-        public async Task<MSBuildTaskAssemblyMetadata> GetAssemblyMetadata(string assemblyPath)
+        public MSBuildTaskAssemblyMetadata GetAssemblyMetadata(string assemblyPath, string sdkBaseDirectory)
         {
             if (string.IsNullOrWhiteSpace(assemblyPath))
                 throw new ArgumentException("Argument cannot be null, empty, or entirely composed of whitespace: 'assemblyPath'.", nameof(assemblyPath));
 
+            if (string.IsNullOrWhiteSpace(sdkBaseDirectory))
+                throw new ArgumentException($"Argument cannot be null, empty, or entirely composed of whitespace: {nameof(sdkBaseDirectory)}.", nameof(sdkBaseDirectory));
+
             MSBuildTaskAssemblyMetadata metadata;
-            using (await StateLock.LockAsync())
+            using (StateLock.Lock())
             {
                 FileInfo assemblyFile = new FileInfo(assemblyPath);
                 if (!Assemblies.TryGetValue(assemblyPath, out metadata) || metadata.TimestampUtc < assemblyFile.LastWriteTimeUtc)
                 {
-                    metadata = await MSBuildTaskScanner.GetAssemblyTaskMetadata(assemblyPath);
+                    metadata = MSBuildTaskScanner.GetAssemblyTaskMetadata(assemblyPath, sdkBaseDirectory);
                     Assemblies[metadata.AssemblyPath] = metadata;
 
                     IsDirty = true;

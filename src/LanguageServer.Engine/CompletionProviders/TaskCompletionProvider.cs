@@ -34,7 +34,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
         /// <returns>
         ///     A dictionary of task metadata, keyed by task name.
         /// </returns>
-        protected static async Task<Dictionary<string, MSBuildTaskMetadata>> GetProjectTasks(ProjectDocument projectDocument)
+        protected static Dictionary<string, MSBuildTaskMetadata> GetProjectTasks(ProjectDocument projectDocument)
         {
             if (projectDocument == null)
                 throw new ArgumentNullException(nameof(projectDocument));
@@ -42,7 +42,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
             // We trust that all tasks discovered via GetMSBuildProjectTaskAssemblies are accessible in the current project.
 
             Dictionary<string, MSBuildTaskMetadata> tasks = new Dictionary<string, MSBuildTaskMetadata>();
-            foreach (MSBuildTaskAssemblyMetadata assemblyMetadata in await projectDocument.GetMSBuildProjectTaskAssemblies())
+            foreach (MSBuildTaskAssemblyMetadata assemblyMetadata in projectDocument.GetMSBuildProjectTaskAssemblies())
             {
                 foreach (MSBuildTaskMetadata task in assemblyMetadata.Tasks)
                     tasks[task.Name] = task;

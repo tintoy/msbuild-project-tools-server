@@ -96,7 +96,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
                     return null;
                 }
 
-                Dictionary<string, MSBuildTaskMetadata> projectTasks = await GetProjectTasks(projectDocument);
+                Dictionary<string, MSBuildTaskMetadata> projectTasks = GetProjectTasks(projectDocument);
                 if (!projectTasks.TryGetValue(taskElement.Name, out MSBuildTaskMetadata taskMetadata))
                 {
                     Log.Verbose("Not offering any completions for {XmlLocation:l} (no metadata available for task {TaskName}).", location, taskElement.Name);

@@ -65,7 +65,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests
             );
 
             //MSBuildTaskAssemblyMetadata metadata = await MSBuildTaskScanner.GetAssemblyTaskMetadata(taskAssemblyFile);
-            MSBuildTaskAssemblyMetadata metadata = MSBuildTaskScannerV2.GetAssemblyTaskMetadata(taskAssemblyFile, RuntimeInfo.Sdk);
+            MSBuildTaskAssemblyMetadata metadata = MSBuildTaskScanner.GetAssemblyTaskMetadata(taskAssemblyFile, RuntimeInfo.Sdk);
             Assert.NotNull(metadata);
 
             Assert.NotEqual(0, metadata.Tasks.Count);

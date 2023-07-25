@@ -1,199 +1,381 @@
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
+using MSBuildProjectTools.LanguageServer.Utilities;
+using Serilog;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
-using System.Threading.Tasks;
+using System.Linq;
+using System.Reflection;
+using System.Runtime.InteropServices;
 
 namespace MSBuildProjectTools.LanguageServer.SemanticModel
 {
     /// <summary>
-    ///     Scans for MSBuild task assemblies for metadata.
+    ///     Metadata scanner for MSBuild task assemblies.
     /// </summary>
-    [Obsolete("This class is obsolete; use MSBuildTaskScannerV2, instead.")]
-    public static class MSBuildTaskScanner
+    /// <remarks>
+    ///     Used to provide completions for tasks and task parameters.
+    /// </remarks>
+    static partial class MSBuildTaskScanner
     {
         /// <summary>
-        ///     The assembly file containing the task-reflector tool.
+        ///     The name of the MSBuild framework assembly file (Microsoft.Build.Framework.dll).
         /// </summary>
-        internal static FileInfo TaskReflectorAssemblyFile = new FileInfo(
-            Path.GetFullPath(
-                Path.Combine(
-                    AppContext.BaseDirectory,
-                    "..", "task-reflection",
-                    "MSBuildProjectTools.LanguageServer.TaskReflection.dll"
-                )
-            )
-        );
+        public static readonly string MSBuildFrameworkAssemblyFileName = "Microsoft.Build.Framework.dll";
 
         /// <summary>
-        ///     Get task metadata for the specified assembly.
+        ///     The name of the MSBuild tasks assembly file (Microsoft.Build.Tasks.dll).
         /// </summary>
-        /// <param name="taskAssemblyPath">
-        ///     The full path to the assembly containing the task.
+        public static readonly string MSBuildTaskAssemblyFileName = "Microsoft.NET.Build.Tasks.dll";
+
+        /// <summary>
+        ///     The fully-qualified name of the MSBuild ITask interface (Microsoft.Build.Framework.ITask).
+        /// </summary>
+        public static readonly string MSBuildTaskInterfaceType = "Microsoft.Build.Framework.ITask";
+
+        /// <summary>
+        ///     The fully-qualified name of the MSBuild [Required] attribute (Microsoft.Build.Framework.RequiredAttribute).
+        /// </summary>
+        public static readonly string MSBuildRequiredAttributeType = "Microsoft.Build.Framework.RequiredAttribute";
+
+        /// <summary>
+        ///     The fully-qualified name of the MSBuild [Output] attribute (Microsoft.Build.Framework.OutputAttribute).
+        /// </summary>
+        public static readonly string MSBuildOutputAttributeType = "Microsoft.Build.Framework.OutputAttribute";
+
+        /// <summary>
+        ///     The full CLR type names of task parameter data-types supported by the scanner.
+        /// </summary>
+        public static readonly IReadOnlySet<string> SupportedTaskParameterTypes = new HashSet<string>
+        {
+            typeof(string).FullName,
+            typeof(bool).FullName,
+            typeof(char).FullName,
+            typeof(byte).FullName,
+            typeof(short).FullName,
+            typeof(int).FullName,
+            typeof(long).FullName,
+            typeof(float).FullName,
+            typeof(double).FullName,
+            typeof(DateTime).FullName,
+            typeof(Guid).FullName,
+            "Microsoft.Build.Framework.ITaskItem",
+            "Microsoft.Build.Framework.ITaskItem[]",
+            "Microsoft.Build.Framework.ITaskItem2",
+            "Microsoft.Build.Framework.ITaskItem2[]"
+        };
+
+        /// <summary>
+        ///     Scan an assembly for MSBuild tasks.
+        /// </summary>
+        /// <param name="taskAssemblyFile">
+        ///     The task assembly file.
+        /// </param>
+        /// <param name="targetSdk">
+        ///     <see cref="DotnetSdkInfo"/> representing the target .NET SDK.
         /// </param>
         /// <returns>
-        ///     A list of <see cref="MSBuildTaskMetadata"/> representing the tasks.
+        ///     <see cref="MSBuildTaskAssemblyMetadata"/> representing the assembly and any MSBuild task definitions that it contains.
         /// </returns>
-        public static async Task<MSBuildTaskAssemblyMetadata> GetAssemblyTaskMetadata(string taskAssemblyPath)
+        public static MSBuildTaskAssemblyMetadata GetAssemblyTaskMetadata(string taskAssemblyFile, DotnetSdkInfo targetSdk)
         {
-            if (string.IsNullOrWhiteSpace(taskAssemblyPath))
-                throw new ArgumentException($"Argument cannot be null, empty, or entirely composed of whitespace: {nameof(taskAssemblyPath)}.", nameof(taskAssemblyPath));
+            if (string.IsNullOrWhiteSpace(taskAssemblyFile))
+                throw new ArgumentException($"Argument cannot be null, empty, or entirely composed of whitespace: {nameof(taskAssemblyFile)}.", nameof(taskAssemblyFile));
 
-            taskAssemblyPath = taskAssemblyPath.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
-            taskAssemblyPath = Path.GetFullPath(taskAssemblyPath);
+            if (targetSdk == null)
+                throw new ArgumentNullException(nameof(targetSdk));
 
-            if (!File.Exists(taskAssemblyPath))
-                throw new FileNotFoundException($"Cannot find task assembly file '{taskAssemblyPath}'.", taskAssemblyPath);
+            return GetAssemblyTaskMetadata(taskAssemblyFile, targetSdk.BaseDirectory);
+        }
 
-            ProcessStartInfo scannerStartInfo = new ProcessStartInfo("dotnet")
+        /// <summary>
+        ///     Scan an assembly for MSBuild tasks.
+        /// </summary>
+        /// <param name="taskAssemblyFile">
+        ///     The task assembly file.
+        /// </param>
+        /// <param name="sdkBaseDirectory">
+        ///     The base directory for the target .NET SDK.
+        /// </param>
+        /// <returns>
+        ///     <see cref="MSBuildTaskAssemblyMetadata"/> representing the assembly and any MSBuild task definitions that it contains.
+        /// </returns>
+        public static MSBuildTaskAssemblyMetadata GetAssemblyTaskMetadata(string taskAssemblyFile, string sdkBaseDirectory)
+        {
+            if (string.IsNullOrWhiteSpace(taskAssemblyFile))
+                throw new ArgumentException($"Argument cannot be null, empty, or entirely composed of whitespace: {nameof(taskAssemblyFile)}.", nameof(taskAssemblyFile));
+
+            if (string.IsNullOrWhiteSpace(sdkBaseDirectory))
+                throw new ArgumentException($"Argument cannot be null, empty, or entirely composed of whitespace: {nameof(sdkBaseDirectory)}.", nameof(sdkBaseDirectory));
+
+            string baseDirectory = Path.GetDirectoryName(taskAssemblyFile);
+
+            using MetadataLoadContext loadContext = new MetadataLoadContext(
+                resolver: new SdkAssemblyResolver(
+                    baseDirectory: Path.GetDirectoryName(taskAssemblyFile),
+                    sdkBaseDirectory,
+                    RuntimeEnvironment.GetRuntimeDirectory()
+                )
+            );
+
+            string msbuildFrameworkAssemblyFile = Path.Combine(sdkBaseDirectory, MSBuildFrameworkAssemblyFileName);
+            Assembly msbuildFrameworkAssembly = loadContext.LoadFromAssemblyPath(msbuildFrameworkAssemblyFile);
+            if (msbuildFrameworkAssembly == null)
+                throw new Exception($"Unable to scan MSBuild task assembly '{taskAssemblyFile}' for tasks (cannot load MSBuild framework from '{msbuildFrameworkAssembly}')."); // TODO: Custom exception type.
+
+            Assembly taskAssembly = loadContext.LoadFromAssemblyPath(taskAssemblyFile);
+            if (taskAssembly == null)
+                throw new Exception($"An unexpected error occurred while scanning assembly '{taskAssemblyFile}' for tasks."); // TODO: Custom exception type.
+
+            var taskAssemblyMetadata = new MSBuildTaskAssemblyMetadata
             {
-                Arguments = $"\"{TaskReflectorAssemblyFile.FullName}\" \"{taskAssemblyPath}\"",
-                CreateNoWindow = true,
-                UseShellExecute = false,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true
+                AssemblyName = taskAssembly.FullName,
+                AssemblyPath = taskAssembly.Location,
+                TimestampUtc = File.GetLastWriteTimeUtc(taskAssembly.Location),
             };
 
-            using Process scannerProcess = Process.Start(scannerStartInfo);
-            // Start reading output asynchronously so the process's STDOUT buffer doesn't fill up.
-            Task<string> readOutput = scannerProcess.StandardOutput.ReadToEndAsync();
+            Type[] taskTypes;
 
-            bool exited = scannerProcess.WaitForExit(5000);
-            if (!exited)
-            {
-                scannerProcess.Kill();
-
-                throw new TimeoutException("Timed out after waiting 10 seconds for scanner process to exit.");
-            }
-
-            string output = await readOutput;
-            if (string.IsNullOrWhiteSpace(output))
-                output = await scannerProcess.StandardError.ReadToEndAsync();
-
-            using StringReader scannerOutput = new StringReader(output);
-            using JsonTextReader scannerJson = new JsonTextReader(scannerOutput);
-            if (exited && scannerProcess.ExitCode == 0)
-                return new JsonSerializer().Deserialize<MSBuildTaskAssemblyMetadata>(scannerJson);
-
-            string message;
             try
             {
-                JObject errorJson = JObject.Parse(output);
-                message = errorJson.Value<string>("Message");
+                taskTypes = taskAssembly.GetTypes(); // Even if we can't load everything, try to load what we can.
             }
-            catch (JsonReaderException invalidJson)
+            catch (ReflectionTypeLoadException typeLoadError)
             {
-                throw new Exception($"An unexpected error occurred while scanning assembly '{taskAssemblyPath}' for tasks.\n{output}",
-                    innerException: invalidJson
-                );
+                taskTypes = typeLoadError.Types;
             }
 
-            if (string.IsNullOrWhiteSpace(message))
-                message = $"An unexpected error occurred while scanning assembly '{taskAssemblyPath}' for tasks.";
-            else
-                message = $"An unexpected error occurred while scanning assembly '{taskAssemblyPath}' for tasks: {message}";
+            taskTypes =
+                taskTypes.Where(type =>
+                    type != null // Type could not be loaded (see typeLoadError.LoaderExceptions above)
+                    &&
+                    !type.IsNested && type.IsClass && !type.IsAbstract && type.GetInterfaces().Any(interfaceType => interfaceType.FullName == MSBuildTaskInterfaceType)
+                )
+                .ToArray();
 
-            // TODO: Custom exception type.
+            foreach (Type taskType in taskTypes)
+            {
+                var taskMetadata = new MSBuildTaskMetadata
+                {
+                    Name = taskType.Name,
+                    TypeName = taskType.FullName,
+                };
 
-            throw new Exception(message);
+                PropertyInfo[] taskProperties =
+                    taskType.GetProperties()
+                        .Where(property =>
+                            (property.CanRead && property.GetGetMethod().IsPublic) ||
+                            (property.CanWrite && property.GetSetMethod().IsPublic)
+                        )
+                        .ToArray();
+
+                foreach (PropertyInfo taskProperty in taskProperties)
+                {
+                    Type propertyType = taskProperty.PropertyType;
+
+                    if (!SupportedTaskParameterTypes.Contains(propertyType.FullName) && !SupportedTaskParameterTypes.Contains(propertyType.FullName + "[]") && !propertyType.IsEnum)
+                        continue;
+
+                    var attributeTypes = new HashSet<string>(
+                        taskProperty.GetCustomAttributesData().Select(
+                            attributeData => attributeData.AttributeType.FullName
+                        )
+                    );
+
+                    var taskParameterMetadata = new MSBuildTaskParameterMetadata
+                    {
+                        Name = taskProperty.Name,
+                        TypeName = propertyType.FullName,
+                        IsRequired = attributeTypes.Contains(MSBuildRequiredAttributeType),
+                        IsOutput = attributeTypes.Contains(MSBuildOutputAttributeType)
+                    };
+
+                    if (taskProperty.PropertyType.IsEnum)
+                    {
+                        taskParameterMetadata.EnumMemberNames = new List<string>(
+                            Enum.GetNames(taskProperty.PropertyType)
+                        );
+                    }
+                }
+
+                taskAssemblyMetadata.Tasks.Add(taskMetadata);
+            }
+
+            return taskAssemblyMetadata;
         }
-    }
-
-    /// <summary>
-    ///     Metadata for an assembly containing MSBuild tasks.
-    /// </summary>
-    public class MSBuildTaskAssemblyMetadata
-    {
-        /// <summary>
-        ///     The assembly's full name.
-        /// </summary>
-        [JsonProperty("assemblyName")]
-        public string AssemblyName { get; set; }
 
         /// <summary>
-        ///     The full path to the assembly file.
+        ///     A <see cref="MetadataAssemblyResolver"/> that uses 
         /// </summary>
-        [JsonProperty("assemblyPath")]
-        public string AssemblyPath { get; set; }
+        public class SdkAssemblyResolver
+            : MetadataAssemblyResolver
+        {
+            /// <summary>
+            ///     Create a new <see cref="SdkAssemblyResolver"/>.
+            /// </summary>
+            /// <param name="baseDirectory">
+            ///     The base directory for task assemblies.
+            /// </param>
+            /// <param name="sdkBaseDirectory">
+            ///     The base directory for the target SDK.
+            /// </param>
+            /// <param name="runtimeDirectory">
+            ///     The base directory for the current runtime environment.
+            /// </param>
+            /// <param name="logger">
+            ///     An optional <see cref="ILogger"/> to use for diagnostic logging.
+            /// </param>
+            public SdkAssemblyResolver(string baseDirectory, string sdkBaseDirectory, string runtimeDirectory, ILogger logger = null)
+            {
+                if (string.IsNullOrWhiteSpace(baseDirectory))
+                    throw new ArgumentException($"Argument cannot be null, empty, or entirely composed of whitespace: {nameof(baseDirectory)}.", nameof(baseDirectory));
 
-        /// <summary>
-        ///     The assembly file's timestamp.
-        /// </summary>
-        [JsonProperty("timestampUtc")]
-        public DateTime TimestampUtc { get; set; }
+                if (string.IsNullOrWhiteSpace(sdkBaseDirectory))
+                    throw new ArgumentException($"Argument cannot be null, empty, or entirely composed of whitespace: {nameof(sdkBaseDirectory)}.", nameof(sdkBaseDirectory));
 
-        /// <summary>
-        ///     Tasks defined in the assembly.
-        /// </summary>
-        [JsonProperty("tasks", ObjectCreationHandling = ObjectCreationHandling.Reuse)]
-        public List<MSBuildTaskMetadata> Tasks { get; } = new List<MSBuildTaskMetadata>();
-    }
+                if (string.IsNullOrWhiteSpace(runtimeDirectory))
+                    throw new ArgumentException($"Argument cannot be null, empty, or entirely composed of whitespace: {nameof(runtimeDirectory)}.", nameof(runtimeDirectory));
 
-    /// <summary>
-    ///     Metadata for an MSBuild task.
-    /// </summary>
-    public class MSBuildTaskMetadata
-    {
-        /// <summary>
-        ///     The task name.
-        /// </summary>
-        [JsonProperty("taskName")]
-        public string Name { get; set; }
+                BaseDirectory = baseDirectory;
+                SdkBaseDirectory = sdkBaseDirectory;
+                RuntimeDirectory = runtimeDirectory;
+                Log = logger ?? Serilog.Log.Logger;
+            }
 
-        /// <summary>
-        ///     The full name of the type that implements the task.
-        /// </summary>
-        [JsonProperty("typeName")]
-        public string TypeName { get; set; }
+            /// <summary>
+            ///     The target SDK's base directory for task assemblies.
+            /// </summary>
+            public string BaseDirectory { get; }
 
-        /// <summary>
-        ///     The task parameters (if any).
-        /// </summary>
-        [JsonProperty("parameters", ObjectCreationHandling = ObjectCreationHandling.Reuse)]
-        public List<MSBuildTaskParameterMetadata> Parameters { get; } = new List<MSBuildTaskParameterMetadata>();
-    }
+            /// <summary>
+            ///     The base directory for the target SDK.
+            /// </summary>
+            public string SdkBaseDirectory { get; }
 
-    /// <summary>
-    ///     Metadata for a parameter of an MSBuild task.
-    /// </summary>
-    public class MSBuildTaskParameterMetadata
-    {
-        /// <summary>
-        ///     The parameter name.
-        /// </summary>
-        [JsonProperty("parameterName")]
-        public string Name { get; set; }
+            /// <summary>
+            ///     The base directory for the current runtime environment.
+            /// </summary>
+            public string RuntimeDirectory { get; }
 
-        /// <summary>
-        ///     The full name of the parameter's data type.
-        /// </summary>
-        [JsonProperty("parameterType")]
-        public string TypeName { get; set; }
+            /// <summary>
+            ///     The <see cref="ILogger"/> used for assembly-resolution diagnostic logging.
+            /// </summary>
+            ILogger Log { get; }
 
-        /// <summary>
-        ///     Is the parameter type an enum?
-        /// </summary>
-        [JsonIgnore]
-        public bool IsEnum => EnumMemberNames != null;
+            /// <summary>
+            ///     Attempt to find and load the assembly with the specified name.
+            /// </summary>
+            /// <param name="context">
+            ///     Contextual information about the current assembly-resolution process.
+            /// </param>
+            /// <param name="assemblyName">
+            ///     An <see cref="AssemblyName"/> representing the assembly to load.
+            /// </param>
+            /// <returns>
+            ///     The loaded <see cref="Assembly"/>, or <c>null</c> if the assembly could not be found (or loaded).
+            /// </returns>
+            public override Assembly Resolve(MetadataLoadContext context, AssemblyName assemblyName)
+            {
+                if (context == null)
+                    throw new ArgumentNullException(nameof(context));
 
-        /// <summary>
-        ///     If the parameter type is an <see cref="Enum"/>, the names of the values that the parameter can contain.
-        /// </summary>
-        [JsonProperty("enum", DefaultValueHandling = DefaultValueHandling.IgnoreAndPopulate)]
-        public List<string> EnumMemberNames { get; set; }
+                if (assemblyName == null)
+                    throw new ArgumentNullException(nameof(assemblyName));
 
-        /// <summary>
-        ///     Is the parameter mandatory?
-        /// </summary>
-        [JsonProperty("required", DefaultValueHandling = DefaultValueHandling.IgnoreAndPopulate)]
-        public bool IsRequired { get; set; }
+                string foundAssemblyFile = FindAssemblyFile(assemblyName, BaseDirectory);
 
-        /// <summary>
-        ///     Is the parameter an output parameter?
-        /// </summary>
-        [JsonProperty("output", DefaultValueHandling = DefaultValueHandling.IgnoreAndPopulate)]
-        public bool IsOutput { get; set; }
+                if (foundAssemblyFile == null)
+                    foundAssemblyFile = FindAssemblyFile(assemblyName, SdkBaseDirectory);
+
+                if (foundAssemblyFile == null)
+                    foundAssemblyFile = FindAssemblyFile(assemblyName, RuntimeDirectory);
+
+                if (foundAssemblyFile == null)
+                    return null;
+
+                return context.LoadFromAssemblyPath(foundAssemblyFile);
+            }
+
+            /// <summary>
+            ///     Attempt to locate the assembly with the specified name.
+            /// </summary>
+            /// <param name="assemblyName">
+            ///     An <see cref="AssemblyName"/> representing the target assembly.
+            /// </param>
+            /// <param name="baseDirectory">
+            ///     The base directory to search for the assembly (subdirectories are included in the search).
+            /// </param>
+            /// <returns>
+            ///     The full path to the assembly file, if found; otherwise, <c>null</c>.
+            /// </returns>
+            string FindAssemblyFile(AssemblyName assemblyName, string baseDirectory)
+            {
+                if (assemblyName == null)
+                    throw new ArgumentNullException(nameof(assemblyName));
+
+                if (string.IsNullOrWhiteSpace(baseDirectory))
+                    throw new ArgumentException($"Argument cannot be null, empty, or entirely composed of whitespace: {nameof(baseDirectory)}.", nameof(baseDirectory));
+
+                string foundAssemblyFile = FindAssemblyFile(assemblyName, baseDirectory, extension: "dll");
+                if (foundAssemblyFile != null)
+                    return foundAssemblyFile;
+
+                // Unusual, but technically it is still supported.
+                foundAssemblyFile = FindAssemblyFile(assemblyName, baseDirectory, extension: "exe");
+                if (foundAssemblyFile != null)
+                    return foundAssemblyFile;
+
+                return null;
+            }
+
+            /// <summary>
+            ///     Attempt to locate the assembly with the specified name and file extension.
+            /// </summary>
+            /// <param name="assemblyName">
+            ///     An <see cref="AssemblyName"/> representing the target assembly.
+            /// </param>
+            /// <param name="baseDirectory">
+            ///     The base directory to search for the assembly (subdirectories are included in the search).
+            /// </param>
+            /// <param name="extension">
+            ///     The assembly file extension.
+            /// </param>
+            /// <returns>
+            ///     The full path to the assembly file, if found; otherwise, <c>null</c>.
+            /// </returns>
+            string FindAssemblyFile(AssemblyName assemblyName, string baseDirectory, string extension)
+            {
+                if (assemblyName == null)
+                    throw new ArgumentNullException(nameof(assemblyName));
+
+                if (string.IsNullOrWhiteSpace(baseDirectory))
+                    throw new ArgumentException($"Argument cannot be null, empty, or entirely composed of whitespace: {nameof(baseDirectory)}.", nameof(baseDirectory));
+
+                if (string.IsNullOrWhiteSpace(extension))
+                    throw new ArgumentException($"Argument cannot be null, empty, or entirely composed of whitespace: {nameof(extension)}.", nameof(extension));
+
+                string assemblyFileName = $"{assemblyName.Name}.{extension}";
+
+                foreach (string foundAssemblyFile in Directory.EnumerateFiles(baseDirectory, assemblyFileName, SearchOption.AllDirectories))
+                {
+                    AssemblyName foundAssemblyName;
+
+                    try
+                    {
+                        foundAssemblyName = AssemblyName.GetAssemblyName(foundAssemblyFile);
+                    }
+                    catch (Exception invalidAssembly)
+                    {
+                        Log.Warning(invalidAssembly, "Ignoring assembly file {AssemblyFilePath} (probably not a valid assembly).", foundAssemblyFile);
+
+                        continue;
+                    }
+
+                    if (AssemblyName.ReferenceMatchesDefinition(assemblyName, foundAssemblyName))
+                        return foundAssemblyFile;
+                }
+
+                return null;
+            }
+        }
     }
 }
