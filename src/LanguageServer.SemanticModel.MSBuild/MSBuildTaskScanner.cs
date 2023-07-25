@@ -1,4 +1,5 @@
 using MSBuildProjectTools.LanguageServer.Utilities;
+using NuGet.Protocol;
 using Serilog;
 using System;
 using System.Collections.Generic;
@@ -15,7 +16,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
     /// <remarks>
     ///     Used to provide completions for tasks and task parameters.
     /// </remarks>
-    static partial class MSBuildTaskScanner
+    public static partial class MSBuildTaskScanner
     {
         /// <summary>
         ///     The name of the MSBuild framework assembly file (Microsoft.Build.Framework.dll).
@@ -73,10 +74,13 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
         /// <param name="targetSdk">
         ///     <see cref="DotnetSdkInfo"/> representing the target .NET SDK.
         /// </param>
+        /// <param name="logger">
+        ///     An optional logger to use for type-reflection diagnostics.
+        /// </param>
         /// <returns>
         ///     <see cref="MSBuildTaskAssemblyMetadata"/> representing the assembly and any MSBuild task definitions that it contains.
         /// </returns>
-        public static MSBuildTaskAssemblyMetadata GetAssemblyTaskMetadata(string taskAssemblyFile, DotnetSdkInfo targetSdk)
+        public static MSBuildTaskAssemblyMetadata GetAssemblyTaskMetadata(string taskAssemblyFile, DotnetSdkInfo targetSdk, ILogger logger = null)
         {
             if (string.IsNullOrWhiteSpace(taskAssemblyFile))
                 throw new ArgumentException($"Argument cannot be null, empty, or entirely composed of whitespace: {nameof(taskAssemblyFile)}.", nameof(taskAssemblyFile));
@@ -84,7 +88,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
             if (targetSdk == null)
                 throw new ArgumentNullException(nameof(targetSdk));
 
-            return GetAssemblyTaskMetadata(taskAssemblyFile, targetSdk.BaseDirectory);
+            return GetAssemblyTaskMetadata(taskAssemblyFile, targetSdk.BaseDirectory, logger);
         }
 
         /// <summary>
@@ -96,10 +100,13 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
         /// <param name="sdkBaseDirectory">
         ///     The base directory for the target .NET SDK.
         /// </param>
+        /// <param name="logger">
+        ///     An optional logger to use for type-reflection diagnostics.
+        /// </param>
         /// <returns>
         ///     <see cref="MSBuildTaskAssemblyMetadata"/> representing the assembly and any MSBuild task definitions that it contains.
         /// </returns>
-        public static MSBuildTaskAssemblyMetadata GetAssemblyTaskMetadata(string taskAssemblyFile, string sdkBaseDirectory)
+        public static MSBuildTaskAssemblyMetadata GetAssemblyTaskMetadata(string taskAssemblyFile, string sdkBaseDirectory, ILogger logger = null)
         {
             if (string.IsNullOrWhiteSpace(taskAssemblyFile))
                 throw new ArgumentException($"Argument cannot be null, empty, or entirely composed of whitespace: {nameof(taskAssemblyFile)}.", nameof(taskAssemblyFile));
@@ -148,7 +155,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
                 taskTypes.Where(type =>
                     type != null // Type could not be loaded (see typeLoadError.LoaderExceptions above)
                     &&
-                    !type.IsNested && type.IsClass && !type.IsAbstract && type.GetInterfaces().Any(interfaceType => interfaceType.FullName == MSBuildTaskInterfaceType)
+                    IsTaskImplementation(type, logger)
                 )
                 .ToArray();
 
@@ -201,6 +208,60 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
             }
 
             return taskAssemblyMetadata;
+        }
+
+        /// <summary>
+        ///     Determine whether a CLR <see cref="Type"/> concretely implements an MSBuild task (<see cref="Microsoft.Build.Framework.ITask"/>).
+        /// </summary>
+        /// <param name="type">
+        ///     The target <see cref="Type"/>.
+        /// </param>
+        /// <param name="logger">
+        ///     An optional logger to use for type-reflection diagnostics.
+        /// </param>
+        /// <returns>
+        ///     <c>true</c>
+        /// </returns>
+        static bool IsTaskImplementation(Type type, ILogger logger)
+        {
+            if (type == null)
+                throw new ArgumentNullException(nameof(type));
+
+            try
+            {
+                if (!type.IsClass)
+                    return false;
+
+                if (type.IsAbstract)
+                    return false;
+
+                if (type.IsNested)
+                    return false;
+
+                return type.GetInterfaces().Any(interfaceType => interfaceType.FullName == MSBuildTaskInterfaceType);
+            }
+            catch (Exception typeReflectionError)
+            {
+                if (logger != null)
+                {
+                    string assemblyQualifiedTypeName;
+
+                    try
+                    {
+                        assemblyQualifiedTypeName = type.AssemblyQualifiedName;
+                    }
+                    catch (Exception cannotGetTypeName)
+                    {
+                        logger.Verbose(cannotGetTypeName, "Unable to determine name for reflected type.");
+
+                        assemblyQualifiedTypeName = "Unknown";
+                    }
+
+                    logger.Verbose(typeReflectionError, "Unexpected error while reflecting on type '{AssemblyQualifiedTypeName}'.", assemblyQualifiedTypeName);
+                }
+
+                return false;
+            }
         }
 
         /// <summary>

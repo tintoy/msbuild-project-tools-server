@@ -66,6 +66,9 @@ namespace MSBuildProjectTools.LanguageServer.Documents
             ExtensionDataDirectory = new DirectoryInfo(
                 Path.Combine(ExtensionDirectory.FullName, "data")
             );
+            TaskMetadataCache = new MSBuildTaskMetadataCache(
+                logger: logger.ForContext<MSBuildTaskMetadataCache>()
+            );
             TaskMetadataCacheFile = new FileInfo(
                 Path.Combine(ExtensionDataDirectory.FullName, "task-metadata-cache.json")
             );
@@ -137,7 +140,7 @@ namespace MSBuildProjectTools.LanguageServer.Documents
         /// <summary>
         ///     The cache for MSBuild task metadata.
         /// </summary>
-        public MSBuildTaskMetadataCache TaskMetadataCache { get; } = new MSBuildTaskMetadataCache();
+        public MSBuildTaskMetadataCache TaskMetadataCache { get; }
 
         /// <summary>
         ///     The master project (if any).

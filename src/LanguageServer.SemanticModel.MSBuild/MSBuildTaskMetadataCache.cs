@@ -1,9 +1,12 @@
+using Microsoft.Build.Framework;
 using Newtonsoft.Json;
 using Nito.AsyncEx;
+using Serilog.Core;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Threading.Tasks;
+
+using ILogger = Serilog.ILogger;
 
 namespace MSBuildProjectTools.LanguageServer.SemanticModel
 {
@@ -24,9 +27,18 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
         /// <summary>
         ///     Create a new <see cref="MSBuildTaskMetadataCache"/>.
         /// </summary>
-        public MSBuildTaskMetadataCache()
+        /// <param name="logger">
+        ///     An optional logger to use for type-reflection diagnostics.
+        /// </param>
+        public MSBuildTaskMetadataCache(ILogger logger)
         {
+            Log = logger;
         }
+
+        /// <summary>
+        ///     An optional logger to use for type-reflection diagnostics.
+        /// </summary>
+        ILogger Log { get; }
 
         /// <summary>
         ///     A lock used to synchronize access to cache state.
@@ -72,7 +84,11 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
                 FileInfo assemblyFile = new FileInfo(assemblyPath);
                 if (!Assemblies.TryGetValue(assemblyPath, out metadata) || metadata.TimestampUtc < assemblyFile.LastWriteTimeUtc)
                 {
-                    metadata = MSBuildTaskScanner.GetAssemblyTaskMetadata(assemblyPath, sdkBaseDirectory);
+                    metadata = MSBuildTaskScanner.GetAssemblyTaskMetadata(assemblyPath, sdkBaseDirectory,
+                        logger: Log?.ForContext(
+                            typeof(MSBuildTaskScanner)
+                        )
+                    );
                     Assemblies[metadata.AssemblyPath] = metadata;
 
                     IsDirty = true;
@@ -152,15 +168,18 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
         /// <param name="cacheFile">
         ///     The file containing persisted cache state.
         /// </param>
+        /// <param name="logger">
+        ///     An optional logger to use for type-reflection diagnostics.
+        /// </param>
         /// <returns>
         ///     The new <see cref="MSBuildTaskMetadataCache"/>.
         /// </returns>
-        public static MSBuildTaskMetadataCache FromCacheFile(string cacheFile)
+        public static MSBuildTaskMetadataCache FromCacheFile(string cacheFile, ILogger logger = null)
         {
             if (string.IsNullOrWhiteSpace(cacheFile))
                 throw new ArgumentException("Argument cannot be null, empty, or entirely composed of whitespace: 'cacheFile'.", nameof(cacheFile));
 
-            MSBuildTaskMetadataCache cache = new MSBuildTaskMetadataCache();
+            MSBuildTaskMetadataCache cache = new MSBuildTaskMetadataCache(logger);
             cache.Load(cacheFile);
 
             return cache;
