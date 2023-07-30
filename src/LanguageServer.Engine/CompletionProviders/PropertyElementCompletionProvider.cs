@@ -139,11 +139,10 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
                 if (!offeredPropertyNames.Add(wellKnownPropertyName))
                     continue;
 
-                var (defaultValue, defaultValues) = MSBuildSchemaHelp.DefaultsForProperty(wellKnownPropertyName);
+                var defaultValues = MSBuildSchemaHelp.DefaultsForProperty(wellKnownPropertyName);
 
                 yield return PropertyCompletionItem(wellKnownPropertyName, replaceRangeLsp,
                     description: MSBuildSchemaHelp.ForProperty(wellKnownPropertyName),
-                    defaultValue: defaultValue,
                     defaultValues: defaultValues
                 );
             }
@@ -187,9 +186,6 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
         /// <param name="description">
         ///     An optional description for the property.
         /// </param>
-        /// <param name="defaultValue">
-        ///     An optional default value for the property.
-        /// </param>
         /// <param name="defaultValues">
         ///     An optional list of default values for the property.
         /// 
@@ -198,7 +194,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
         /// <returns>
         ///     The <see cref="CompletionItem"/>.
         /// </returns>
-        CompletionItem PropertyCompletionItem(string propertyName, LspModels.Range replaceRange, int? priority = null, string description = null, string defaultValue = null, IReadOnlyList<string> defaultValues = null)
+        CompletionItem PropertyCompletionItem(string propertyName, LspModels.Range replaceRange, int? priority = null, string description = null, IReadOnlyList<string> defaultValues = null)
         {
             return new CompletionItem
             {
@@ -209,7 +205,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
                 SortText = $"{priority ?? Priority:0000}<{propertyName}>",
                 TextEdit = new TextEdit
                 {
-                    NewText = GetCompletionText(propertyName, defaultValue, defaultValues),
+                    NewText = GetCompletionText(propertyName, defaultValues),
                     Range = replaceRange
                 },
                 InsertTextFormat = InsertTextFormat.Snippet
@@ -222,9 +218,6 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
         /// <param name="propertyName">
         ///     The property name.
         /// </param>
-        /// <param name="defaultValue">
-        ///     The property's default value (if any).
-        /// </param>
         /// <param name="defaultValues">
         ///     The property's default values (if any).
         /// 
@@ -233,13 +226,13 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
         /// <returns>
         ///     The completion text (in standard LSP Snippet format).
         /// </returns>
-        static string GetCompletionText(string propertyName, string defaultValue, IReadOnlyList<string> defaultValues)
+        static string GetCompletionText(string propertyName, IReadOnlyList<string> defaultValues)
         {
             StringBuilder completionText = new StringBuilder();
             completionText.AppendFormat("<{0}>", propertyName);
 
             bool haveValue = false;
-            if (defaultValues != null && defaultValues.Count > 0)
+            if (defaultValues is { Count: > 0 })
             {
                 haveValue = true;
 
@@ -256,16 +249,10 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
                 }
                 completionText.Append("|}");
             }
-            else if (!string.IsNullOrWhiteSpace(defaultValue))
-            {
-                haveValue = true;
-
-                completionText.Append("${1:");
-                completionText.Append(defaultValue);
-                completionText.Append('}');
-            }
             else
+            {
                 completionText.Append("$0");
+            }
 
             completionText.AppendFormat("</{0}>", propertyName);
 

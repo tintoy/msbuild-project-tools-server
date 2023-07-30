@@ -18,11 +18,6 @@ namespace MSBuildProjectTools.LanguageServer.Help
         public string HelpLink { get; init; }
 
         /// <summary>
-        ///     The property's default value.
-        /// </summary>
-        public string DefaultValue { get; init; }
-
-        /// <summary>
         ///     The property's default values (if specified, the completion's snippet will present a drop-down list of values for the user to choose from as the property value.').
         /// </summary>
         public List<string> DefaultValues { get; init; }
