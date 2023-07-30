@@ -262,18 +262,17 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
         ///     The property name.
         /// </param>
         /// <returns>
-        ///     A tuple containing the property's default value / values, or null / null if no defaults are available for it.
+        ///     A list containing the property's default values, or null if no defaults are available for it.
         /// </returns>
-        public static (string defaultValue, IReadOnlyList<string> defaultValues) DefaultsForProperty(string propertyName)
+        public static IReadOnlyList<string> DefaultsForProperty(string propertyName)
         {
             if (string.IsNullOrWhiteSpace(propertyName))
                 throw new ArgumentException("Argument cannot be null, empty, or entirely composed of whitespace: 'propertyName'.", nameof(propertyName));
 
-            string helpKey = propertyName;
-            if (PropertyHelp.TryGetValue(helpKey, out PropertyHelp help))
-                return (help.DefaultValue, help.DefaultValues);
+            if (PropertyHelp.TryGetValue(propertyName, out PropertyHelp help))
+                return help.DefaultValues;
 
-            return (null, null);
+            return null;
         }
 
         /// <summary>

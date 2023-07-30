@@ -493,7 +493,27 @@
     },
     "LangVersion": {
         "description": "Which version of the target language (e.g. C# / VB) to use.",
-        "defaultValue": "latest"
+        "defaultValues": [
+            "default",
+            "latest",
+            "latestMajor",
+            "preview",
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "6",
+            "7.0",
+            "7.1",
+            "7.2",
+            "7.3",
+            "8.0",
+            "9.0",
+            "10.0",
+            "11.0",
+            "12.0"
+        ]
     },
     "LayoutDir": {
         "description": "Full path to a folder with package layout."
