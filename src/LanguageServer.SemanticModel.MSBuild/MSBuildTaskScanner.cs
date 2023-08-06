@@ -410,10 +410,10 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
                 string foundAssemblyFile = FindAssemblyFile(assemblyName, BaseDirectory);
 
                 if (foundAssemblyFile == null)
-                    foundAssemblyFile = FindAssemblyFile(assemblyName, SdkBaseDirectory);
+                    foundAssemblyFile = FindAssemblyFile(assemblyName, RuntimeDirectory);
 
                 if (foundAssemblyFile == null)
-                    foundAssemblyFile = FindAssemblyFile(assemblyName, RuntimeDirectory);
+                    foundAssemblyFile = FindAssemblyFile(assemblyName, SdkBaseDirectory);
 
                 if (foundAssemblyFile == null)
                     return null;
