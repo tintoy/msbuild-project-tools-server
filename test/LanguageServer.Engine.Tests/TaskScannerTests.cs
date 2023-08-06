@@ -19,6 +19,11 @@ namespace MSBuildProjectTools.LanguageServer.Tests
         : TestBase
     {
         /// <summary>
+        ///     Enable dotnet host diagnostics while running the tests?
+        /// </summary>
+        public static readonly bool EnableDotNetHostDiagnostics = false;
+
+        /// <summary>
         ///     Create a new <see cref="MSBuildTaskScanner"/> test suite.
         /// </summary>
         /// <param name="testOutput">
@@ -29,13 +34,18 @@ namespace MSBuildProjectTools.LanguageServer.Tests
         {
             LogLevelSwitch.MinimumLevel = Serilog.Events.LogEventLevel.Verbose;
 
-            Log.Information("IntPtr.Size = {IntPtrSize}", IntPtr.Size);
+
             Log.Information("Runtime Directory = {RuntimeDirectory}", RuntimeEnvironment.GetRuntimeDirectory());
 
-            Environment.SetEnvironmentVariable("MSBUILD_PROJECT_TOOLS_DOTNET_HOST_DIAGNOSTICS", "1");
-            RuntimeInfo = DotNetRuntimeInfo.GetCurrent(logger: Log);
-            Environment.SetEnvironmentVariable("MSBUILD_PROJECT_TOOLS_DOTNET_HOST_DIAGNOSTICS", null);
-            
+            if (EnableDotNetHostDiagnostics)
+            {
+                Environment.SetEnvironmentVariable("MSBUILD_PROJECT_TOOLS_DOTNET_HOST_DIAGNOSTICS", "1");
+                RuntimeInfo = DotNetRuntimeInfo.GetCurrent();
+                Environment.SetEnvironmentVariable("MSBUILD_PROJECT_TOOLS_DOTNET_HOST_DIAGNOSTICS", null);
+            }
+            else
+                RuntimeInfo = DotNetRuntimeInfo.GetCurrent();
+
             Assert.NotNull(RuntimeInfo.BaseDirectory);
         }
 
@@ -53,10 +63,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests
         [InlineData("NuGet.Build.Tasks.dll")]
         [InlineData("Microsoft.Build.Tasks.Core.dll")]
         [InlineData("Sdks/Microsoft.NET.Sdk/tools/net6.0/Microsoft.NET.Build.Tasks.dll")]
-        [Theory(
-            DisplayName = "TaskScanner can get tasks from framework task assembly "//,
-            //Skip = "Temporarily disabled until we switch to using an in-process task scanner." // Too difficult to figure out where the base directory is for the task-scanner assembly (output directories for Debug/Release config).
-        )]
+        [Theory(DisplayName = "TaskScanner can get tasks from framework task assembly ")]
         public void Scan_FrameworkTaskAssembly_Success(string fileName)
         {
             string taskAssemblyFile = GetFrameworkTaskAssemblyFile(fileName);
@@ -64,8 +71,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests
                 $"Task assembly '{taskAssemblyFile}' exists"
             );
 
-            //MSBuildTaskAssemblyMetadata metadata = await MSBuildTaskScanner.GetAssemblyTaskMetadata(taskAssemblyFile);
-            MSBuildTaskAssemblyMetadata metadata = MSBuildTaskScanner.GetAssemblyTaskMetadata(taskAssemblyFile, RuntimeInfo.Sdk);
+            MSBuildTaskAssemblyMetadata metadata = MSBuildTaskScanner.GetAssemblyTaskMetadata(taskAssemblyFile, RuntimeInfo.Sdk, Log);
             Assert.NotNull(metadata);
 
             Assert.NotEqual(0, metadata.Tasks.Count);

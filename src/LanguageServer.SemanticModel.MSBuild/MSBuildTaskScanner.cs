@@ -119,7 +119,8 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
                 resolver: new SdkAssemblyResolver(
                     baseDirectory: Path.GetDirectoryName(taskAssemblyFile),
                     sdkBaseDirectory,
-                    RuntimeEnvironment.GetRuntimeDirectory()
+                    RuntimeEnvironment.GetRuntimeDirectory(),
+                    logger
                 )
             );
 
@@ -364,7 +365,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
                 BaseDirectory = baseDirectory;
                 SdkBaseDirectory = sdkBaseDirectory;
                 RuntimeDirectory = runtimeDirectory;
-                Log = logger ?? Serilog.Log.Logger;
+                Log = (logger ?? Serilog.Log.Logger).ForContext<SdkAssemblyResolver>();
             }
 
             /// <summary>
@@ -407,6 +408,8 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
                 if (assemblyName == null)
                     throw new ArgumentNullException(nameof(assemblyName));
 
+                Log.Verbose($"MSBuild task scanner is attempting to resolve assembly '{assemblyName.Name}'...");
+
                 string foundAssemblyFile = FindAssemblyFile(assemblyName, BaseDirectory);
 
                 if (foundAssemblyFile == null)
@@ -416,7 +419,13 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
                     foundAssemblyFile = FindAssemblyFile(assemblyName, SdkBaseDirectory);
 
                 if (foundAssemblyFile == null)
+                {
+                    Log.Verbose($"MSBuild task scanner failed to resolve assembly '{assemblyName.Name}' for metadata.");
+
                     return null;
+                }
+
+                Log.Verbose($"MSBuild task scanner successfully resolved assembly '{assemblyName.Name}' (as '{foundAssemblyFile}') for metadata loader.");
 
                 return context.LoadFromAssemblyPath(foundAssemblyFile);
             }
@@ -497,7 +506,13 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
                     }
 
                     if (AssemblyName.ReferenceMatchesDefinition(assemblyName, foundAssemblyName))
+                    {
+                        Log.Verbose($"MSBuild task scanner is using assembly reference ('{foundAssemblyName.FullName}' from '{foundAssemblyFile}') matches definition ('{assemblyName.Name}').");
+
                         return foundAssemblyFile;
+                    }
+
+                    Log.Verbose($"MSBuild task scanner is not using assembly reference ('{foundAssemblyName.FullName}' from '{foundAssemblyFile}') with definition ('{assemblyName.Name}').");
                 }
 
                 return null;
