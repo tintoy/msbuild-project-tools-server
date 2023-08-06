@@ -410,10 +410,10 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
 
                 Log.Verbose($"MSBuild task scanner is attempting to resolve assembly '{assemblyName.Name}'...");
 
-                string foundAssemblyFile = FindAssemblyFile(assemblyName, BaseDirectory);
+                string foundAssemblyFile = FindAssemblyFile(assemblyName, RuntimeDirectory);
 
                 if (foundAssemblyFile == null)
-                    foundAssemblyFile = FindAssemblyFile(assemblyName, RuntimeDirectory);
+                    foundAssemblyFile = FindAssemblyFile(assemblyName, BaseDirectory);
 
                 if (foundAssemblyFile == null)
                     foundAssemblyFile = FindAssemblyFile(assemblyName, SdkBaseDirectory);
