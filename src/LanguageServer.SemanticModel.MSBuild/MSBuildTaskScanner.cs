@@ -1,5 +1,4 @@
 using MSBuildProjectTools.LanguageServer.Utilities;
-using NuGet.Protocol;
 using Serilog;
 using System;
 using System.Collections.Generic;
@@ -167,41 +166,12 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
                     TypeName = taskType.FullName,
                 };
 
-                PropertyInfo[] taskProperties =
-                    taskType.GetProperties()
-                        .Where(property =>
-                            (property.CanRead && property.GetGetMethod().IsPublic) ||
-                            (property.CanWrite && property.GetSetMethod().IsPublic)
-                        )
-                        .ToArray();
+                PropertyInfo[] taskProperties = taskType.GetProperties(); // Public properties only.
 
                 foreach (PropertyInfo taskProperty in taskProperties)
                 {
-                    Type propertyType = taskProperty.PropertyType;
-
-                    if (!SupportedTaskParameterTypes.Contains(propertyType.FullName) && !SupportedTaskParameterTypes.Contains(propertyType.FullName + "[]") && !propertyType.IsEnum)
-                        continue;
-
-                    var attributeTypes = new HashSet<string>(
-                        taskProperty.GetCustomAttributesData().Select(
-                            attributeData => attributeData.AttributeType.FullName
-                        )
-                    );
-
-                    var taskParameterMetadata = new MSBuildTaskParameterMetadata
-                    {
-                        Name = taskProperty.Name,
-                        TypeName = propertyType.FullName,
-                        IsRequired = attributeTypes.Contains(MSBuildRequiredAttributeType),
-                        IsOutput = attributeTypes.Contains(MSBuildOutputAttributeType)
-                    };
-
-                    if (taskProperty.PropertyType.IsEnum)
-                    {
-                        taskParameterMetadata.EnumMemberNames = new List<string>(
-                            Enum.GetNames(taskProperty.PropertyType)
-                        );
-                    }
+                    if (IsTaskParameter(taskProperty, logger, out MSBuildTaskParameterMetadata parameterMetadata))
+                        taskMetadata.Parameters.Add(parameterMetadata);
                 }
 
                 taskAssemblyMetadata.Tasks.Add(taskMetadata);
@@ -262,6 +232,101 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
 
                 return false;
             }
+        }
+
+        /// <summary>
+        ///     Determine whether a property represents an MSBuild task parameter.
+        /// </summary>
+        /// <param name="property"></param>
+        /// <param name="logger"></param>
+        /// <param name="parameterMetadata"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException"></exception>
+        static bool IsTaskParameter(PropertyInfo property, ILogger logger, out MSBuildTaskParameterMetadata parameterMetadata)
+        {
+            if (property == null)
+                throw new ArgumentNullException(nameof(property));
+
+            parameterMetadata = null;
+
+            string propertyName = property.Name;
+            Type declaringType = property.DeclaringType;
+            Type propertyType = property.PropertyType;
+
+            try
+            {
+                MethodInfo propertyAccessor = null;
+
+                if (property.CanRead)
+                    propertyAccessor = property.GetGetMethod(nonPublic: false);
+                
+                if (propertyAccessor == null && property.CanWrite)
+                    propertyAccessor = property.GetSetMethod(nonPublic: false);
+
+                if (propertyAccessor == null)
+                    return false; // Property can be read / written, but access is not public (which is required for a task-parameter property).
+
+                if (!IsSupportedTaskParameterType(propertyType))
+                    return false;
+
+                var attributeTypes = new HashSet<string>(
+                    property.GetCustomAttributesData().Select(
+                        attributeData => attributeData.AttributeType.FullName
+                    )
+                );
+
+                parameterMetadata = new MSBuildTaskParameterMetadata
+                {
+                    Name = property.Name,
+                    TypeName = property.PropertyType.FullName,
+                    IsRequired = attributeTypes.Contains(MSBuildRequiredAttributeType),
+                    IsOutput = attributeTypes.Contains(MSBuildOutputAttributeType)
+                };
+
+                if (property.PropertyType.IsEnum)
+                {
+                    parameterMetadata.EnumMemberNames = new List<string>(
+                        Enum.GetNames(property.PropertyType)
+                    );
+                }
+
+                return true;
+            }
+            catch (Exception reflectionError)
+            {
+                if (logger != null)
+                    logger.Warning(reflectionError, "Unexpected error while reflecting on property '{PropertyName}' of type '{DeclaringTypeName}'.", propertyName, declaringType.FullName);
+
+                return false;
+            }
+        }
+
+        /// <summary>
+        ///     Determine whether the specified CLR type represents a supported MSBuild task parameter type.
+        /// </summary>
+        /// <param name="type">
+        ///     The <see cref="Type"/> to examine.
+        /// </param>
+        /// <returns>
+        ///     <c>true</c>, if the <paramref name="type"/> represents a supported task parameter type; otherwise, <c>false</c>.
+        /// </returns>
+        /// <remarks>
+        ///     Arrays of supported types are also supported, as are enums.
+        /// </remarks>
+        static bool IsSupportedTaskParameterType(Type type)
+        {
+            string propertyTypeName = type.FullName;
+            if (SupportedTaskParameterTypes.Contains(propertyTypeName))
+                return true;
+
+            string arrayTypeName = $"{propertyTypeName}[]";
+            if (SupportedTaskParameterTypes.Contains(arrayTypeName))
+                return true;
+
+            if (type.IsEnum)
+                return true;
+
+            return false;
         }
 
         /// <summary>
