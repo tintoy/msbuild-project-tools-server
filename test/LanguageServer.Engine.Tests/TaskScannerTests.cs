@@ -32,15 +32,14 @@ namespace MSBuildProjectTools.LanguageServer.Tests
         public TaskScannerTests(ITestOutputHelper testOutput)
             : base(testOutput)
         {
-            LogLevelSwitch.MinimumLevel = Serilog.Events.LogEventLevel.Verbose;
-
-
-            Log.Information("Runtime Directory = {RuntimeDirectory}", RuntimeEnvironment.GetRuntimeDirectory());
+            LogLevelSwitch.MinimumLevel = EnableDotNetHostDiagnostics ? Serilog.Events.LogEventLevel.Verbose : Serilog.Events.LogEventLevel.Information;
 
             if (EnableDotNetHostDiagnostics)
             {
+                Log.Information("Runtime Directory = {RuntimeDirectory}", RuntimeEnvironment.GetRuntimeDirectory());
+
                 Environment.SetEnvironmentVariable("MSBUILD_PROJECT_TOOLS_DOTNET_HOST_DIAGNOSTICS", "1");
-                RuntimeInfo = DotNetRuntimeInfo.GetCurrent();
+                RuntimeInfo = DotNetRuntimeInfo.GetCurrent(logger: Log);
                 Environment.SetEnvironmentVariable("MSBUILD_PROJECT_TOOLS_DOTNET_HOST_DIAGNOSTICS", null);
             }
             else
