@@ -488,6 +488,8 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
                 if (string.IsNullOrWhiteSpace(extension))
                     throw new ArgumentException($"Argument cannot be null, empty, or entirely composed of whitespace: {nameof(extension)}.", nameof(extension));
 
+                Log.Verbose($"MSBuild task scanner is scanning directory '{baseDirectory}' and its children for assembly ('{assemblyName.FullName}'...");
+
                 string assemblyFileName = $"{assemblyName.Name}.{extension}";
 
                 foreach (string foundAssemblyFile in Directory.EnumerateFiles(baseDirectory, assemblyFileName, SearchOption.AllDirectories))
