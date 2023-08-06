@@ -82,11 +82,13 @@ namespace MSBuildProjectTools.LanguageServer.Tests
         [Theory(DisplayName = "Get referenced package version from the current test project ")]
         public void GetReferencedPackageVersion(string packageId, string expectedPackageVersion)
         {
-            var projectFile = new FileInfo(
-                Path.Combine(TestDirectory.FullName, "..", "..", "..", "..", "LanguageServer.Engine.Tests.csproj")
-            );
-            Assert.True(projectFile.Exists,
-                $"Cannot find project file {projectFile.FullName}"
+            const string projectFileName = "LanguageServer.Engine.Tests.csproj";
+
+            FileInfo projectFile = TestDirectory.GetFileFromCurrentOrAncestor(projectFileName);
+            Assert.NotNull(projectFile);
+
+            Assert.True(projectFile != null && projectFile.Exists,
+                $"Cannot find project file {projectFile} in {TestDirectory.FullName} (or any of its ancestors)."
             );
 
             Project project = LoadTestProject(projectFile.FullName);
