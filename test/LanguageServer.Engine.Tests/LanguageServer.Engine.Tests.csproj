@@ -3,9 +3,10 @@
         <IsPackable>false</IsPackable>
         <RootNamespace>MSBuildProjectTools.LanguageServer.Tests</RootNamespace>
         <AssemblyName>MSBuildProjectTools.LanguageServer.Engine.Tests</AssemblyName>
+        <Platforms>x64</Platforms>
     </PropertyGroup>
     
-    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
       <NoWarn>1701;1702;1705;IDE0016</NoWarn>
     </PropertyGroup>
     

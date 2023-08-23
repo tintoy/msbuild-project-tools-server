@@ -31,19 +31,36 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         static readonly Regex RuntimeInfoParser = new Regex(@"(?<RuntimeName>.*) (?<RuntimeVersion>.*) \[(?<RuntimeBaseDirectory>.*)\]");
 
         /// <summary>
+        ///     Information, if known, about the current .NET runtime (i.e. host).
+        /// </summary>
+        public DotnetRuntimeInfo Runtime { get; set; } = DotnetRuntimeInfo.Empty;
+
+        /// <summary>
         ///     The .NET runtime (host) version.
         /// </summary>
-        public string RuntimeVersion { get; set; }
+        public string RuntimeVersion => Runtime?.Version?.ToString();
+
+        /// <summary>
+        ///     Information, if known, about the current .NET SDK.
+        /// </summary>
+        public DotnetSdkInfo Sdk { get; set; } = DotnetSdkInfo.Empty;
 
         /// <summary>
         ///     The .NET SDK version.
         /// </summary>
-        public string SdkVersion { get; set; }
+        public string SdkVersion => Sdk?.Version?.ToString();
 
         /// <summary>
-        ///     The .NET Core base directory.
+        ///     The .NET SDK base directory.
         /// </summary>
-        public string BaseDirectory { get; set; }
+        public string BaseDirectory => Sdk?.BaseDirectory;
+
+        /// <summary>
+        ///     Create a new <see cref="DotNetRuntimeInfo"/>.
+        /// </summary>
+        public DotNetRuntimeInfo()
+        {
+        }
 
         /// <summary>
         ///     Get information about the current .NET Core runtime.
@@ -113,9 +130,8 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
 
                 return new DotNetRuntimeInfo
                 {
-                    RuntimeVersion = hostRuntime?.Version?.ToString(),
-                    SdkVersion = sdkVersion.ToString(),
-                    BaseDirectory = targetSdk?.BaseDirectory,
+                    Runtime = hostRuntime,
+                    Sdk = targetSdk,
                 };
             }
             else
@@ -124,6 +140,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
                 logger.Verbose("Using legacy (pre-v6) SDK discovery logic because .NET SDK v{SdkVersion:l} is less than the minimum required v6 SDK version (v{MinSdkVersion:l}).", sdkVersion, Sdk60Version);
 
                 using TextReader dotnetInfoOutput = InvokeDotNetHost("--info", baseDirectory, logger);
+                
                 return ParseDotNetInfoOutput(dotnetInfoOutput);
             }
         }
@@ -390,7 +407,10 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
                         {
                             case "Version":
                             {
-                                runtimeInfo.SdkVersion = property[1];
+                                runtimeInfo.Sdk = runtimeInfo.Sdk with
+                                {
+                                    Version = SemanticVersion.Parse(property[1]),
+                                };
 
                                 break;
                             }
@@ -404,7 +424,10 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
                         {
                             case "Base Path":
                             {
-                                runtimeInfo.BaseDirectory = property[1];
+                                runtimeInfo.Sdk = runtimeInfo.Sdk with
+                                {
+                                    BaseDirectory = property[1],
+                                };
 
                                 break;
                             }
@@ -418,7 +441,10 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
                         {
                             case "Version":
                             {
-                                runtimeInfo.RuntimeVersion = property[1];
+                                runtimeInfo.Runtime = runtimeInfo.Runtime with
+                                {
+                                    Version = SemanticVersion.Parse(property[1]),
+                                };
 
                                 break;
                             }
@@ -481,7 +507,13 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
     /// <param name="BaseDirectory">
     ///     The SDK base directory.
     /// </param>
-    public record DotnetSdkInfo(SemanticVersion Version, string BaseDirectory);
+    public record DotnetSdkInfo(SemanticVersion Version, string BaseDirectory)
+    {
+        /// <summary>
+        ///     Empty <see cref="DotnetRuntimeInfo"/>.
+        /// </summary>
+        public static readonly DotnetSdkInfo Empty = new DotnetSdkInfo(null, null);
+    };
 
     /// <summary>
     ///     Information about a discovered .NET runtime.
@@ -492,7 +524,13 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
     /// <param name="Version">
     ///     The SDK version.
     /// </param>
-    public record DotnetRuntimeInfo(string Name, SemanticVersion Version);
+    public record DotnetRuntimeInfo(string Name, SemanticVersion Version)
+    {
+        /// <summary>
+        ///     Empty <see cref="DotnetRuntimeInfo"/>.
+        /// </summary>
+        public static readonly DotnetRuntimeInfo Empty = new DotnetRuntimeInfo(null, null);
+    };
 
     /// <summary>
     ///     Well-known names for various .NET runtimes.

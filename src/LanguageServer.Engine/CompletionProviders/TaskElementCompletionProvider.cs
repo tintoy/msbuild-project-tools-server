@@ -108,7 +108,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
                     );
                 }
 
-                Dictionary<string, MSBuildTaskMetadata> projectTasks = await GetProjectTasks(projectDocument);
+                Dictionary<string, MSBuildTaskMetadata> projectTasks = GetProjectTasks(projectDocument);
 
                 completions.AddRange(
                     GetCompletionItems(projectTasks, targetRange)
