@@ -13,11 +13,6 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
     public interface ICompletionProvider
     {
         /// <summary>
-        ///     The provider display name.
-        /// </summary>
-        string Name { get; }
-
-        /// <summary>
         ///     Provide completions for the specified location.
         /// </summary>
         /// <param name="location">

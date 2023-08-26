@@ -26,14 +26,8 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
             if (logger == null)
                 throw new ArgumentNullException(nameof(logger));
 
-            Log = logger.ForContext(GetType())
-                        .ForContext("CompletionProvider", Name);
+            Log = logger.ForContext(GetType());
         }
-
-        /// <summary>
-        ///     The provider display name.
-        /// </summary>
-        public abstract string Name { get; }
 
         /// <summary>
         ///     The sort priority for the provider's completion items.
