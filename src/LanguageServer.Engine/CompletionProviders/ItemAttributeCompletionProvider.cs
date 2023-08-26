@@ -43,11 +43,6 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
         }
 
         /// <summary>
-        ///     The provider display name.
-        /// </summary>
-        public override string Name => "Item Attributes";
-
-        /// <summary>
         ///     The sort priority for the provider's completions.
         /// </summary>
         public override int Priority => 500;

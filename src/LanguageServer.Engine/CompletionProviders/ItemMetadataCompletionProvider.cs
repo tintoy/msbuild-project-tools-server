@@ -29,11 +29,6 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
         }
 
         /// <summary>
-        ///     The provider display name.
-        /// </summary>
-        public override string Name => "Item Metadata";
-
-        /// <summary>
         ///     Provide completions for the specified location.
         /// </summary>
         /// <param name="location">

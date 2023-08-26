@@ -32,11 +32,6 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
         }
 
         /// <summary>
-        ///     The provider display name.
-        /// </summary>
-        public override string Name => "Item Elements";
-
-        /// <summary>
         ///     The provider's default priority for completion items.
         /// </summary>
         public override int Priority => 1000;

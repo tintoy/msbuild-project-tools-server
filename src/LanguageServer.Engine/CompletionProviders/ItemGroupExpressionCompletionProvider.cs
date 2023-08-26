@@ -33,11 +33,6 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
         }
 
         /// <summary>
-        ///     The provider display name.
-        /// </summary>
-        public override string Name => "ItemGroup Expressions";
-
-        /// <summary>
         ///     Provide completions for the specified location.
         /// </summary>
         /// <param name="location">

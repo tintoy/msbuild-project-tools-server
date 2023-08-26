@@ -1,12 +1,11 @@
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using NuGet.Versioning;
+using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-
 using LspModels = OmniSharp.Extensions.LanguageServer.Protocol.Models;
 
 namespace MSBuildProjectTools.LanguageServer.CompletionProviders
@@ -40,11 +39,6 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
             : base(logger)
         {
         }
-
-        /// <summary>
-        ///     The provider display name.
-        /// </summary>
-        public override string Name => "Package Reference Items";
 
         /// <summary>
         ///     The default sort priority for the provider's items.
