@@ -12,7 +12,7 @@ build_script:
 
     & $dotnet pack -o "$PWD\out\packages" /p:Version="$env:APPVEYOR_BUILD_VERSION"
 
-    & $dotnet publish "$PWD\src\LanguageServer\LanguageServer.csproj" -f net6.0 -o "$PWD\out\language-server" /p:Version="$env:APPVEYOR_BUILD_VERSION"
+    & $dotnet publish "$PWD\src\LanguageServer\LanguageServer.csproj" -o "$PWD\out\language-server" /p:Version="$env:APPVEYOR_BUILD_VERSION"
 test_script:
 - ps: >-
     $dotnet = Get-Command 'dotnet'
