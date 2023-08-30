@@ -177,6 +177,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
                 Label = $"<{taskName}>",
                 Detail = "Task",
                 Documentation = MSBuildSchemaHelp.ForTask(taskName),
+                Kind = CompletionItemKind.Function,
                 SortText = $"{Priority:0000}<{taskName}>",
                 TextEdit = new TextEdit
                 {
