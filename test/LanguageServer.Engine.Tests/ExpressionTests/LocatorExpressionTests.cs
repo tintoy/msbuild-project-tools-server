@@ -3,8 +3,6 @@ using System;
 using System.IO;
 using Xunit;
 
-#pragma warning disable xUnit2013 // Do not use equality check to check for collection size.
-
 namespace MSBuildProjectTools.LanguageServer.Tests.ExpressionTests
 {
     using SemanticModel;
@@ -87,5 +85,3 @@ namespace MSBuildProjectTools.LanguageServer.Tests.ExpressionTests
         }
     }
 }
-
-#pragma warning restore xUnit2013 // Do not use equality check to check for collection size.

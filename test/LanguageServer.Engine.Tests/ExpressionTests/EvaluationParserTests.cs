@@ -1,8 +1,4 @@
-using System;
 using Xunit;
-using Xunit.Abstractions;
-
-#pragma warning disable xUnit2013 // Do not use equality check to check for collection size.
 
 namespace MSBuildProjectTools.LanguageServer.Tests.ExpressionTests
 {
@@ -13,25 +9,6 @@ namespace MSBuildProjectTools.LanguageServer.Tests.ExpressionTests
     /// </summary>
     public class EvaluationParserTests
     {
-        /// <summary>
-        ///     Create a new evaluation expression parser test-suite.
-        /// </summary>
-        /// <param name="testOutput">
-        ///     Output for the current test.
-        /// </param>
-        public EvaluationParserTests(ITestOutputHelper testOutput)
-        {
-            if (testOutput == null)
-                throw new ArgumentNullException(nameof(testOutput));
-
-            TestOutput = testOutput;
-        }
-
-        /// <summary>
-        ///     Output for the current test.
-        /// </summary>
-        ITestOutputHelper TestOutput { get; }
-
         /// <summary>
         ///     Verify that the Evaluation parser can successfully parse the specified input.
         /// </summary>
@@ -50,9 +27,9 @@ namespace MSBuildProjectTools.LanguageServer.Tests.ExpressionTests
         {
             AssertParser.SucceedsWith(Parsers.Evaluation, input, actualEvaluation =>
             {
-                Assert.Equal(1, actualEvaluation.Children.Count);
+                var child = Assert.Single(actualEvaluation.Children);
 
-                Symbol actualSymbol = Assert.IsType<Symbol>(actualEvaluation.Children[0]);
+                Symbol actualSymbol = Assert.IsType<Symbol>(child);
                 Assert.Equal(expectedSymbolName, actualSymbol.Name);
             });
         }
@@ -78,9 +55,9 @@ namespace MSBuildProjectTools.LanguageServer.Tests.ExpressionTests
         {
             AssertParser.SucceedsWith(Parsers.Evaluation, input, actualEvaluation =>
             {
-                Assert.Equal(1, actualEvaluation.Children.Count);
+                var child = Assert.Single(actualEvaluation.Children);
 
-                FunctionCall actualFunctionCall = Assert.IsType<FunctionCall>(actualEvaluation.Children[0]);
+                FunctionCall actualFunctionCall = Assert.IsType<FunctionCall>(child);
                 Assert.Equal(expectedFunctionName, actualFunctionCall.Name);
             });
         }

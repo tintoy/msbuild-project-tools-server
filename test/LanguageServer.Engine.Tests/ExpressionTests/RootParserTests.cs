@@ -2,8 +2,6 @@ using System;
 using Xunit;
 using Xunit.Abstractions;
 
-#pragma warning disable xUnit2013 // Do not use equality check to check for collection size.
-
 namespace MSBuildProjectTools.LanguageServer.Tests.ExpressionTests
 {
     using SemanticModel;
@@ -58,10 +56,9 @@ namespace MSBuildProjectTools.LanguageServer.Tests.ExpressionTests
         {
             AssertParser.SucceedsWith(Parsers.Root, input, actualRoot =>
             {
-                Assert.Equal(1, actualRoot.Children.Count);
-                ExpressionNode actualExpression = actualRoot.Children[0];
+                var child = Assert.Single(actualRoot.Children);
 
-                Compare actualComparison = Assert.IsType<Compare>(actualExpression);
+                Compare actualComparison = Assert.IsType<Compare>(child);
                 Assert.Equal(expectedComparisonKind, actualComparison.ComparisonKind);
 
                 Assert.NotNull(actualComparison.Left);
@@ -102,10 +99,9 @@ namespace MSBuildProjectTools.LanguageServer.Tests.ExpressionTests
         {
             AssertParser.SucceedsWith(Parsers.Root, input, actualRoot =>
             {
-                Assert.Equal(1, actualRoot.Children.Count);
-                ExpressionNode actualExpression = actualRoot.Children[0];
+                var child = Assert.Single(actualRoot.Children);
 
-                Assert.Equal(expectedRootExpressionKind, actualExpression.Kind);
+                Assert.Equal(expectedRootExpressionKind, child.Kind);
             });
         }
 
@@ -133,10 +129,9 @@ namespace MSBuildProjectTools.LanguageServer.Tests.ExpressionTests
         {
             AssertParser.SucceedsWith(Parsers.Root, input, actualRoot =>
             {
-                Assert.Equal(1, actualRoot.Children.Count);
-                ExpressionNode actualExpression = actualRoot.Children[0];
+                var child = Assert.Single(actualRoot.Children);
 
-                Compare actualComparison = Assert.IsType<Compare>(actualExpression);
+                Compare actualComparison = Assert.IsType<Compare>(child);
 
                 Assert.Equal(expectedComparisonKind, actualComparison.ComparisonKind);
 

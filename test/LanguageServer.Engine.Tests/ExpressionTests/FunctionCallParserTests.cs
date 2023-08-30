@@ -2,8 +2,6 @@ using System.Linq;
 using Xunit;
 using Xunit.Abstractions;
 
-#pragma warning disable xUnit2013 // Do not use equality check to check for collection size.
-
 namespace MSBuildProjectTools.LanguageServer.Tests.ExpressionTests
 {
     using SemanticModel.MSBuildExpressions;

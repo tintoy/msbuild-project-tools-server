@@ -3,8 +3,6 @@ using System.Linq;
 using Xunit;
 using Xunit.Abstractions;
 
-#pragma warning disable xUnit2013 // Do not use equality check to check for collection size.
-
 namespace MSBuildProjectTools.LanguageServer.Tests
 {
     using SemanticModel;
@@ -73,7 +71,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests
             MSBuildTaskAssemblyMetadata metadata = MSBuildTaskScanner.GetAssemblyTaskMetadata(taskAssemblyFile, RuntimeInfo.Sdk, Log);
             Assert.NotNull(metadata);
 
-            Assert.NotEqual(0, metadata.Tasks.Count);
+            Assert.NotEmpty(metadata.Tasks);
 
             foreach (MSBuildTaskMetadata taskMetadata in metadata.Tasks.OrderBy(task => task.TypeName))
                 TestOutput.WriteLine("Found task '{0}'.", taskMetadata.TypeName);
@@ -91,7 +89,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests
         string GetFrameworkTaskAssemblyFile(string assemblyFileName)
         {
             if (string.IsNullOrWhiteSpace(assemblyFileName))
-                throw new System.ArgumentException($"Argument cannot be null, empty, or entirely composed of whitespace: {nameof(assemblyFileName)}.", nameof(assemblyFileName));
+                throw new ArgumentException($"Argument cannot be null, empty, or entirely composed of whitespace: {nameof(assemblyFileName)}.", nameof(assemblyFileName));
 
             return Path.Combine(RuntimeInfo.BaseDirectory,
                 assemblyFileName.Replace('/', Path.DirectorySeparatorChar)
