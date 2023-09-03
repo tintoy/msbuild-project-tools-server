@@ -189,8 +189,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
     ///     When the scope is disposed, the previous activity Id (if any) will be restored.
     /// </remarks>
     /// <seealso cref="ActivityCorrelationManager" />
-    public sealed class ActivityScope
-        : DisposableObject
+    public sealed class ActivityScope : IDisposable
     {
         /// <summary>
         ///     The current activity Id (if any).
@@ -228,42 +227,8 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
             ActivityCorrelationManager.SynchronizeEventSourceActivityIds();
         }
 
-        /// <summary>
-        ///     The current activity Id (if any).
-        /// </summary>
-        public Guid? ActivityId
-        {
-            get
-            {
-                if (IsDisposed)
-                {
-                    throw new ObjectDisposedException(GetType().Name);
-                }
-
-                return _activityId;
-            }
-        }
-
-        /// <summary>
-        ///     The previous activity Id (if any).
-        /// </summary>
-        public Guid? PreviousActivityId
-        {
-            get
-            {
-                if (IsDisposed)
-                {
-                    throw new ObjectDisposedException(GetType().Name);
-                }
-
-                return _previousActivityId;
-            }
-        }
-
-        /// <summary>
-        ///     Dispose of resources being used by the object.
-        /// </summary>
-        protected override void Disposing()
+        /// <inheritdoc/>
+        public void Dispose()
         {
             // If the correlation manager does not have the expected activity Id, it's safer to not clean up.
             if (ActivityCorrelationManager.CurrentActivityId == _activityId)
