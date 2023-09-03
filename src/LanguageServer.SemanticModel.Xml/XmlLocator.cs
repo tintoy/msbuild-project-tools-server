@@ -17,7 +17,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
         /// <remarks>
         ///     Sorted by range comparison (effectively, this means document order).
         /// </remarks>
-        readonly List<Range> _nodeRanges = new List<Range>();
+        private readonly List<Range> _nodeRanges = new List<Range>();
 
         /// <summary>
         ///     All nodes XML, keyed by starting position.
@@ -25,12 +25,12 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
         /// <remarks>
         ///     Sorted by position comparison.
         /// </remarks>
-        readonly SortedDictionary<Position, XSNode> _nodesByStartPosition = new SortedDictionary<Position, XSNode>();
+        private readonly SortedDictionary<Position, XSNode> _nodesByStartPosition = new SortedDictionary<Position, XSNode>();
 
         /// <summary>
         ///     The position-lookup for the underlying XML document text.
         /// </summary>
-        readonly TextPositions _documentPositions;
+        private readonly TextPositions _documentPositions;
 
         /// <summary>
         ///     Create a new <see cref="XmlLocator"/>.

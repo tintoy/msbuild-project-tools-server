@@ -10,13 +10,6 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel.MSBuildExpressions
         : IPositionAware<ExpressionNode>
     {
         /// <summary>
-        ///     Create a new <see cref="ExpressionNode"/>.
-        /// </summary>
-        protected ExpressionNode()
-        {
-        }
-
-        /// <summary>
         ///     The node kind.
         /// </summary>
         public abstract ExpressionKind Kind { get; }

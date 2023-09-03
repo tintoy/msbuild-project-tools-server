@@ -1,4 +1,4 @@
-﻿using Sprache;
+using Sprache;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -10,13 +10,6 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel.MSBuildExpressions
     public sealed class SimpleList
         : ExpressionContainerNode, IPositionAware<SimpleList>
     {
-        /// <summary>
-        ///     Create a new <see cref="SimpleList"/>.
-        /// </summary>
-        public SimpleList()
-        {
-        }
-
         /// <summary>
         ///     The node kind.
         /// </summary>

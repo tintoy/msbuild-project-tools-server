@@ -28,61 +28,61 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
 
             using (FileStream stream = File.OpenRead(Path.Combine(helpDirectory, "elements.json")))
             {
-                ElementHelp = JsonSerializer.Deserialize<SortedDictionary<string, ElementHelp>>(stream, jsonOptions);
+                s_elementHelp = JsonSerializer.Deserialize<SortedDictionary<string, ElementHelp>>(stream, jsonOptions);
             }
 
             using (FileStream stream = File.OpenRead(Path.Combine(helpDirectory, "properties.json")))
             {
-                PropertyHelp = JsonSerializer.Deserialize<SortedDictionary<string, PropertyHelp>>(stream, jsonOptions);
+                s_propertyHelp = JsonSerializer.Deserialize<SortedDictionary<string, PropertyHelp>>(stream, jsonOptions);
             }
 
             using (FileStream stream = File.OpenRead(Path.Combine(helpDirectory, "items.json")))
             {
-                ItemHelp = JsonSerializer.Deserialize<SortedDictionary<string, ItemHelp>>(stream, jsonOptions);
+                s_itemHelp = JsonSerializer.Deserialize<SortedDictionary<string, ItemHelp>>(stream, jsonOptions);
             }
 
-            GlobalItemMetadataHelp = ItemHelp.ContainsKey("*") ? ItemHelp["*"].Metadata : new SortedDictionary<string, string>();
+            s_globalItemMetadataHelp = s_itemHelp.ContainsKey("*") ? s_itemHelp["*"].Metadata : new SortedDictionary<string, string>();
 
             using (FileStream stream = File.OpenRead(Path.Combine(helpDirectory, "tasks.json")))
             {
-                TaskHelp = JsonSerializer.Deserialize<SortedDictionary<string, TaskHelp>>(stream, jsonOptions);
+                s_taskHelp = JsonSerializer.Deserialize<SortedDictionary<string, TaskHelp>>(stream, jsonOptions);
             }
         }
 
         /// <summary>
         ///     Help for MSBuild elements.
         /// </summary>
-        static SortedDictionary<string, ElementHelp> ElementHelp { get; }
+        private static readonly SortedDictionary<string, ElementHelp> s_elementHelp;
 
         /// <summary>
         ///     Help for MSBuild properties.
         /// </summary>
-        static SortedDictionary<string, PropertyHelp> PropertyHelp { get; }
+        private static readonly SortedDictionary<string, PropertyHelp> s_propertyHelp;
 
         /// <summary>
         ///     Help for MSBuild properties.
         /// </summary>
-        static SortedDictionary<string, ItemHelp> ItemHelp { get; }
+        private static readonly SortedDictionary<string, ItemHelp> s_itemHelp;
 
         /// <summary>
         ///     Help for MSBuild properties.
         /// </summary>
-        static SortedDictionary<string, string> GlobalItemMetadataHelp { get; }
+        private static readonly SortedDictionary<string, string> s_globalItemMetadataHelp;
 
         /// <summary>
         ///     Help for MSBuild tasks.
         /// </summary>
-        static SortedDictionary<string, TaskHelp> TaskHelp { get; }
+        private static readonly SortedDictionary<string, TaskHelp> s_taskHelp;
 
         /// <summary>
         ///     The names of well-known MSBuild properties.
         /// </summary>
-        public static IEnumerable<string> WellKnownPropertyNames => PropertyHelp.Keys;
+        public static IEnumerable<string> WellKnownPropertyNames => s_propertyHelp.Keys;
 
         /// <summary>
         ///     The names of well-known MSBuild item types.
         /// </summary>
-        public static IEnumerable<string> WellKnownItemTypes => ItemHelp.Keys.Where(key => !key.Contains('*'));
+        public static IEnumerable<string> WellKnownItemTypes => s_itemHelp.Keys.Where(key => !key.Contains('*'));
 
         /// <summary>
         ///     The names of well-known metadata for the specified item type.
@@ -101,7 +101,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
             if (string.IsNullOrWhiteSpace(itemType))
                 throw new ArgumentException("Argument cannot be null, empty, or entirely composed of whitespace: 'itemType'.", nameof(itemType));
 
-            if (!ItemHelp.TryGetValue(itemType, out ItemHelp itemHelp))
+            if (!s_itemHelp.TryGetValue(itemType, out ItemHelp itemHelp))
                 yield break;
 
             // Well-known metadata.
@@ -133,11 +133,11 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
             string helpKey = elementName;
 
             // Prefer new help content (includes links to documentation).
-            if (ElementHelp.TryGetValue(helpKey, out ElementHelp elementHelp))
+            if (s_elementHelp.TryGetValue(helpKey, out ElementHelp elementHelp))
                 return elementHelp.Description;
 
             // Fall back to existing help content.
-            if (Root.TryGetValue(helpKey, out string help))
+            if (s_root.TryGetValue(helpKey, out string help))
                 return help;
 
             return null;
@@ -158,7 +158,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
                 throw new ArgumentException("Argument cannot be null, empty, or entirely composed of whitespace: 'elementName'.", nameof(elementName));
 
             string helpKey = elementName;
-            if (ElementHelp.TryGetValue(helpKey, out ElementHelp help))
+            if (s_elementHelp.TryGetValue(helpKey, out ElementHelp help))
                 return help.HelpLink;
 
             return null;
@@ -179,7 +179,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
                 throw new ArgumentException("Argument cannot be null, empty, or entirely composed of whitespace: 'itemName'.", nameof(itemType));
 
             string helpKey = itemType;
-            if (ItemHelp.TryGetValue(helpKey, out ItemHelp help))
+            if (s_itemHelp.TryGetValue(helpKey, out ItemHelp help))
                 return help.HelpLink;
 
             return null;
@@ -200,7 +200,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
                 throw new ArgumentException("Argument cannot be null, empty, or entirely composed of whitespace: 'propertyName'.", nameof(propertyName));
 
             string helpKey = propertyName;
-            if (PropertyHelp.TryGetValue(helpKey, out PropertyHelp help))
+            if (s_propertyHelp.TryGetValue(helpKey, out PropertyHelp help))
                 return help.HelpLink;
 
             return null;
@@ -224,11 +224,11 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
                 throw new ArgumentException("Argument cannot be null, empty, or entirely composed of whitespace: 'elementName'.", nameof(elementName));
 
             string helpKey = string.Format("{0}.{1}", elementName, attributeName);
-            if (Root.TryGetValue(helpKey, out string help))
+            if (s_root.TryGetValue(helpKey, out string help))
                 return help;
 
             helpKey = string.Format("*.{0}", attributeName);
-            if (Root.TryGetValue(helpKey, out help))
+            if (s_root.TryGetValue(helpKey, out help))
                 return help;
 
             return null;
@@ -249,7 +249,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
                 throw new ArgumentException("Argument cannot be null, empty, or entirely composed of whitespace: 'propertyName'.", nameof(propertyName));
 
             string helpKey = propertyName;
-            if (PropertyHelp.TryGetValue(helpKey, out PropertyHelp help))
+            if (s_propertyHelp.TryGetValue(helpKey, out PropertyHelp help))
                 return help.Description;
 
             return null;
@@ -269,7 +269,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
             if (string.IsNullOrWhiteSpace(propertyName))
                 throw new ArgumentException("Argument cannot be null, empty, or entirely composed of whitespace: 'propertyName'.", nameof(propertyName));
 
-            if (PropertyHelp.TryGetValue(propertyName, out PropertyHelp help))
+            if (s_propertyHelp.TryGetValue(propertyName, out PropertyHelp help))
                 return help.DefaultValues;
 
             return null;
@@ -289,7 +289,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
             if (string.IsNullOrWhiteSpace(itemType))
                 throw new ArgumentException("Argument cannot be null, empty, or entirely composed of whitespace: 'itemName'.", nameof(itemType));
 
-            if (ItemHelp.TryGetValue(itemType, out ItemHelp help))
+            if (s_itemHelp.TryGetValue(itemType, out ItemHelp help))
                 return help.Description;
 
             return null;
@@ -312,10 +312,10 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
             if (string.IsNullOrWhiteSpace(metadataName))
                 throw new ArgumentException("Argument cannot be null, empty, or entirely composed of whitespace: 'metadataName'.", nameof(metadataName));
 
-            if (ItemHelp.TryGetValue(itemType, out ItemHelp itemHelp) && itemHelp.Metadata.TryGetValue(metadataName, out string metadataHelp))
+            if (s_itemHelp.TryGetValue(itemType, out ItemHelp itemHelp) && itemHelp.Metadata.TryGetValue(metadataName, out string metadataHelp))
                 return metadataHelp;
 
-            if (GlobalItemMetadataHelp.TryGetValue(metadataName, out string globalMetadataHelp))
+            if (s_globalItemMetadataHelp.TryGetValue(metadataName, out string globalMetadataHelp))
                 return globalMetadataHelp;
 
             return null;
@@ -335,7 +335,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
             if (string.IsNullOrWhiteSpace(taskName))
                 throw new ArgumentException("Argument cannot be null, empty, or entirely composed of whitespace: 'itemName'.", nameof(taskName));
 
-            if (TaskHelp.TryGetValue(taskName, out TaskHelp taskHelp))
+            if (s_taskHelp.TryGetValue(taskName, out TaskHelp taskHelp))
                 return taskHelp.Description;
 
             return null;
@@ -358,7 +358,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
             if (string.IsNullOrWhiteSpace(parameterName))
                 throw new ArgumentException("Argument cannot be null, empty, or entirely composed of whitespace: 'metadataName'.", nameof(parameterName));
 
-            if (TaskHelp.TryGetValue(taskName, out TaskHelp taskHelp) && taskHelp.Parameters.TryGetValue(parameterName, out TaskParameterHelp parameterHelp))
+            if (s_taskHelp.TryGetValue(taskName, out TaskHelp taskHelp) && taskHelp.Parameters.TryGetValue(parameterName, out TaskParameterHelp parameterHelp))
                 return parameterHelp.Description;
 
             return null;
@@ -370,7 +370,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
         /// <remarks>
         ///     Extracted from MSBuild.*.xsd - TODO: Move this to JSON-based help, same as property, item, and task help.
         /// </remarks>
-        static readonly Dictionary<string, string> Root = new Dictionary<string, string>
+        private static readonly Dictionary<string, string> s_root = new Dictionary<string, string>
         {
             ["*.Condition"] = "Optional expression evaluated to determine whether the target element should be evaluated",
             ["*.Label"] = "Optional expression. Used to identify or order system and user elements",

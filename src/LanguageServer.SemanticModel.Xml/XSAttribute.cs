@@ -1,5 +1,5 @@
-using System;
 using Microsoft.Language.Xml;
+using System;
 
 namespace MSBuildProjectTools.LanguageServer.SemanticModel
 {
@@ -12,7 +12,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
         /// <summary>
         ///     The attribute's path within the XML.
         /// </summary>
-        readonly XSPath _path;
+        private readonly XSPath _path;
 
         /// <summary>
         ///     Create a new <see cref="XSAttribute"/>.

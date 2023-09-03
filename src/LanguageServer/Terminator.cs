@@ -17,7 +17,17 @@ namespace MSBuildProjectTools.LanguageServer
         /// <summary>
         ///     The delay, after the timeout has elapsed, before 
         /// </summary>
-        public static readonly int CurrentProcessId;
+        private static readonly int s_currentProcessId;
+
+        /// <summary>
+        ///     A <see cref="Process"/> representing the parent process.
+        /// </summary>
+        private Process _parentProcess;
+
+        /// <summary>
+        ///     The terminator's logger.
+        /// </summary>
+        private readonly ILogger _logger;
 
         /// <summary>
         ///     Type initializer for <see cref="Terminator"/>.
@@ -25,20 +35,15 @@ namespace MSBuildProjectTools.LanguageServer
         static Terminator()
         {
             using Process currentProcess = Process.GetCurrentProcess();
-            CurrentProcessId = currentProcess.Id;
+            s_currentProcessId = currentProcess.Id;
         }
-
-        /// <summary>
-        ///     A <see cref="Process"/> representing the parent process.
-        /// </summary>
-        Process _parentProcess;
 
         /// <summary>
         ///     Create a new <see cref="Terminator"/>.
         /// </summary>
         public Terminator()
         {
-            Log = Serilog.Log.Logger.ForContext<Terminator>();
+            _logger = Log.Logger.ForContext<Terminator>();
         }
 
         /// <summary>
@@ -54,11 +59,6 @@ namespace MSBuildProjectTools.LanguageServer
         }
 
         /// <summary>
-        ///     The terminator's logger.
-        /// </summary>
-        ILogger Log { get; }
-
-        /// <summary>
         /// Initialize the process terminator.
         /// </summary>
         /// <param name="parentProcessId">
@@ -68,7 +68,7 @@ namespace MSBuildProjectTools.LanguageServer
         {
             if (_parentProcess != null)
             {
-                Log.Warning("The language server process (PID:{PID}) is now watching its parent process (PID:{ParentPID}) and will automatically terminate if the parent process exits.", CurrentProcessId, _parentProcess.Id);
+                _logger.Warning("The language server process (PID:{PID}) is now watching its parent process (PID:{ParentPID}) and will automatically terminate if the parent process exits.", s_currentProcessId, _parentProcess.Id);
 
                 _parentProcess.EnableRaisingEvents = false;
                 _parentProcess.Exited -= ParentProcess_Exit;
@@ -80,7 +80,7 @@ namespace MSBuildProjectTools.LanguageServer
             _parentProcess.Exited += ParentProcess_Exit;
             _parentProcess.EnableRaisingEvents = true;
 
-            Log.Information("The language server (PID:{PID}) is now watching its parent process (PID:{ParentPID}) and will automatically terminate if the parent process exits.", CurrentProcessId, _parentProcess.Id);
+            _logger.Information("The language server (PID:{PID}) is now watching its parent process (PID:{ParentPID}) and will automatically terminate if the parent process exits.", s_currentProcessId, _parentProcess.Id);
 
             // Handle the case where the parent process has already exited.
             if (_parentProcess.HasExited)
@@ -98,10 +98,10 @@ namespace MSBuildProjectTools.LanguageServer
         /// </param>
         async void ParentProcess_Exit(object sender, EventArgs args)
         {
-            Log.Warning("Parent process (PID:{ParentPID}) has exited; the language server (PID:{PID}) will immediately self-terminate.", _parentProcess.Id, CurrentProcessId);
+            _logger.Warning("Parent process (PID:{ParentPID}) has exited; the language server (PID:{PID}) will immediately self-terminate.", _parentProcess.Id, s_currentProcessId);
 
             // Last-ditch effort to flush pending log entries.
-            (Log as IDisposable)?.Dispose();
+            (_logger as IDisposable)?.Dispose();
             Serilog.Log.CloseAndFlush();
 
             // Wait for log flush.

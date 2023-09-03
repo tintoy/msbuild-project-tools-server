@@ -19,7 +19,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
         /// <remarks>
         ///     Sorted by range comparison (effectively, this means document order).
         /// </remarks>
-        readonly List<Range> _objectRanges = new List<Range>();
+        private readonly List<Range> _objectRanges = new List<Range>();
 
         /// <summary>
         ///     All objects in the project, keyed by starting position.
@@ -27,27 +27,27 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
         /// <remarks>
         ///     Sorted by range comparison.
         /// </remarks>
-        readonly SortedDictionary<Position, MSBuildObject> _objectsByStartPosition = new SortedDictionary<Position, MSBuildObject>();
+        private readonly SortedDictionary<Position, MSBuildObject> _objectsByStartPosition = new SortedDictionary<Position, MSBuildObject>();
 
         /// <summary>
         ///     The MSBuild project.
         /// </summary>
-        readonly Project _project;
+        private readonly Project _project;
 
         /// <summary>
         ///     The full path to the MSBuild project file.
         /// </summary>
-        readonly string _projectFile;
+        private readonly string _projectFile;
 
         /// <summary>
         ///     The project XML.
         /// </summary>
-        readonly XmlLocator _projectXmlLocator;
+        private readonly XmlLocator _projectXmlLocator;
 
         /// <summary>
         ///     The position-lookup for the project XML.
         /// </summary>
-        readonly TextPositions _xmlPositions;
+        private readonly TextPositions _xmlPositions;
 
         /// <summary>
         ///     Create a new <see cref="MSBuildObjectLocator"/>.

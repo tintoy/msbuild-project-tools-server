@@ -27,6 +27,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         : Handler, ICustomCompletionHandler
     {
         private readonly IEnumerable<ICompletionProvider> _completionProviders;
+        private readonly Workspace _workspace;
 
         /// <summary>
         ///     Create a new <see cref="CompletionHandler"/>.
@@ -50,13 +51,8 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
                 throw new ArgumentNullException(nameof(workspace));
 
             _completionProviders = completionProviders;
-            Workspace = workspace;
+            _workspace = workspace;
         }
-
-        /// <summary>
-        ///     The document workspace.
-        /// </summary>
-        Workspace Workspace { get; }
 
         /// <summary>
         ///     The LSP document selector that describes documents the handler is interested in.
@@ -106,7 +102,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         /// <summary>
         ///     Should the handler return an empty <see cref="CompletionList"/>s instead of <c>null</c>?
         /// </summary>
-        bool ReturnEmptyCompletionLists => Workspace.Configuration.EnableExperimentalFeatures.Contains("empty-completion-lists");
+        bool ReturnEmptyCompletionLists => _workspace.Configuration.EnableExperimentalFeatures.Contains("empty-completion-lists");
 
         /// <summary>
         ///     A <see cref="CompletionList"/> (or <c>null</c>) representing no completions.
@@ -127,7 +123,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         /// </returns>
         async Task<CompletionList> OnCompletion(CompletionParams parameters, CancellationToken cancellationToken)
         {
-            ProjectDocument projectDocument = await Workspace.GetProjectDocument(parameters.TextDocument.Uri);
+            ProjectDocument projectDocument = await _workspace.GetProjectDocument(parameters.TextDocument.Uri);
 
             XmlLocation location;
 

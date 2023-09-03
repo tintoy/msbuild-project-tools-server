@@ -16,7 +16,7 @@ namespace MSBuildProjectTools.LanguageServer.Diagnostics
         /// <summary>
         ///     The LSP <see cref="ILanguageServer"/>.
         /// </summary>
-        readonly ILanguageServer _languageServer;
+        private readonly ILanguageServer _languageServer;
 
         /// <summary>
         ///     Create a new <see cref="LspDiagnosticsPublisher"/>.

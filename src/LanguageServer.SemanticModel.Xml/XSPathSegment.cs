@@ -32,8 +32,8 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
             if (string.IsNullOrWhiteSpace(name) && name != string.Empty)
                 throw new ArgumentException($"Argument cannot be null or entirely composed of whitespace: {nameof(name)}.", nameof(name));
 
-            if (name.IndexOf(XSPath.PathSeparatorCharacter) != -1)
-                throw new FormatException($"Path segments cannot contain the path separator character ('{XSPath.PathSeparatorCharacter}').");
+            if (name.IndexOf(XSPath.s_pathSeparatorCharacter) != -1)
+                throw new FormatException($"Path segments cannot contain the path separator character ('{XSPath.s_pathSeparatorCharacter}').");
 
             Name = name;
         }

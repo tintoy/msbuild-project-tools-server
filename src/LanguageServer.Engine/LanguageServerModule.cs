@@ -23,13 +23,6 @@ namespace MSBuildProjectTools.LanguageServer
         : Module
     {
         /// <summary>
-        ///     Create a new <see cref="LanguageServerModule"/>.
-        /// </summary>
-        public LanguageServerModule()
-        {
-        }
-
-        /// <summary>
         ///     Configure language server components.
         /// </summary>
         /// <param name="builder">

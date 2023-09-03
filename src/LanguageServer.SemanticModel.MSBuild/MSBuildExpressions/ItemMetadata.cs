@@ -9,13 +9,6 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel.MSBuildExpressions
         : ExpressionContainerNode, IPositionAware<ItemMetadata>
     {
         /// <summary>
-        ///     Create a new <see cref="ItemMetadata"/> expression.
-        /// </summary>
-        public ItemMetadata()
-        {
-        }
-
-        /// <summary>
         ///     The name of the item metadata.
         /// </summary>
         public string Name

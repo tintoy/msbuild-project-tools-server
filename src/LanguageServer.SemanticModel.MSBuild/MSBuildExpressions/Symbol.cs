@@ -9,13 +9,6 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel.MSBuildExpressions
         : ExpressionNode, IPositionAware<Symbol>
     {
         /// <summary>
-        ///     Create a new <see cref="Symbol"/>.
-        /// </summary>
-        public Symbol()
-        {
-        }
-
-        /// <summary>
         ///     The node kind.
         /// </summary>
         public override ExpressionKind Kind => ExpressionKind.Symbol;

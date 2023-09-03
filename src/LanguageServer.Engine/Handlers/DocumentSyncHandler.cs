@@ -26,6 +26,8 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
     public sealed class DocumentSyncHandler
         : Handler, ITextDocumentSyncHandler
     {
+        private readonly Workspace _workspace;
+
         /// <summary>
         ///     Create a new <see cref="DocumentSyncHandler"/>.
         /// </summary>
@@ -44,7 +46,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
             if (workspace == null)
                 throw new ArgumentNullException(nameof(workspace));
 
-            Workspace = workspace;
+            _workspace = workspace;
         }
 
         /// <summary>
@@ -91,11 +93,6 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
                 Scheme = "file"
             }
         );
-
-        /// <summary>
-        ///     The document workspace.
-        /// </summary>
-        Workspace Workspace { get; }
 
         /// <summary>
         ///     Get registration options for handling document events.
@@ -145,8 +142,8 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         {
             Server.NotifyBusy("Loading project...");
 
-            ProjectDocument projectDocument = await Workspace.GetProjectDocument(parameters.TextDocument.Uri);
-            Workspace.PublishDiagnostics(projectDocument);
+            ProjectDocument projectDocument = await _workspace.GetProjectDocument(parameters.TextDocument.Uri);
+            _workspace.PublishDiagnostics(projectDocument);
 
             // Only enable expression-related language service facilities if they're using our custom "MSBuild" language type (rather than "XML").
             projectDocument.EnableExpressions = parameters.TextDocument.LanguageId == "msbuild";
@@ -197,7 +194,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
                 Log.Verbose("===========================");
                 if (projectDocument.HasMSBuildProject)
                 {
-                    if (Workspace.Configuration.Language.CompletionsFromProject.Contains(CompletionSource.Task))
+                    if (_workspace.Configuration.Language.CompletionsFromProject.Contains(CompletionSource.Task))
                     {
                         Log.Verbose("Scanning task definitions for project {ProjectName}...", projectDocument.ProjectFile.Name);
                         List<MSBuildTaskAssemblyMetadata> taskAssemblies = projectDocument.GetMSBuildProjectTaskAssemblies();
@@ -249,8 +246,8 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
                 return;
 
             string updatedDocumentText = mostRecentChange.Text;
-            ProjectDocument projectDocument = await Workspace.TryUpdateProjectDocument(parameters.TextDocument.Uri, updatedDocumentText);
-            Workspace.PublishDiagnostics(projectDocument);
+            ProjectDocument projectDocument = await _workspace.TryUpdateProjectDocument(parameters.TextDocument.Uri, updatedDocumentText);
+            _workspace.PublishDiagnostics(projectDocument);
 
             if (Log.IsEnabled(LogEventLevel.Verbose))
             {
@@ -295,8 +292,8 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
                 VSCodeDocumentUri.GetFileSystemPath(parameters.TextDocument.Uri)
             );
 
-            ProjectDocument projectDocument = await Workspace.GetProjectDocument(parameters.TextDocument.Uri, reload: true);
-            Workspace.PublishDiagnostics(projectDocument);
+            ProjectDocument projectDocument = await _workspace.GetProjectDocument(parameters.TextDocument.Uri, reload: true);
+            _workspace.PublishDiagnostics(projectDocument);
 
             if (!projectDocument.HasXml)
             {
@@ -326,7 +323,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         /// </returns>
         async Task OnDidCloseTextDocument(DidCloseTextDocumentParams parameters)
         {
-            await Workspace.RemoveProjectDocument(parameters.TextDocument.Uri);
+            await _workspace.RemoveProjectDocument(parameters.TextDocument.Uri);
 
             Log.Information("Unloaded project {ProjectFile}.",
                 VSCodeDocumentUri.GetFileSystemPath(parameters.TextDocument.Uri)

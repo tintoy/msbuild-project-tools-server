@@ -13,17 +13,17 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         /// <summary>
         ///     The current activity id.
         /// </summary>
-        private static readonly AsyncLocal<Guid?> CurrentActivityIdInternal = new AsyncLocal<Guid?>();
+        private static readonly AsyncLocal<Guid?> s_currentActivityIdInternal = new AsyncLocal<Guid?>();
 
         /// <summary>
         ///     The System.Diagnostics correlation manager.
         /// </summary>
-        private static readonly CorrelationManager SystemCorrelationManager = Trace.CorrelationManager;
+        private static readonly CorrelationManager s_systemCorrelationManager = Trace.CorrelationManager;
 
         /// <summary>
         ///     Get the current activity Id (if any).
         /// </summary>
-        public static Guid? CurrentActivityId => CurrentActivityIdInternal.Value;
+        public static Guid? CurrentActivityId => s_currentActivityIdInternal.Value;
 
         /// <summary>
         ///     Create an activity scope.
@@ -90,7 +90,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
                 throw new ArgumentException("GUID cannot be empty: 'activityId'.", nameof(activityId));
             }
 
-            CurrentActivityIdInternal.Value = activityId;
+            s_currentActivityIdInternal.Value = activityId;
         }
 
         /// <summary>
@@ -98,7 +98,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         /// </summary>
         internal static void ClearCurrentActivityId()
         {
-            CurrentActivityIdInternal.Value = null;
+            s_currentActivityIdInternal.Value = null;
         }
 
         /// <summary>
@@ -121,9 +121,9 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
                         EventSource.SetCurrentThreadActivityId(currentActivityId);
                     }
 
-                    if (SystemCorrelationManager.ActivityId != currentActivityId)
+                    if (s_systemCorrelationManager.ActivityId != currentActivityId)
                     {
-                        SystemCorrelationManager.ActivityId = currentActivityId;
+                        s_systemCorrelationManager.ActivityId = currentActivityId;
                     }
 
                     break;
@@ -142,7 +142,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
                         ClearCurrentActivityId();
                     }
 
-                    SystemCorrelationManager.ActivityId = currentActivityId;
+                    s_systemCorrelationManager.ActivityId = currentActivityId;
 
                     break;
                 }

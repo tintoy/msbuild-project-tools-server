@@ -22,7 +22,35 @@ namespace MSBuildProjectTools.LanguageServer.Documents
         /// <summary>
         ///     Documents for loaded project, keyed by document URI.
         /// </summary>
-        readonly ConcurrentDictionary<Uri, ProjectDocument> _projectDocuments = new ConcurrentDictionary<Uri, ProjectDocument>();
+        private readonly ConcurrentDictionary<Uri, ProjectDocument> _projectDocuments = new ConcurrentDictionary<Uri, ProjectDocument>();
+
+        /// <summary>
+        ///     The master project (if any).
+        /// </summary>
+        /// <remarks>
+        ///     TODO: Make this selectable from the editor (get the extension to show a pick-list of open projects).
+        /// </remarks>
+        private MasterProjectDocument _masterProject;
+
+        /// <summary>
+        ///     The language server.
+        /// </summary>
+        private readonly ILanguageServer _server;
+
+        /// <summary>
+        ///     The diagnostic publishing facility.
+        /// </summary>
+        private readonly IPublishDiagnostics _diagnosticsPublisher;
+
+        /// <summary>
+        ///     The workspace logger.
+        /// </summary>
+        private readonly ILogger _logger;
+
+        /// <summary>
+        ///     Has the version of MSBuild in use been logged?
+        /// </summary>
+        private bool _msbuildVersionLogged;
 
         /// <summary>
         ///     Create a new <see cref="Workspace"/>.
@@ -53,10 +81,10 @@ namespace MSBuildProjectTools.LanguageServer.Documents
             if (logger == null)
                 throw new ArgumentNullException(nameof(logger));
 
-            Server = server;
+            _server = server;
             Configuration = configuration;
-            DiagnosticsPublisher = diagnosticsPublisher;
-            Log = logger.ForContext<Workspace>();
+            _diagnosticsPublisher = diagnosticsPublisher;
+            _logger = logger.ForContext<Workspace>();
 
             string extensionDirectory = Environment.GetEnvironmentVariable("MSBUILD_PROJECT_TOOLS_DIR");
             if (string.IsNullOrWhiteSpace(extensionDirectory))
@@ -113,7 +141,7 @@ namespace MSBuildProjectTools.LanguageServer.Documents
         {
             get
             {
-                return new DirectoryInfo(Server.Client.RootPath);
+                return new DirectoryInfo(_server.Client.RootPath);
             }
         }
 
@@ -143,34 +171,6 @@ namespace MSBuildProjectTools.LanguageServer.Documents
         public MSBuildTaskMetadataCache TaskMetadataCache { get; }
 
         /// <summary>
-        ///     The master project (if any).
-        /// </summary>
-        /// <remarks>
-        ///     TODO: Make this selectable from the editor (get the extension to show a pick-list of open projects).
-        /// </remarks>
-        MasterProjectDocument MasterProject { get; set; }
-
-        /// <summary>
-        ///     The language server.
-        /// </summary>
-        ILanguageServer Server { get; }
-
-        /// <summary>
-        ///     The diagnostic publishing facility.
-        /// </summary>
-        IPublishDiagnostics DiagnosticsPublisher { get; }
-
-        /// <summary>
-        ///     The workspace logger.
-        /// </summary>
-        ILogger Log { get; }
-
-        /// <summary>
-        ///     Has the version of MSBuild in use been logged?
-        /// </summary>
-        bool _msbuildVersionLogged;
-
-        /// <summary>
         ///     Try to retrieve the current state for the specified project document.
         /// </summary>
         /// <param name="documentUri">
@@ -191,14 +191,14 @@ namespace MSBuildProjectTools.LanguageServer.Documents
             {
                 isNewProject = true;
 
-                if (MasterProject == null)
+                if (_masterProject == null)
                 {
-                    MasterProject = new MasterProjectDocument(this, documentUri, Log);
-                    return MasterProject;
+                    _masterProject = new MasterProjectDocument(this, documentUri, _logger);
+                    return _masterProject;
                 }
 
-                SubProjectDocument subProject = new SubProjectDocument(this, documentUri, Log, MasterProject);
-                MasterProject.AddSubProject(subProject);
+                SubProjectDocument subProject = new SubProjectDocument(this, documentUri, _logger, _masterProject);
+                _masterProject.AddSubProject(subProject);
 
                 return subProject;
             });
@@ -207,13 +207,13 @@ namespace MSBuildProjectTools.LanguageServer.Documents
             {
                 if (MSBuildHelper.HaveMSBuild)
                 {
-                    Log.Information("Using MSBuild engine v{MSBuildVersion:l} from {MSBuildPath}.",
+                    _logger.Information("Using MSBuild engine v{MSBuildVersion:l} from {MSBuildPath}.",
                         MSBuildHelper.MSBuildVersion,
                         MSBuildHelper.MSBuildPath
                     );
                 }
                 else
-                    Log.Warning("Failed to find any version of MSBuild compatible with the current .NET SDK (respecting global.json).");
+                    _logger.Warning("Failed to find any version of MSBuild compatible with the current .NET SDK (respecting global.json).");
 
                 _msbuildVersionLogged = true;
             }
@@ -230,14 +230,14 @@ namespace MSBuildProjectTools.LanguageServer.Documents
             }
             catch (XmlException invalidXml)
             {
-                Log.Error("Error parsing project file {ProjectFilePath}: {ErrorMessage:l}",
+                _logger.Error("Error parsing project file {ProjectFilePath}: {ErrorMessage:l}",
                     projectFilePath,
                     invalidXml.Message
                 );
             }
             catch (Exception loadError)
             {
-                Log.Error(loadError, "Unexpected error loading file {ProjectFilePath}.", projectFilePath);
+                _logger.Error(loadError, "Unexpected error loading file {ProjectFilePath}.", projectFilePath);
             }
 
             return projectDocument;
@@ -259,7 +259,7 @@ namespace MSBuildProjectTools.LanguageServer.Documents
         {
             if (!_projectDocuments.TryGetValue(documentUri, out ProjectDocument projectDocument))
             {
-                Log.Error("Tried to update non-existent project with document URI {DocumentUri}.", documentUri);
+                _logger.Error("Tried to update non-existent project with document URI {DocumentUri}.", documentUri);
 
                 throw new InvalidOperationException($"Project with document URI '{documentUri}' is not loaded.");
             }
@@ -273,7 +273,7 @@ namespace MSBuildProjectTools.LanguageServer.Documents
             }
             catch (Exception updateError)
             {
-                Log.Error(updateError, "Failed to update project {ProjectFile}.", projectDocument.ProjectFile.FullName);
+                _logger.Error(updateError, "Failed to update project {ProjectFile}.", projectDocument.ProjectFile.FullName);
             }
 
             return projectDocument;
@@ -290,7 +290,7 @@ namespace MSBuildProjectTools.LanguageServer.Documents
             if (projectDocument == null)
                 throw new ArgumentNullException(nameof(projectDocument));
 
-            DiagnosticsPublisher.Publish(
+            _diagnosticsPublisher.Publish(
                 documentUri: projectDocument.DocumentUri,
                 diagnostics: projectDocument.Diagnostics.ToArray()
             );
@@ -310,7 +310,7 @@ namespace MSBuildProjectTools.LanguageServer.Documents
             if (!projectDocument.HasDiagnostics)
                 return;
 
-            DiagnosticsPublisher.Publish(
+            _diagnosticsPublisher.Publish(
                 documentUri: projectDocument.DocumentUri,
                 diagnostics: null // Overwrites existing diagnostics for this document with an empty list
             );
@@ -333,8 +333,8 @@ namespace MSBuildProjectTools.LanguageServer.Documents
             if (!_projectDocuments.TryRemove(documentUri, out ProjectDocument projectDocument))
                 return false;
 
-            if (MasterProject == projectDocument)
-                MasterProject = null;
+            if (_masterProject == projectDocument)
+                _masterProject = null;
 
             using (await projectDocument.Lock.WriterLockAsync())
             {
@@ -365,7 +365,7 @@ namespace MSBuildProjectTools.LanguageServer.Documents
             }
             catch (Exception cacheLoadError)
             {
-                Log.Error(cacheLoadError, "An unexpected error occurred while restoring the task metadata cache.");
+                _logger.Error(cacheLoadError, "An unexpected error occurred while restoring the task metadata cache.");
 
                 return false;
             }

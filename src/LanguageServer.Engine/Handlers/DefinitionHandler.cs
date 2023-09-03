@@ -21,6 +21,8 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
     public sealed class DefinitionHandler
         : Handler, IDefinitionHandler
     {
+        private readonly Workspace _workspace;
+
         /// <summary>
         ///     Create a new <see cref="DefinitionHandler"/>.
         /// </summary>
@@ -39,13 +41,8 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
             if (workspace == null)
                 throw new ArgumentNullException(nameof(workspace));
 
-            Workspace = workspace;
+            _workspace = workspace;
         }
-
-        /// <summary>
-        ///     The document workspace.
-        /// </summary>
-        Workspace Workspace { get; }
 
         /// <summary>
         ///     The document selector that describes documents to synchronize.
@@ -102,7 +99,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         /// </returns>
         async Task<LocationOrLocations> OnDefinition(TextDocumentPositionParams parameters, CancellationToken cancellationToken)
         {
-            ProjectDocument projectDocument = await Workspace.GetProjectDocument(parameters.TextDocument.Uri);
+            ProjectDocument projectDocument = await _workspace.GetProjectDocument(parameters.TextDocument.Uri);
 
             using (await projectDocument.Lock.ReaderLockAsync(cancellationToken))
             {

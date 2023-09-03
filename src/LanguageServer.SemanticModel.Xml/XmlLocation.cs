@@ -1,12 +1,10 @@
 using System;
-using System.Diagnostics;
 
 namespace MSBuildProjectTools.LanguageServer.SemanticModel
 {
     /// <summary>
     ///     Information about a position in XML.
     /// </summary>
-    [DebuggerDisplay("{ToString()}")]
     public class XmlLocation
     {
         /// <summary>

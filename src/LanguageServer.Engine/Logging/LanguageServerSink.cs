@@ -1,4 +1,5 @@
 using OmniSharp.Extensions.LanguageServer.Protocol;
+using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using OmniSharp.Extensions.LanguageServer.Server;
 using Serilog;
 using Serilog.Core;
@@ -6,7 +7,6 @@ using Serilog.Events;
 using System;
 using System.IO;
 using System.Text;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 
 namespace MSBuildProjectTools.LanguageServer.Logging
 {
@@ -21,17 +21,17 @@ namespace MSBuildProjectTools.LanguageServer.Logging
         /// <summary>
         ///     The language server to which events will be logged.
         /// </summary>
-        readonly ILanguageServer _languageServer;
+        private readonly ILanguageServer _languageServer;
 
         /// <summary>
         ///     The <see cref="LoggingLevelSwitch"/> that controls logging.
         /// </summary>
-        readonly LoggingLevelSwitch _levelSwitch;
+        private readonly LoggingLevelSwitch _levelSwitch;
 
         /// <summary>
         ///     Has the language server shut down?
         /// </summary>
-        bool _hasServerShutDown;
+        private bool _hasServerShutDown;
 
         /// <summary>
         ///     Create a new language-server event sink.

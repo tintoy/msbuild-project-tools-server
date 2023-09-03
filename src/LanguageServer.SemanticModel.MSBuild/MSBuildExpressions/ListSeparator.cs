@@ -9,13 +9,6 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel.MSBuildExpressions
         : ExpressionNode, IPositionAware<ListSeparator>
     {
         /// <summary>
-        ///     Create a new <see cref="ListSeparator"/>.
-        /// </summary>
-        public ListSeparator()
-        {
-        }
-
-        /// <summary>
         ///     The node kind.
         /// </summary>
         public override ExpressionKind Kind => ExpressionKind.SimpleListSeparator;

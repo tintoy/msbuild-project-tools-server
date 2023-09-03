@@ -9,13 +9,6 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel.MSBuildExpressions
         : ExpressionContainerNode, IPositionAware<Compare>
     {
         /// <summary>
-        ///     Create a new <see cref="Compare"/>.
-        /// </summary>
-        public Compare()
-        {
-        }
-
-        /// <summary>
         ///     The node kind.
         /// </summary>
         public override ExpressionKind Kind => ExpressionKind.Compare;

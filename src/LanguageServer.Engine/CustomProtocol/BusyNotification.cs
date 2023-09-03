@@ -19,11 +19,11 @@ namespace MSBuildProjectTools.LanguageServer.CustomProtocol
         /// <summary>
         ///     Is the language service busy?
         /// </summary>
-        public bool IsBusy { get; set; }
+        public bool IsBusy { get; init; }
 
         /// <summary>
         ///     If the language service is busy, a message describing why.
         /// </summary>
-        public string Message { get; set; }
+        public string Message { get; init; }
     }
 }

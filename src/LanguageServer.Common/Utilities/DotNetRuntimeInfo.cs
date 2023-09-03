@@ -18,17 +18,17 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         /// <summary>
         ///     The minimum SDK version to be considered .NET 6.x.
         /// </summary>
-        static readonly SemanticVersion Sdk60Version = new SemanticVersion(6, 0, 101);
+        private static readonly SemanticVersion s_sdk60Version = new SemanticVersion(6, 0, 101);
 
         /// <summary>
         ///     Regular expression to parse SDK information from "dotnet --list-sdks".
         /// </summary>
-        static readonly Regex SdkInfoParser = new Regex(@"(?<SdkVersion>.*) \[(?<SdkBaseDirectory>.*)\]");
+        private static readonly Regex s_sdkInfoParser = new Regex(@"(?<SdkVersion>.*) \[(?<SdkBaseDirectory>.*)\]");
 
         /// <summary>
         ///     Regular expression to parse SDK information from "dotnet --list-runtimes".
         /// </summary>
-        static readonly Regex RuntimeInfoParser = new Regex(@"(?<RuntimeName>.*) (?<RuntimeVersion>.*) \[(?<RuntimeBaseDirectory>.*)\]");
+        private static readonly Regex s_runtimeInfoParser = new Regex(@"(?<RuntimeName>.*) (?<RuntimeVersion>.*) \[(?<RuntimeBaseDirectory>.*)\]");
 
         /// <summary>
         ///     Information, if known, about the current .NET runtime (i.e. host).
@@ -91,10 +91,10 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
                 logger.Verbose("Discovered .NET SDK v{SdkVersion:l}.", sdkVersion);
             }
 
-            if (sdkVersion >= Sdk60Version)
+            if (sdkVersion >= s_sdk60Version)
             {
                 // From .NET 6.x onwards, we can rely on "dotnet --list-sdks" and "dotnet --list-runtimes" to give us the information we need.
-                logger.Verbose("Using new SDK discovery logic because .NET SDK v{SdkVersion:l} is greater than or equal to the minimum required v6 SDK version (v{MinSdkVersion:l}).", sdkVersion, Sdk60Version);
+                logger.Verbose("Using new SDK discovery logic because .NET SDK v{SdkVersion:l} is greater than or equal to the minimum required v6 SDK version (v{MinSdkVersion:l}).", sdkVersion, s_sdk60Version);
 
                 DotnetSdkInfo targetSdk;
 
@@ -137,7 +137,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
             else
             {
                 // Fall back to legacy parser.
-                logger.Verbose("Using legacy (pre-v6) SDK discovery logic because .NET SDK v{SdkVersion:l} is less than the minimum required v6 SDK version (v{MinSdkVersion:l}).", sdkVersion, Sdk60Version);
+                logger.Verbose("Using legacy (pre-v6) SDK discovery logic because .NET SDK v{SdkVersion:l} is less than the minimum required v6 SDK version (v{MinSdkVersion:l}).", sdkVersion, s_sdk60Version);
 
                 using TextReader dotnetInfoOutput = InvokeDotNetHost("--info", baseDirectory, logger);
                 
@@ -189,7 +189,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
             string currentLine;
             while ((currentLine = dotNetListSdksOutput.ReadLine()) != null)
             {
-                Match parseResult = SdkInfoParser.Match(currentLine);
+                Match parseResult = s_sdkInfoParser.Match(currentLine);
                 if (!parseResult.Success)
                     continue;
 
@@ -225,7 +225,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
             string currentLine;
             while ((currentLine = dotNetListRuntimesOutput.ReadLine()) != null)
             {
-                Match parseResult = RuntimeInfoParser.Match(currentLine);
+                Match parseResult = s_runtimeInfoParser.Match(currentLine);
                 if (!parseResult.Success)
                     continue;
 

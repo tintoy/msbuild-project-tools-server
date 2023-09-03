@@ -9,13 +9,6 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel.MSBuildExpressions
         : ExpressionContainerNode, IPositionAware<ItemGroup>
     {
         /// <summary>
-        ///     Create a new <see cref="ItemGroup"/>.
-        /// </summary>
-        public ItemGroup()
-        {
-        }
-
-        /// <summary>
         ///     Does te item group expression have a name?
         /// </summary>
         public bool HasName => !string.IsNullOrWhiteSpace(Name);

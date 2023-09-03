@@ -1,7 +1,5 @@
-using Microsoft.Build.Framework;
 using Newtonsoft.Json;
 using Nito.AsyncEx;
-using Serilog.Core;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -18,11 +16,16 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
         /// <summary>
         ///     Settings for serialization of cache state.
         /// </summary>
-        static readonly JsonSerializerSettings SerializerSettings = new JsonSerializerSettings
+        private static readonly JsonSerializerSettings s_serializerSettings = new JsonSerializerSettings
         {
             Formatting = Formatting.Indented,
             DateFormatHandling = DateFormatHandling.IsoDateFormat
         };
+
+        /// <summary>
+        ///     An optional logger to use for type-reflection diagnostics.
+        /// </summary>
+        private readonly ILogger _logger;
 
         /// <summary>
         ///     Create a new <see cref="MSBuildTaskMetadataCache"/>.
@@ -32,13 +35,8 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
         /// </param>
         public MSBuildTaskMetadataCache(ILogger logger)
         {
-            Log = logger;
+            _logger = logger;
         }
-
-        /// <summary>
-        ///     An optional logger to use for type-reflection diagnostics.
-        /// </summary>
-        ILogger Log { get; }
 
         /// <summary>
         ///     A lock used to synchronize access to cache state.
@@ -85,7 +83,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
                 if (!Assemblies.TryGetValue(assemblyPath, out metadata) || metadata.TimestampUtc < assemblyFile.LastWriteTimeUtc)
                 {
                     metadata = MSBuildTaskScanner.GetAssemblyTaskMetadata(assemblyPath, sdkBaseDirectory,
-                        logger: Log?.ForContext(
+                        logger: _logger?.ForContext(
                             typeof(MSBuildTaskScanner)
                         )
                     );
@@ -129,7 +127,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
                 using (StreamReader input = File.OpenText(cacheFile))
                 using (JsonTextReader json = new JsonTextReader(input))
                 {
-                    JsonSerializer.Create(SerializerSettings).Populate(json, this);
+                    JsonSerializer.Create(s_serializerSettings).Populate(json, this);
                 }
 
                 IsDirty = false;
@@ -155,7 +153,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
                 using (StreamWriter output = File.CreateText(cacheFile))
                 using (JsonTextWriter json = new JsonTextWriter(output))
                 {
-                    JsonSerializer.Create(SerializerSettings).Serialize(json, this);
+                    JsonSerializer.Create(s_serializerSettings).Serialize(json, this);
                 }
 
                 IsDirty = false;

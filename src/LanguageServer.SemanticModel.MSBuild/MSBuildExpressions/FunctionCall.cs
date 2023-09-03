@@ -11,13 +11,6 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel.MSBuildExpressions
         : ExpressionContainerNode, IPositionAware<FunctionCall>
     {
         /// <summary>
-        ///     Create a new <see cref="FunctionCall"/>.
-        /// </summary>
-        public FunctionCall()
-        {
-        }
-
-        /// <summary>
         ///     The node kind.
         /// </summary>
         public override ExpressionKind Kind => ExpressionKind.FunctionCall;

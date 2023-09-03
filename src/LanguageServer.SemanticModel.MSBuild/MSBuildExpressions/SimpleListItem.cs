@@ -1,4 +1,4 @@
-﻿using Sprache;
+using Sprache;
 
 namespace MSBuildProjectTools.LanguageServer.SemanticModel.MSBuildExpressions
 {
@@ -8,13 +8,6 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel.MSBuildExpressions
     public sealed class SimpleListItem
         : ExpressionNode, IPositionAware<SimpleListItem>
     {
-        /// <summary>
-        ///     Create a new <see cref="SimpleListItem"/>.
-        /// </summary>
-        public SimpleListItem()
-        {
-        }
-
         /// <summary>
         ///     The node kind.
         /// </summary>

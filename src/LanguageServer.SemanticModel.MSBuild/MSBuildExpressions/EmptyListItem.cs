@@ -9,13 +9,6 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel.MSBuildExpressions
         : ExpressionNode, IPositionAware<EmptyListItem>
     {
         /// <summary>
-        ///     Create a new <see cref="EmptyListItem"/>.
-        /// </summary>
-        public EmptyListItem()
-        {
-        }
-
-        /// <summary>
         ///     The node kind.
         /// </summary>
         public override ExpressionKind Kind => ExpressionKind.EmptyListItem;

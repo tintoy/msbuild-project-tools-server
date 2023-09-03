@@ -1,6 +1,6 @@
 using Sprache;
-using System.Collections.Immutable;
 using System;
+using System.Collections.Immutable;
 
 namespace MSBuildProjectTools.LanguageServer.SemanticModel.MSBuildExpressions
 {
@@ -10,13 +10,6 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel.MSBuildExpressions
     public abstract class ExpressionContainerNode
         : ExpressionNode, IPositionAware<ExpressionContainerNode>
     {
-        /// <summary>
-        ///     Create a new <see cref="ExpressionContainerNode"/>.
-        /// </summary>
-        protected ExpressionContainerNode()
-        {
-        }
-
         /// <summary>
         ///     The node's children (if any).
         /// </summary>

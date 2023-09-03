@@ -13,17 +13,17 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
         /// <summary>
         ///     The <see cref="XSPath"/> separator.
         /// </summary>
-        internal static readonly char PathSeparatorCharacter = '/';
+        internal static readonly char s_pathSeparatorCharacter = '/';
 
         /// <summary>
         ///     The <see cref="XSPath"/> separator.
         /// </summary>
-        static readonly string PathSeparatorString = PathSeparatorCharacter.ToString();
+        private static readonly string s_pathSeparatorString = s_pathSeparatorCharacter.ToString();
 
         /// <summary>
         ///     The path of the root <see cref="XSPath"/>.
         /// </summary>
-        static readonly string RootPath = PathSeparatorString;
+        private static readonly string s_rootPath = s_pathSeparatorString;
 
         /// <summary>
         ///     The root path.
@@ -36,7 +36,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
         /// <summary>
         ///     Wildcard path that matches any <see cref="XSNode"/>.
         /// </summary>
-        public static readonly XSPath Any = XSPath.FromSegment(XSPathSegment.Wildcard);
+        public static readonly XSPath Any = FromSegment(XSPathSegment.Wildcard);
 
         /// <summary>
         ///     The path's ancestor segments.
@@ -44,22 +44,22 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
         /// <remarks>
         ///     We store these separately because not every <see cref="XSPath"/> is created with a parent <see cref="XSPath"/>.
         /// </remarks>
-        readonly ImmutableList<XSPathSegment> _ancestorSegments;
+        private readonly ImmutableList<XSPathSegment> _ancestorSegments;
 
         /// <summary>
         ///     The path's segments, including the leaf.
         /// </summary>
-        readonly ImmutableList<XSPathSegment> _segments;
+        private readonly ImmutableList<XSPathSegment> _segments;
 
         /// <summary>
         ///     The parent path (if any).
         /// </summary>
-        readonly XSPath _parent;
+        private readonly XSPath _parent;
 
         /// <summary>
         ///     The path as a string (lazily-computed).
         /// </summary>
-        string _path;
+        private string _path;
 
         /// <summary>
         ///     Create a new <see cref="XSPath"/>.
@@ -380,7 +380,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
             if (pathOrSegment == null)
                 throw new ArgumentNullException(nameof(pathOrSegment));
 
-            if (pathOrSegment.IndexOf(PathSeparatorCharacter) != -1)
+            if (pathOrSegment.IndexOf(s_pathSeparatorCharacter) != -1)
             {
                 return Append(
                     Parse(pathOrSegment)
@@ -438,7 +438,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
         ///     Get a string representation of the <see cref="XSPath"/>.
         /// </summary>
         /// <returns>
-        ///     The path segments, separated by <see cref="PathSeparatorCharacter"/>s.
+        ///     The path segments, separated by <see cref="s_pathSeparatorCharacter"/>s.
         /// </returns>
         public override string ToString() => Path;
 
@@ -451,9 +451,9 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
         string ComputePathString()
         {
             if (_segments.Count == 1 && _segments[0] == XSPathSegment.Root)
-                return RootPath;
+                return s_rootPath;
 
-            return string.Join(PathSeparatorString,
+            return string.Join(s_pathSeparatorString,
                 _segments.Select(segment => segment.Name)
             );
         }
@@ -472,10 +472,10 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
             if (path == null)
                 throw new ArgumentNullException(nameof(path));
 
-            if (path == PathSeparatorString)
+            if (path == s_pathSeparatorString)
                 return Root;
 
-            if (path[^1] == PathSeparatorCharacter)
+            if (path[^1] == s_pathSeparatorCharacter)
                 path = path[..^1];
 
             XSPathSegment[] pathSegments = ParseSegments(path).ToArray();
@@ -504,13 +504,13 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
             if (path == null)
                 throw new ArgumentNullException(nameof(path));
 
-            if (path == PathSeparatorString)
+            if (path == s_pathSeparatorString)
                 yield return XSPathSegment.Root;
 
-            if (path[^1] == PathSeparatorCharacter)
+            if (path[^1] == s_pathSeparatorCharacter)
                 path = path[..^1];
 
-            string[] pathSegments = path.Split(new char[] { PathSeparatorCharacter });
+            string[] pathSegments = path.Split(new char[] { s_pathSeparatorCharacter });
             foreach (string pathSegment in pathSegments)
                 yield return XSPathSegment.Create(pathSegment);
         }

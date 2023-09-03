@@ -12,13 +12,6 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel.MSBuildExpressions
         : ExpressionNode, IPositionAware<StringContent>
     {
         /// <summary>
-        ///     Create a new <see cref="StringContent"/>.
-        /// </summary>
-        public StringContent()
-        {
-        }
-
-        /// <summary>
         ///     The node kind.
         /// </summary>
         public override ExpressionKind Kind => ExpressionKind.QuotedString;

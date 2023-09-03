@@ -9,13 +9,6 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel.MSBuildExpressions
         : ExpressionContainerNode, IPositionAware<Evaluate>
     {
         /// <summary>
-        ///     Create a new <see cref="Evaluate"/>.
-        /// </summary>
-        public Evaluate()
-        {
-        }
-
-        /// <summary>
         ///     The node kind.
         /// </summary>
         public override ExpressionKind Kind => ExpressionKind.Evaluate;

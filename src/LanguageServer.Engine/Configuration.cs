@@ -1,8 +1,8 @@
-using System;
-using System.Collections.Generic;
 using Newtonsoft.Json;
 using Serilog.Core;
 using Serilog.Events;
+using System;
+using System.Collections.Generic;
 
 // TODO: Update Configuration to read from flattened settings schema.
 
@@ -17,13 +17,6 @@ namespace MSBuildProjectTools.LanguageServer
         ///     The name of the configuration section as passed in messages such as <see cref="CustomProtocol.DidChangeConfigurationObjectParams"/>.
         /// </summary>
         public static readonly string SectionName = "msbuildProjectTools";
-
-        /// <summary>
-        ///     Create a new <see cref="Configuration"/>.
-        /// </summary>
-        public Configuration()
-        {
-        }
 
         /// <summary>
         ///     The MSBuild language service's logging configuration.
@@ -143,13 +136,6 @@ namespace MSBuildProjectTools.LanguageServer
     public class LanguageConfiguration
     {
         /// <summary>
-        ///     Create a new <see cref="LanguageConfiguration"/>.
-        /// </summary>
-        public LanguageConfiguration()
-        {
-        }
-
-        /// <summary>
         ///     Language service features (if any) to disable.
         /// </summary>
         [JsonProperty("disable", ObjectCreationHandling = ObjectCreationHandling.Reuse)]
@@ -167,13 +153,6 @@ namespace MSBuildProjectTools.LanguageServer
     /// </summary>
     public class MSBuildConfiguration
     {
-        /// <summary>
-        ///     Create a new <see cref="MSBuildConfiguration"/>.
-        /// </summary>
-        public MSBuildConfiguration()
-        {
-        }
-
         /// <summary>
         ///     Override the default value of MSBuildExtensionsPath.
         /// </summary>

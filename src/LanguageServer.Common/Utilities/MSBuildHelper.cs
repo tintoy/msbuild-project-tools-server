@@ -41,27 +41,27 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         /// <remarks>
         ///     2.1.599 is the theoretical highest version number of the 2.1.5xx feature band, which is the last .NET SDK that ships .NET 2.1 (LTS).
         /// </remarks>
-        static readonly SemanticVersion NetCoreLastSdkVersionFor150Folder = new SemanticVersion(major: 2, minor: 1, patch: 599);
+        private static readonly SemanticVersion s_netCoreLastSdkVersionFor150Folder = new SemanticVersion(major: 2, minor: 1, patch: 599);
 
         /// <summary>
         ///     A <see cref="VisualStudioInstance"/> representing the currently-registered instance of MSBuild.
         /// </summary>
-        static VisualStudioInstance _registeredMSBuildInstance;
+        private static VisualStudioInstance s_registeredMSBuildInstance;
 
         /// <summary>
         ///     Has a compatible (with the current .NET SDK) version of MSBuild been discovered?
         /// </summary>
-        public static bool HaveMSBuild => _registeredMSBuildInstance != null;
+        public static bool HaveMSBuild => s_registeredMSBuildInstance != null;
 
         /// <summary>
         ///     The version of MSBuild currently in use (or <c>null</c> if no compatible version of MSBuild has been discovered).
         /// </summary>
-        public static Version MSBuildVersion => _registeredMSBuildInstance?.Version;
+        public static Version MSBuildVersion => s_registeredMSBuildInstance?.Version;
 
         /// <summary>
         ///     The path to the version of MSBuild currently in use (or <c>null</c> if no compatible version of MSBuild has been discovered).
         /// </summary>
-        public static string MSBuildPath => _registeredMSBuildInstance?.MSBuildPath;
+        public static string MSBuildPath => s_registeredMSBuildInstance?.MSBuildPath;
 
         /// <summary>
         ///     Find and use the latest version of the MSBuild engine compatible with the current SDK.
@@ -77,7 +77,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
             if (MSBuildLocator.IsRegistered)
                 MSBuildLocator.Unregister();
 
-            _registeredMSBuildInstance = null;
+            s_registeredMSBuildInstance = null;
 
             // Assume working directory is VS code's current working directory (i.e. the workspace root).
             //
@@ -129,7 +129,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
 
             MSBuildLocator.RegisterInstance(latestInstance);
 
-            _registeredMSBuildInstance = latestInstance;
+            s_registeredMSBuildInstance = latestInstance;
         }
 
         /// <summary>
@@ -192,7 +192,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
                 throw new FormatException($"Cannot parse .NET SDK version '{runtimeInfo.SdkVersion}' (does not appear to be a valid semantic version).");
 
             // Newer versions of the .NET SDK use the toolset version "Current" instead of "15.0" (tintoy/msbuild-project-tools-vscode#46).
-            string toolsVersion = netcoreVersion <= NetCoreLastSdkVersionFor150Folder ? "15.0" : "Current";
+            string toolsVersion = netcoreVersion <= s_netCoreLastSdkVersionFor150Folder ? "15.0" : "Current";
 
             // Override toolset paths (for some reason these point to the main directory where the dotnet executable lives).
             Toolset toolset = new Toolset(toolsVersion,
