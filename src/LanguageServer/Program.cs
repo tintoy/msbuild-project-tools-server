@@ -2,7 +2,6 @@ using Autofac;
 using NuGet.Credentials;
 using Serilog;
 using System;
-using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -32,8 +31,6 @@ namespace MSBuildProjectTools.LanguageServer
 
             try
             {
-                AutoDetectExtensionDirectory();
-
                 // Ensure the initial MSBuild discovery process has a logger to work with.
                 ILogger msbuildDiscoveryLogger = LoggingModule.CreateDefaultLoggerConfiguration()
                     .CreateLogger()
@@ -145,22 +142,6 @@ namespace MSBuildProjectTools.LanguageServer
             builder.RegisterModule<LanguageServerModule>();
 
             return builder.Build();
-        }
-
-        /// <summary>
-        ///     Auto-detect the directory containing the extension's files.
-        /// </summary>
-        static void AutoDetectExtensionDirectory()
-        {
-            string extensionDir = Environment.GetEnvironmentVariable("MSBUILD_PROJECT_TOOLS_DIR");
-            if (string.IsNullOrWhiteSpace(extensionDir))
-            {
-                extensionDir = Path.Combine(
-                    AppContext.BaseDirectory, "..", ".."
-                );
-            }
-            extensionDir = Path.GetFullPath(extensionDir);
-            Environment.SetEnvironmentVariable("MSBUILD_PROJECT_TOOLS_DIR", extensionDir);
         }
 
         /// <summary>

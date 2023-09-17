@@ -4,6 +4,7 @@ using System;
 using System.Collections.Concurrent;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using System.Xml;
 
@@ -58,19 +59,14 @@ namespace MSBuildProjectTools.LanguageServer.Documents
             DiagnosticsPublisher = diagnosticsPublisher;
             Log = logger.ForContext<Workspace>();
 
-            string extensionDirectory = Environment.GetEnvironmentVariable("MSBUILD_PROJECT_TOOLS_DIR");
-            if (string.IsNullOrWhiteSpace(extensionDirectory))
-                throw new InvalidOperationException("Cannot determine current extension directory ('MSBUILD_PROJECT_TOOLS_DIR' environment variable is not present).");
-
-            ExtensionDirectory = new DirectoryInfo(extensionDirectory);
-            ExtensionDataDirectory = new DirectoryInfo(
-                Path.Combine(ExtensionDirectory.FullName, "data")
+            DataDirectory = new DirectoryInfo(
+                Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "data")
             );
             TaskMetadataCache = new MSBuildTaskMetadataCache(
                 logger: logger.ForContext<MSBuildTaskMetadataCache>()
             );
             TaskMetadataCacheFile = new FileInfo(
-                Path.Combine(ExtensionDataDirectory.FullName, "task-metadata-cache.json")
+                Path.Combine(DataDirectory.FullName, "task-metadata-cache.json")
             );
         }
 
@@ -107,30 +103,14 @@ namespace MSBuildProjectTools.LanguageServer.Documents
         }
 
         /// <summary>
-        ///     The root directory for the workspace.
-        /// </summary>
-        public DirectoryInfo RootDirectory
-        {
-            get
-            {
-                return new DirectoryInfo(Server.Client.RootPath);
-            }
-        }
-
-        /// <summary>
         ///     The language server configuration.
         /// </summary>
         public Configuration Configuration { get; }
 
         /// <summary>
-        ///     The directory where the MSBuild Project Tools extension is located.
-        /// </summary>
-        public DirectoryInfo ExtensionDirectory { get; }
-
-        /// <summary>
         ///     The directory where extension data is stored.
         /// </summary>
-        public DirectoryInfo ExtensionDataDirectory { get; }
+        public DirectoryInfo DataDirectory { get; }
 
         /// <summary>
         ///     The file that stores the persisted task metadata cache.
@@ -380,7 +360,7 @@ namespace MSBuildProjectTools.LanguageServer.Documents
                 return; // Nothing new to persist.
 
             if (!TaskMetadataCacheFile.Directory.Exists)
-                ExtensionDataDirectory.Create();
+                DataDirectory.Create();
 
             TaskMetadataCache.Save(TaskMetadataCacheFile.FullName);
         }
