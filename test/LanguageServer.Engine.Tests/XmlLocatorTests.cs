@@ -277,6 +277,9 @@ namespace MSBuildProjectTools.LanguageServer.Tests
         /// <param name="column">
         ///     The target column.
         /// </param>
+        /// <param name="expectedParent">
+        ///     The name of the expected parent element.
+        /// </param>
         [InlineData("Invalid1.DoubleOpeningTag", 4, 10, "Element2")]
         [InlineData("Invalid1.EmptyOpeningTag", 5, 10, "Element2")]
         [InlineData("Invalid2.DoubleOpeningTag", 13, 10, "ItemGroup")]
@@ -305,6 +308,47 @@ namespace MSBuildProjectTools.LanguageServer.Tests
             );
             Assert.NotNull(replaceElement);
             Assert.Equal(expectedParent, replaceElement.ParentElement?.Name);
+        }
+
+        /// <summary>
+        ///     Verify that the target line and column refer to a location where an element can be inserted by completion.
+        /// </summary>
+        /// <param name="testFileName">
+        ///     The name of the test file, without the extension.
+        /// </param>
+        /// <param name="line">
+        ///     The target line.
+        /// </param>
+        /// <param name="column">
+        ///     The target column.
+        /// </param>
+        [InlineData("SimpleProject", 7, 36, "PropertyGroup")]
+        [InlineData("SimpleProject", 8, 21, "Project")]
+        [InlineData("SimpleProject.InsertElement.PropertyGroup", 7, 37, "PropertyGroup")]
+        [InlineData("SimpleProject.InsertElement.Project", 8, 22, "Project")]
+        [Trait("Component", "XmlLocator")]
+        [Theory(DisplayName = "On completable element if parent relative path matches ")]
+        public void CanInsertElementInParentWithRelativePath(string testFileName, int line, int column, string expectedParent)
+        {
+            Position testPosition = new Position(line, column);
+
+            string testXml = LoadTestFile("TestFiles", testFileName + ".xml");
+            TextPositions positions = new TextPositions(testXml);
+            XmlDocumentSyntax document = Parser.ParseText(testXml);
+
+            XmlLocator locator = new XmlLocator(document, positions);
+            XmlLocation location = locator.Inspect(testPosition);
+            Assert.NotNull(location);
+
+            XSPath expectedParentPath = XSPath.Parse(expectedParent);
+
+            Assert.True(
+                location.CanCompleteElement(out XSElement replaceElement, parentPath: expectedParentPath),
+                "CanCompleteElement"
+            );
+            Assert.Null(replaceElement);
+
+            Assert.Equal(expectedParent, location?.Parent?.Name);
         }
 
         /// <summary>
