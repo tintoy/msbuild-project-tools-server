@@ -47,7 +47,7 @@ steps:
     command: 'publish'
     publishWebProjects: false
     projects: './src/LanguageServer/LanguageServer.csproj'
-    arguments: '--configuration "$(buildConfiguration)" --framework net6.0 -o "./out/language-server" /p:VersionPrefix="$(GitVersion.MajorMinorPatch)" /p:VersionSuffix="$(GitVersion.PreReleaseTag)"'
+    arguments: '--configuration "$(buildConfiguration)" -o "./out/language-server" /p:VersionPrefix="$(GitVersion.MajorMinorPatch)" /p:VersionSuffix="$(GitVersion.PreReleaseTag)"'
     modifyOutputPath: false
 
 - task: ArchiveFiles@2
