@@ -7,10 +7,11 @@ end_of_line = crlf
 charset = utf-8
 trim_trailing_whitespace = false
 insert_final_newline = true
-csharp_indent_case_contents=true
-csharp_indent_case_contents_when_block=false
 
 [*.yml]
 indent_size = 2
 
+[*.cs]
 csharp_style_throw_expression = false:none
+csharp_indent_case_contents=true
+csharp_indent_case_contents_when_block=false
