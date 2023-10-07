@@ -3,10 +3,7 @@
 
     <PropertyGroup>
       <AssetTargetFallback>dnxcore50</AssetTargetFallback>
-
       <GenerateDocumentationFile>true</GenerateDocumentationFile>
-      <NoWarn>IDE0016</NoWarn>
-
       <NoPackageAnalysis>true</NoPackageAnalysis>
     </PropertyGroup>
 </Project>
