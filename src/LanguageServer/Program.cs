@@ -23,7 +23,7 @@ namespace MSBuildProjectTools.LanguageServer
         /// <returns>
         ///     The process exit code.
         /// </returns>
-        static int Main()
+        private static async Task<int> Main()
         {
             SynchronizationContext.SetSynchronizationContext(
                 new SynchronizationContext()
@@ -43,7 +43,60 @@ namespace MSBuildProjectTools.LanguageServer
 
                 ConfigureNuGetCredentialProviders();
 
-                return AsyncMain().GetAwaiter().GetResult();
+                using (ActivityCorrelationManager.BeginActivityScope())
+                using (Terminator terminator = new Terminator())
+                using (IContainer container = BuildContainer())
+                {
+                    // Force initialization of logging.
+                    ILogger log = container.Resolve<ILogger>().ForContext(typeof(Program));
+
+                    log.Debug("Creating language server...");
+
+                    var server = container.Resolve<LSP.Server.LanguageServer>();
+
+                    log.Debug("Waiting for client to initialize language server...");
+
+                    Task initializeTask = server.Initialize();
+
+                    // Special case for probing whether language server is startable given current runtime environment.
+                    string[] commandLineArguments = Environment.GetCommandLineArgs();
+                    if (commandLineArguments.Length == 2 && commandLineArguments[1] == "--probe")
+                    {
+                        // Give the language server a chance to start.
+                        await Task.Yield();
+
+                        // Show any exception encountered while starting the language server.
+                        if (initializeTask.IsFaulted || initializeTask.IsCanceled)
+                            await initializeTask;
+
+                        Console.Error.WriteLine("PROBE: Yes, the language server can start.");
+
+                        return 0;
+                    }
+
+                    await initializeTask;
+
+                    log.Debug("Language server initialized by client.");
+
+                    if (server.Client.ProcessId != null)
+                    {
+                        terminator.Initialize(
+                            (int)server.Client.ProcessId.Value
+                        );
+                    }
+
+                    await server.WasShutDown;
+
+                    log.Debug("Language server is shutting down...");
+
+                    await server.WaitForExit;
+
+                    log.Debug("Server has shut down. Preparing to terminate server process...");
+
+                    log.Debug("Server process is ready to terminate.");
+
+                    return 0;
+                }
             }
             catch (AggregateException aggregateError)
             {
@@ -61,70 +114,6 @@ namespace MSBuildProjectTools.LanguageServer
             finally
             {
                 Log.CloseAndFlush();
-            }
-        }
-
-        /// <summary>
-        ///     The asynchronous program entry-point.
-        /// </summary>
-        /// <returns>
-        ///     The process exit code.
-        /// </returns>
-        static async Task<int> AsyncMain()
-        {
-            using (ActivityCorrelationManager.BeginActivityScope())
-            using (Terminator terminator = new Terminator())
-            using (IContainer container = BuildContainer())
-            {
-                // Force initialization of logging.
-                ILogger log = container.Resolve<ILogger>().ForContext(typeof(Program));
-
-                log.Debug("Creating language server...");
-
-                var server = container.Resolve<LSP.Server.LanguageServer>();
-
-                log.Debug("Waiting for client to initialize language server...");
-
-                Task initializeTask = server.Initialize();
-
-                // Special case for probing whether language server is startable given current runtime environment.
-                string[] commandLineArguments = Environment.GetCommandLineArgs();
-                if (commandLineArguments.Length == 2 && commandLineArguments[1] == "--probe")
-                {
-                    // Give the language server a chance to start.
-                    await Task.Yield();
-
-                    // Show any exception encountered while starting the language server.
-                    if (initializeTask.IsFaulted || initializeTask.IsCanceled)
-                        await initializeTask;
-
-                    Console.Error.WriteLine("PROBE: Yes, the language server can start.");
-
-                    return 0;
-                }
-
-                await initializeTask;
-
-                log.Debug("Language server initialized by client.");
-
-                if (server.Client.ProcessId != null)
-                {
-                    terminator.Initialize(
-                        (int)server.Client.ProcessId.Value
-                    );
-                }
-
-                await server.WasShutDown;
-
-                log.Debug("Language server is shutting down...");
-
-                await server.WaitForExit;
-
-                log.Debug("Server has shut down. Preparing to terminate server process...");
-
-                log.Debug("Server process is ready to terminate.");
-
-                return 0;
             }
         }
 
