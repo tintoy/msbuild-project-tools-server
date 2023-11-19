@@ -98,13 +98,6 @@ namespace MSBuildProjectTools.LanguageServer
                     return 0;
                 }
             }
-            catch (AggregateException aggregateError)
-            {
-                foreach (Exception unexpectedError in aggregateError.Flatten().InnerExceptions)
-                    Console.Error.WriteLine(unexpectedError);
-
-                return 1;
-            }
             catch (Exception unexpectedError)
             {
                 Console.Error.WriteLine(unexpectedError);
