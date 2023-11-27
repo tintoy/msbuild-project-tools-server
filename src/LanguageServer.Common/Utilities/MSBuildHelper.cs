@@ -405,7 +405,10 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
             JsonNode rootNode;
             try
             {
-                rootNode = JsonNode.Parse(projectAssetsFile.OpenRead());
+                using (FileStream projectAssetsContent = projectAssetsFile.Open(FileMode.Open, FileAccess.Read, FileShare.Read))
+                {
+                    rootNode = JsonNode.Parse(projectAssetsContent);
+                }
             }
             catch (Exception cannotLoadProjectAssetsJson)
             {
