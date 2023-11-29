@@ -36,6 +36,11 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
         public static readonly XSPath PackageReference = ItemGroup + "PackageReference";
 
         /// <summary>
+        ///     The relative path that represents a "PackageVersion" item element.
+        /// </summary>
+        public static readonly XSPath PackageVersion = ItemGroup + "PackageVersion";
+
+        /// <summary>
         ///     The relative path that represents a "DotNetCliToolReference" item element.
         /// </summary>
         public static readonly XSPath DotNetCliToolReference = ItemGroup + "DotNetCliToolReference";

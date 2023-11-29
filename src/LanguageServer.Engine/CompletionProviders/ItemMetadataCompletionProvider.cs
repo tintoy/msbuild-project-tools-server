@@ -221,7 +221,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
             HandleTriggerCharacters(triggerCharacters, projectDocument, ref targetRange);
 
             // These items are handled by PackageReferenceCompletion.
-            if (itemType == "PackageReference" || itemType == "DotNetCliToolReference")
+            if (itemType == "PackageReference" || itemType == "PackageVersion" || itemType == "DotNetCliToolReference")
             {
                 Log.Verbose("Not offering any element completions for {XmlLocation:l} ({ItemType} items are handled by another provider).",
                     location,
