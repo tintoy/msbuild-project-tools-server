@@ -74,9 +74,6 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         /// </param>
         public static void DiscoverMSBuildEngine(string baseDirectory = null, ILogger logger = null)
         {
-            if (MSBuildLocator.IsRegistered)
-                MSBuildLocator.Unregister();
-
             _registeredMSBuildInstance = null;
 
             // Assume working directory is VS code's current working directory (i.e. the workspace root).
