@@ -100,15 +100,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
                 build: targetSdkSemanticVersion.Patch
             );
 
-            var queryOptions = new VisualStudioInstanceQueryOptions
-            {
-                // We can only load the .NET Core MSBuild engine
-                DiscoveryTypes = DiscoveryType.DotNetSdk
-            };
-
-            VisualStudioInstance[] allInstances = MSBuildLocator
-                .QueryVisualStudioInstances(queryOptions)
-                .ToArray();
+            var allInstances = MSBuildLocator.QueryVisualStudioInstances();
 
             VisualStudioInstance latestInstance = allInstances
                 .OrderByDescending(instance => instance.Version)

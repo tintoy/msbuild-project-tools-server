@@ -269,7 +269,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
             {
                 StartInfo = new ProcessStartInfo
                 {
-                    FileName = "dotnet",
+                    FileName = Environment.GetEnvironmentVariable("DOTNET_HOST_PATH") ?? "dotnet",
                     WorkingDirectory = baseDirectory,
                     Arguments = commandLineArguments,
                     UseShellExecute = false,
