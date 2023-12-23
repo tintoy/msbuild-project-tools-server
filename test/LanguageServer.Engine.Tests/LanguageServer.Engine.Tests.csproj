@@ -30,6 +30,12 @@
     </ItemGroup>
 
     <ItemGroup>
+      <None Remove="TestFiles\SimpleProject.InsertElement.Project.xml" />
+      <None Remove="TestFiles\SimpleProject.InsertElement.PropertyGroup.xml" />
+      <None Remove="TestFiles\SimpleProject.xml" />
+    </ItemGroup>
+
+    <ItemGroup>
       <Content Include="TestProjects\Project1.csproj">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         <CopyToPublishDirectory>Always</CopyToPublishDirectory>

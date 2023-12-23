@@ -93,12 +93,9 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
             if (projectDocument == null)
                 throw new ArgumentNullException(nameof(projectDocument));
 
-            // Replace any characters that were typed to trigger the completion.
-            if (triggerCharacters != null)
+            if (!String.IsNullOrEmpty(triggerCharacters))
             {
-                targetRange = projectDocument.XmlPositions.ExtendLeft(targetRange, byCharCount: triggerCharacters.Length);
-
-                Log.Verbose("Completion was triggered by typing one or more characters; target range will be extended by {TriggerCharacterCount} characters toward start of document (now: {TargetRange}).", triggerCharacters.Length, targetRange);
+                // NOTE: VSCode / LSP no longer require the selection to be extended when providing completions triggered by typing one or more auto-closing trigger characters, but you can still perform any other special handling here (if required).
 
                 return true;
             }

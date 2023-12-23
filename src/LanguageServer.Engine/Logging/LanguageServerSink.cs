@@ -85,6 +85,12 @@ namespace MSBuildProjectTools.LanguageServer.Logging
 
             StringBuilder messageBuilder = new StringBuilder();
 
+            if (_levelSwitch.MinimumLevel >= LogEventLevel.Debug)
+            {
+                if (logEvent.TryGetSourceComponent(out string sourceComponent))
+                    messageBuilder.AppendFormat("[{0}] ", sourceComponent);
+            }
+
             using (StringWriter messageWriter = new StringWriter(messageBuilder))
             {
                 logEvent.RenderMessage(messageWriter);

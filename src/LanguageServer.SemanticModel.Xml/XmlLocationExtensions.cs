@@ -370,6 +370,26 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
         }
 
         /// <summary>
+        ///     Does the location represent an element content (i.e. text or whitespace)?
+        /// </summary>
+        /// <param name="location">
+        ///     The XML location.
+        /// </param>
+        /// <param name="parentElement">
+        ///     Receives the parent (i.e. containing) element.
+        /// </param>
+        /// <returns>
+        ///     <c>true</c>, if the location represents element content; otherwise, <c>false</c>.
+        /// </returns>
+        public static bool IsElementContent(this XmlLocation location, out XSElement parentElement)
+        {
+            if (location == null)
+                throw new ArgumentNullException(nameof(location));
+
+            return location.IsElement(out parentElement) && location.IsValue();
+        }
+
+        /// <summary>
         ///     Does the location represent an element's textual content?
         /// </summary>
         /// <param name="location">
