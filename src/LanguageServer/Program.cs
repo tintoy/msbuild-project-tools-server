@@ -2,6 +2,7 @@ using Autofac;
 using NuGet.Credentials;
 using Serilog;
 using System;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -28,6 +29,8 @@ namespace MSBuildProjectTools.LanguageServer
             SynchronizationContext.SetSynchronizationContext(
                 new SynchronizationContext()
             );
+
+            EnsureMSBuildEnvironment();
 
             try
             {
@@ -107,6 +110,22 @@ namespace MSBuildProjectTools.LanguageServer
             finally
             {
                 Log.CloseAndFlush();
+            }
+        }
+
+        /// <summary>
+        ///     Ensures that either both DOTNET_HOST_PATH and DOTNET_ROOT are initialized or none of them
+        /// </summary>
+        static void EnsureMSBuildEnvironment()
+        {
+            var dotnetHostPath = Environment.GetEnvironmentVariable("DOTNET_HOST_PATH");
+            var dotnetRoot = Environment.GetEnvironmentVariable("DOTNET_ROOT");
+
+            // If DOTNET_HOST_PATH is present, but DOTNET_ROOT isn't set DOTNET_ROOT to be the directory of DOTNET_HOST_PATH
+            if (dotnetHostPath is not null && dotnetRoot is null)
+            {
+                var dotnetRootFromHostPath = Path.GetDirectoryName(dotnetHostPath);
+                Environment.SetEnvironmentVariable("DOTNET_ROOT", dotnetRootFromHostPath);
             }
         }
 
