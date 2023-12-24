@@ -79,7 +79,7 @@ steps:
     action: 'create'
     target: '$(Build.SourceVersion)'
     tagSource: 'gitTag'
-    tagPattern: '^v\d+\.\d+(-[A-Za-z0-9%\.]+)?$'
+    tagPattern: '^v\d+\.\d+.\d+(-[A-Za-z0-9%\.]+)?$'
     releaseNotesFilePath: './CHANGELOG.md'
     addChangeLog: false
     assets: '$(Build.ArtifactStagingDirectory)/*.zip'
