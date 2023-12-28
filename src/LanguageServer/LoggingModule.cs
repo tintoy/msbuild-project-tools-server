@@ -72,7 +72,7 @@ namespace MSBuildProjectTools.LanguageServer
             LoggerConfiguration loggerConfiguration = CreateDefaultLoggerConfiguration(languageServerConfiguration)
                 .WriteTo.LanguageServer(languageServer, languageServerConfiguration.Logging.LevelSwitch);
 
-            ILogger logger = loggerConfiguration.CreateLogger();
+            var logger = loggerConfiguration.CreateLogger();
             Log.Logger = logger;
 
             logger.Verbose("Logger initialized.");

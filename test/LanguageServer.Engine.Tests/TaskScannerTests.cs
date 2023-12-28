@@ -59,7 +59,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests
         /// </param>
         [InlineData("NuGet.Build.Tasks.dll")]
         [InlineData("Microsoft.Build.Tasks.Core.dll")]
-        [InlineData("Sdks/Microsoft.NET.Sdk/tools/net6.0/Microsoft.NET.Build.Tasks.dll")]
+        [InlineData("Sdks/Microsoft.NET.Sdk/tools/net8.0/Microsoft.NET.Build.Tasks.dll")]
         [Theory(DisplayName = "TaskScanner can get tasks from framework task assembly ")]
         public void Scan_FrameworkTaskAssembly_Success(string fileName)
         {

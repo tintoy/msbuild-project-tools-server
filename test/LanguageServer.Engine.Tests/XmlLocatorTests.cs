@@ -51,8 +51,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests
                 descendIntoChildren: node => true
             );
             Assert.NotNull(foundNode);
-            Assert.IsAssignableFrom<SyntaxList>(foundNode);
-            SyntaxList list = (SyntaxList)foundNode;
+            SyntaxList list = Assert.IsAssignableFrom<SyntaxList>(foundNode);
 
             Range listSpan = list.Span.ToNative(positions);
             Assert.True(

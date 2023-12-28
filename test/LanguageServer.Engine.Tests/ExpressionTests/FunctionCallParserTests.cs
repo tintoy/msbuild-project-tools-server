@@ -1,6 +1,5 @@
 using System.Linq;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace MSBuildProjectTools.LanguageServer.Tests.ExpressionTests
 {
@@ -10,19 +9,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests.ExpressionTests
     ///     Tests for parsing of MSBuild function-call expressions.
     /// </summary>
     public class FunctionCallParserTests
-        : ParserTests
     {
-        /// <summary>
-        ///     Create a new function-call expression parser test-suite.
-        /// </summary>
-        /// <param name="testOutput">
-        ///     Output for the current test.
-        /// </param>
-        public FunctionCallParserTests(ITestOutputHelper testOutput)
-            : base(testOutput)
-        {
-        }
-
         /// <summary>
         ///     Verify that the FunctionCall parser can successfully parse a global function-call expression with a single argument.
         /// </summary>

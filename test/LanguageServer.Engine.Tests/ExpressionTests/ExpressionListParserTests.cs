@@ -11,26 +11,12 @@ namespace MSBuildProjectTools.LanguageServer.Tests.ExpressionTests
     /// <summary>
     ///     Tests for parsing of MSBuild list expressions.
     /// </summary>
-    public class ExpressionListParserTests
+    public class ExpressionListParserTests(ITestOutputHelper testOutput)
     {
         /// <summary>
-        ///     Create a new expression list parser test-suite.
-        /// </summary>
-        /// <param name="testOutput">
-        ///     Output for the current test.
-        /// </param>
-        public ExpressionListParserTests(ITestOutputHelper testOutput)
-        {
-            if (testOutput == null)
-                throw new ArgumentNullException(nameof(testOutput));
-
-            TestOutput = testOutput;
-        }
-
-        /// <summary>
         ///     Output for the current test.
         /// </summary>
-        ITestOutputHelper TestOutput { get; }
+        ITestOutputHelper TestOutput { get; } = testOutput;
 
         /// <summary>
         ///     Verify that the SimpleListItem parser can successfully parse the specified input.

@@ -1,6 +1,4 @@
-using System;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace MSBuildProjectTools.LanguageServer.Tests.ExpressionTests
 {
@@ -11,25 +9,6 @@ namespace MSBuildProjectTools.LanguageServer.Tests.ExpressionTests
     /// </summary>
     public class QuotedStringLiteralParserTests
     {
-        /// <summary>
-        ///     Create a new quoted-string literal expression parser test-suite.
-        /// </summary>
-        /// <param name="testOutput">
-        ///     Output for the current test.
-        /// </param>
-        public QuotedStringLiteralParserTests(ITestOutputHelper testOutput)
-        {
-            if (testOutput == null)
-                throw new ArgumentNullException(nameof(testOutput));
-
-            TestOutput = testOutput;
-        }
-
-        /// <summary>
-        ///     Output for the current test.
-        /// </summary>
-        ITestOutputHelper TestOutput { get; }
-
         /// <summary>
         ///     Verify that the QuotedStringLiteralExpression parser can successfully parse the specified input.
         /// </summary>

@@ -37,7 +37,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests
         {
             get
             {
-                object[] DataRow(params Range[] ranges) => new object[1] { ranges };
+                static object[] DataRow(params Range[] ranges) => [ranges];
 
                 // Simulates node ranges after computing and appending nodes for whitespace.
                 yield return DataRow(
