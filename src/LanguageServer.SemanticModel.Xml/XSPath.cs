@@ -123,7 +123,6 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
 
             _parent = parent;
             _ancestorSegments = _parent._segments;
-
             _segments = _ancestorSegments.Add(leaf);
         }
 
