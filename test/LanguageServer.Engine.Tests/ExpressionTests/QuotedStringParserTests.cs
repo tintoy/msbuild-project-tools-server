@@ -1,7 +1,5 @@
-using System;
 using System.Linq;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace MSBuildProjectTools.LanguageServer.Tests.ExpressionTests
 {
@@ -12,25 +10,6 @@ namespace MSBuildProjectTools.LanguageServer.Tests.ExpressionTests
     /// </summary>
     public class QuotedStringParserTests
     {
-        /// <summary>
-        ///     Create a new quoted-string expression parser test-suite.
-        /// </summary>
-        /// <param name="testOutput">
-        ///     Output for the current test.
-        /// </param>
-        public QuotedStringParserTests(ITestOutputHelper testOutput)
-        {
-            if (testOutput == null)
-                throw new ArgumentNullException(nameof(testOutput));
-
-            TestOutput = testOutput;
-        }
-
-        /// <summary>
-        ///     Output for the current test.
-        /// </summary>
-        ITestOutputHelper TestOutput { get; }
-
         /// <summary>
         ///     Verify that the QuotedString parser can successfully parse the specified input.
         /// </summary>

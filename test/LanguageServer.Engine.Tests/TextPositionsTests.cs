@@ -154,7 +154,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests
                 {
                     get
                     {
-                        object[] TestData(int line, int column, char expectedChar) => new object[] { line, column, expectedChar };
+                        static object[] TestData(int line, int column, char expectedChar) => [line, column, expectedChar];
 
                         // 123456
                         yield return TestData(line: 0, column: 0, expectedChar: '1');
@@ -189,7 +189,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests
                 {
                     get
                     {
-                        object[] TestData(char forChar, int expectedLine, int expectedColumn) => new object[] { forChar, expectedLine, expectedColumn };
+                        static object[] TestData(char forChar, int expectedLine, int expectedColumn) => [forChar, expectedLine, expectedColumn];
 
                         // 123456
                         yield return TestData(forChar: '1', expectedLine: 1, expectedColumn: 1);
@@ -227,7 +227,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests
                 {
                     get
                     {
-                        object[] TestData(int line, int column, char expectedChar) => new object[] { line, column, expectedChar };
+                        static object[] TestData(int line, int column, char expectedChar) => [line, column, expectedChar];
 
                         // 123456
                         yield return TestData(line: 0, column: 0, expectedChar: '1');
@@ -262,7 +262,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests
                 {
                     get
                     {
-                        object[] TestData(char forChar, int expectedLine, int expectedColumn) => new object[] { forChar, expectedLine, expectedColumn };
+                        static object[] TestData(char forChar, int expectedLine, int expectedColumn) => [forChar, expectedLine, expectedColumn];
 
                         // 123456
                         yield return TestData(forChar: '1', expectedLine: 1, expectedColumn: 1);

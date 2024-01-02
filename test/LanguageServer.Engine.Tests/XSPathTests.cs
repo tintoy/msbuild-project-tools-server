@@ -8,18 +8,8 @@ namespace MSBuildProjectTools.LanguageServer.Tests
     /// <summary>
     ///     Tests for <see cref="XSPath"/> and <see cref="XSPathSegment"/>.
     /// </summary>
-    public class XSPathTests
-        : TestBase
+    public class XSPathTests(ITestOutputHelper testOutput) : TestBase(testOutput)
     {
-        /// <summary>
-        ///     Create a new <see cref="XSPath"/> test suite.
-        /// </summary>
-        /// <param name="testOutput"></param>
-        public XSPathTests(ITestOutputHelper testOutput)
-            : base(testOutput)
-        {
-        }
-
         /// <summary>
         ///     Verify that <see cref="XSPath.Parse(string)"/> can parse an absolute path.
         /// </summary>

@@ -1,5 +1,4 @@
 using Xunit;
-using Xunit.Abstractions;
 
 namespace MSBuildProjectTools.LanguageServer.Tests.ExpressionTests
 {
@@ -9,19 +8,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests.ExpressionTests
     ///     Tests for parsing of MSBuild comparison expressions.
     /// </summary>
     public class ComparisonParserTests
-        : ParserTests
     {
-        /// <summary>
-        ///     Create a new comparison expression parser test-suite.
-        /// </summary>
-        /// <param name="testOutput">
-        ///     Output for the current test.
-        /// </param>
-        public ComparisonParserTests(ITestOutputHelper testOutput)
-            : base(testOutput)
-        {
-        }
-
         /// <summary>
         ///     Verify that the Compare parser can successfully parse the specified input.
         /// </summary>
