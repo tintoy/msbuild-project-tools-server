@@ -9,7 +9,7 @@ using MSLogging = Microsoft.Extensions.Logging;
 namespace MSBuildProjectTools.LanguageServer
 {
     using Logging;
-
+    using Serilog.Core;
     using LanguageServer = OmniSharp.Extensions.LanguageServer.Server.LanguageServer;
 
     /// <summary>
@@ -72,7 +72,7 @@ namespace MSBuildProjectTools.LanguageServer
             LoggerConfiguration loggerConfiguration = CreateDefaultLoggerConfiguration(languageServerConfiguration)
                 .WriteTo.LanguageServer(languageServer, languageServerConfiguration.Logging.LevelSwitch);
 
-            var logger = loggerConfiguration.CreateLogger();
+            Logger logger = loggerConfiguration.CreateLogger();
             Log.Logger = logger;
 
             logger.Verbose("Logger initialized.");
