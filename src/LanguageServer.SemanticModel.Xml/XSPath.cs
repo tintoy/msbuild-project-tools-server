@@ -328,14 +328,14 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
             if (actualPathSegments.Length == 0)
                 return this;
 
-            ImmutableList<XSPathSegment> ancestorSegments = ImmutableList.CreateRange(
+            var ancestorSegments = ImmutableList.CreateRange(
                 actualPathSegments.Take(actualPathSegments.Length - 1)
             );
             ImmutableList<XSPathSegment> segments = ancestorSegments.Add(
                 actualPathSegments[^1]
             );
 
-            XSPath appendPath = new XSPath(ancestorSegments, segments);
+            var appendPath = new XSPath(ancestorSegments, segments);
             if (appendPath.IsAbsolute)
                 return appendPath;
 
@@ -476,7 +476,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
 
             XSPathSegment[] pathSegments = ParseSegments(path).ToArray();
 
-            ImmutableList<XSPathSegment> ancestorSegments = ImmutableList.CreateRange(
+            var ancestorSegments = ImmutableList.CreateRange(
                 pathSegments.Take(pathSegments.Length - 1)
             );
             ImmutableList<XSPathSegment> segments = ancestorSegments.Add(

@@ -41,7 +41,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests
         public void NodeCount(string testFileName, int expectedNodeCount)
         {
             string testXml = LoadTestFile("TestFiles", testFileName + ".xml");
-            TextPositions xmlPositions = new TextPositions(testXml);
+            var xmlPositions = new TextPositions(testXml);
             XmlDocumentSyntax xmlDocument = Parser.ParseText(testXml);
 
             List<XSNode> nodes = xmlDocument.GetSemanticModel(xmlPositions);
@@ -90,7 +90,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests
         public void NodeKind(string testFileName, int index, XSNodeKind nodeKind)
         {
             string testXml = LoadTestFile("TestFiles", testFileName + ".xml");
-            TextPositions xmlPositions = new TextPositions(testXml);
+            var xmlPositions = new TextPositions(testXml);
             XmlDocumentSyntax xmlDocument = Parser.ParseText(testXml);
 
             List<XSNode> nodes = xmlDocument.GetSemanticModel(xmlPositions);
@@ -118,7 +118,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests
         public void InvalidElement(string testFileName, int index)
         {
             string testXml = LoadTestFile("TestFiles", testFileName + ".xml");
-            TextPositions xmlPositions = new TextPositions(testXml);
+            var xmlPositions = new TextPositions(testXml);
             XmlDocumentSyntax xmlDocument = Parser.ParseText(testXml);
 
             List<XSNode> nodes = xmlDocument.GetSemanticModel(xmlPositions);
@@ -169,7 +169,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests
         public void NodeRange(string testFileName, int index, int startLine, int startColumn, int endLine, int endColumn)
         {
             string testXml = LoadTestFile("TestFiles", testFileName + ".xml");
-            TextPositions xmlPositions = new TextPositions(testXml);
+            var xmlPositions = new TextPositions(testXml);
             XmlDocumentSyntax xmlDocument = Parser.ParseText(testXml);
 
             List<XSNode> nodes = xmlDocument.GetSemanticModel(xmlPositions);
@@ -185,7 +185,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests
                 node.Kind
             );
 
-            Range expectedRange = new Range(
+            var expectedRange = new Range(
                 start: new Position(startLine, startColumn),
                 end: new Position(endLine, endColumn)
             );
@@ -223,7 +223,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests
         public void ElementAttributesRange(string testFileName, string elementName, int startLine, int startColumn, int endLine, int endColumn)
         {
             string testXml = LoadTestFile("TestFiles", testFileName + ".xml");
-            TextPositions xmlPositions = new TextPositions(testXml);
+            var xmlPositions = new TextPositions(testXml);
             XmlDocumentSyntax xmlDocument = Parser.ParseText(testXml);
 
             List<XSNode> nodes = xmlDocument.GetSemanticModel(xmlPositions);
@@ -234,7 +234,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests
 
             XSElement targetElement = Assert.IsAssignableFrom<XSElement>(targetNode);
 
-            Range expectedRange = new Range(
+            var expectedRange = new Range(
                 start: new Position(startLine, startColumn),
                 end: new Position(endLine, endColumn)
             );
@@ -271,7 +271,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests
         public void InvalidElementRange(string testFileName, int nodeIndex, string elementName, int startLine, int startColumn, int endLine, int endColumn)
         {
             string testXml = LoadTestFile("TestFiles", testFileName + ".xml");
-            TextPositions xmlPositions = new TextPositions(testXml);
+            var xmlPositions = new TextPositions(testXml);
             XmlDocumentSyntax xmlDocument = Parser.ParseText(testXml);
 
             List<XSNode> nodes = xmlDocument.GetSemanticModel(xmlPositions);
@@ -285,7 +285,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests
             Assert.Equal(elementName, targetElement.Name);
             Assert.False(targetElement.IsValid, "IsValid");
 
-            Range expectedRange = new Range(
+            var expectedRange = new Range(
                 start: new Position(startLine, startColumn),
                 end: new Position(endLine, endColumn)
             );

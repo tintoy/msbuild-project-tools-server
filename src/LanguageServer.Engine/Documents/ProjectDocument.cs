@@ -752,9 +752,9 @@ namespace MSBuildProjectTools.LanguageServer.Documents
             if (!HasMSBuildProject)
                 throw new InvalidOperationException($"MSBuild project '{ProjectFile.FullName}' is not loaded.");
 
-            DotNetRuntimeInfo currentRuntime = DotNetRuntimeInfo.GetCurrent();
+            var currentRuntime = DotNetRuntimeInfo.GetCurrent();
 
-            List<string> taskAssemblyFiles = new List<string>
+            var taskAssemblyFiles = new List<string>
             {
                 // Include "built-in" tasks.
                 Path.Combine(currentRuntime.BaseDirectory, "Microsoft.Build.Tasks.Core.dll"),
@@ -775,7 +775,7 @@ namespace MSBuildProjectTools.LanguageServer.Documents
                     .Distinct(StringComparer.OrdinalIgnoreCase)
             );
 
-            List<MSBuildTaskAssemblyMetadata> metadata = new List<MSBuildTaskAssemblyMetadata>();
+            var metadata = new List<MSBuildTaskAssemblyMetadata>();
             foreach (string taskAssemblyFile in taskAssemblyFiles)
             {
                 Log.Verbose("Scanning assembly {TaskAssemblyFile} for task metadata...", taskAssemblyFile);

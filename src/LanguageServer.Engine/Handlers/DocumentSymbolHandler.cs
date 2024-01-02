@@ -105,7 +105,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         {
             ProjectDocument projectDocument = await Workspace.GetProjectDocument(parameters.TextDocument.Uri);
 
-            List<DocumentSymbolInformation> symbols = new List<DocumentSymbolInformation>();
+            var symbols = new List<DocumentSymbolInformation>();
             using (await projectDocument.Lock.ReaderLockAsync(cancellationToken))
             {
                 // We need a valid MSBuild project with up-to-date positional information.
@@ -143,7 +143,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
                         continue;
                     }
 
-                    DocumentSymbolInformation symbol = new DocumentSymbolInformation
+                    var symbol = new DocumentSymbolInformation
                     {
                         Name = msbuildObject.Name,
                         Location = new Location

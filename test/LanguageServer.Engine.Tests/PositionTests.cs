@@ -21,7 +21,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests
         [Theory(DisplayName = "Position.RelativeTo is correct between one-based position and origin ")]
         public void OneBased_RelativeTo_Origin(int line, int column)
         {
-            Position initialPosition = new Position(line, column);
+            var initialPosition = new Position(line, column);
 
             Position expected = initialPosition;
             Position actual = initialPosition.RelativeTo(Position.Origin);
@@ -44,7 +44,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests
         [Theory(DisplayName = "Position.WithOrigin is correct for one-based position using origin ")]
         public void OneBased_WithOrigin_Origin(int line, int column)
         {
-            Position initialPosition = new Position(line, column);
+            var initialPosition = new Position(line, column);
 
             Position expected = initialPosition;
             Position actual = initialPosition.WithOrigin(Position.Origin);
@@ -84,10 +84,10 @@ namespace MSBuildProjectTools.LanguageServer.Tests
         [Theory(DisplayName = "Position.RelativeTo is correct for one-based positions ")]
         public void OneBased_RelativeTo_OneBased(int line, int column, int relativeToLine, int relativeToColumn, int expectedLine, int expectedColumn)
         {
-            Position initial = new Position(line, column);
-            Position relativeTo = new Position(relativeToLine, relativeToColumn);
+            var initial = new Position(line, column);
+            var relativeTo = new Position(relativeToLine, relativeToColumn);
 
-            Position expected = new Position(expectedLine, expectedColumn);
+            var expected = new Position(expectedLine, expectedColumn);
             Position actual = initial.RelativeTo(relativeTo);
             Assert.Equal(expected, actual);
             Assert.True(actual.IsOneBased, "IsOneBased");
@@ -119,10 +119,10 @@ namespace MSBuildProjectTools.LanguageServer.Tests
         [Theory(DisplayName = "Position.WithOrigin is correct for one-based positions ")]
         public void OneBased_WithOrigin_OneBased(int line, int column, int originLine, int originColumn, int expectedLine, int expectedColumn)
         {
-            Position initialPosition = new Position(line, column);
-            Position origin = new Position(originLine, originColumn);
+            var initialPosition = new Position(line, column);
+            var origin = new Position(originLine, originColumn);
 
-            Position expected = new Position(expectedLine, expectedColumn);
+            var expected = new Position(expectedLine, expectedColumn);
             Position actual = initialPosition.WithOrigin(origin);
             Assert.Equal(expected, actual);
             Assert.True(actual.IsOneBased, "IsOneBased");

@@ -47,7 +47,7 @@ namespace MSBuildProjectTools.LanguageServer
                 ConfigureNuGetCredentialProviders();
 
                 using (ActivityCorrelationManager.BeginActivityScope())
-                using (Terminator terminator = new Terminator())
+                using (var terminator = new Terminator())
                 using (IContainer container = BuildContainer())
                 {
                     // Force initialization of logging.
@@ -62,7 +62,7 @@ namespace MSBuildProjectTools.LanguageServer
                     Task initializeTask = server.Initialize();
 
                     // Special case for probing whether language server is startable given current runtime environment.
-                    string[] commandLineArguments = Environment.GetCommandLineArgs();
+                    var commandLineArguments = Environment.GetCommandLineArgs();
                     if (commandLineArguments.Length == 2 && commandLineArguments[1] == "--probe")
                     {
                         // Give the language server a chance to start.
@@ -137,7 +137,7 @@ namespace MSBuildProjectTools.LanguageServer
         /// </returns>
         static IContainer BuildContainer()
         {
-            ContainerBuilder builder = new ContainerBuilder();
+            var builder = new ContainerBuilder();
 
             builder.RegisterModule<LoggingModule>();
             builder.RegisterModule<LanguageServerModule>();

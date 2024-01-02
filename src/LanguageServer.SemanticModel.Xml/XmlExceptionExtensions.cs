@@ -25,7 +25,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
             if (invalidXml == null)
                 throw new ArgumentNullException(nameof(invalidXml));
 
-            Position startPosition = new Position(
+            var startPosition = new Position(
                 invalidXml.LineNumber,
                 invalidXml.LinePosition
             );

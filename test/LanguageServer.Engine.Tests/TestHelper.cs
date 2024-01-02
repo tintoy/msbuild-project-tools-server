@@ -29,7 +29,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests
                 throw new ArgumentException($"Argument cannot be null, empty, or entirely composed of whitespace: {nameof(fileName)}.", nameof(fileName));
 
             FileInfo file = null;
-            DirectoryInfo targetDirectory = new DirectoryInfo(directory.FullName);
+            var targetDirectory = new DirectoryInfo(directory.FullName);
             while (file == null)
             {
                 file = new FileInfo(

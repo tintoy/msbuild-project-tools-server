@@ -145,8 +145,8 @@ namespace MSBuildProjectTools.LanguageServer.Documents
 
                 if (HasMSBuildProject && IsDirty)
                 {
-                    using (StringReader reader = new StringReader(Xml.ToFullString()))
-                    using (XmlTextReader xmlReader = new XmlTextReader(reader))
+                    using (var reader = new StringReader(Xml.ToFullString()))
+                    using (var xmlReader = new XmlTextReader(reader))
                     {
                         MSBuildProject.Xml.ReloadFrom(xmlReader,
                             throwIfUnsavedChanges: false,

@@ -210,7 +210,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
             if (text == null)
                 throw new ArgumentNullException(nameof(text));
 
-            List<int> lineStarts = new List<int>();
+            var lineStarts = new List<int>();
 
             int currentPosition = 0;
             int currentLineStart = 0;

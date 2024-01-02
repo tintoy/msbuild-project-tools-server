@@ -40,10 +40,10 @@ namespace MSBuildProjectTools.LanguageServer.Tests
         {
             // TODO: Change this test to use XmlLocator.
 
-            Position testPosition = new Position(line, column);
+            var testPosition = new Position(line, column);
 
             string testXml = LoadTestFile("TestFiles", testFileName + ".xml");
-            TextPositions positions = new TextPositions(testXml);
+            var positions = new TextPositions(testXml);
             XmlDocumentSyntax xmlDocument = Parser.ParseText(testXml);
 
             int absolutePosition = positions.GetAbsolutePosition(testPosition) - 1; // To find out if we can insert an element, make sure we find the node at the position ONE BEFORE the insertion point!
@@ -83,13 +83,13 @@ namespace MSBuildProjectTools.LanguageServer.Tests
         [Theory(DisplayName = "Within element content ")]
         public void InElementContent(string testFileName, int line, int column, XSNodeKind expectedNodeKind)
         {
-            Position testPosition = new Position(line, column);
+            var testPosition = new Position(line, column);
 
             string testXml = LoadTestFile("TestFiles", testFileName + ".xml");
-            TextPositions positions = new TextPositions(testXml);
+            var positions = new TextPositions(testXml);
             XmlDocumentSyntax document = Parser.ParseText(testXml);
 
-            XmlLocator locator = new XmlLocator(document, positions);
+            var locator = new XmlLocator(document, positions);
             XmlLocation result = locator.Inspect(testPosition);
 
             Assert.NotNull(result);
@@ -120,20 +120,20 @@ namespace MSBuildProjectTools.LanguageServer.Tests
         [Theory(DisplayName = "Within empty element's name ")]
         public void InEmptyElementName(string testFileName, int line, int column, string expectedElementName)
         {
-            Position testPosition = new Position(line, column);
+            var testPosition = new Position(line, column);
 
             string testXml = LoadTestFile("TestFiles", testFileName + ".xml");
-            TextPositions positions = new TextPositions(testXml);
+            var positions = new TextPositions(testXml);
             XmlDocumentSyntax document = Parser.ParseText(testXml);
 
-            XmlLocator locator = new XmlLocator(document, positions);
+            var locator = new XmlLocator(document, positions);
             XmlLocation result = locator.Inspect(testPosition);
 
             Assert.NotNull(result);
             Assert.Equal(XSNodeKind.Element, result.Node.Kind);
             Assert.True(result.IsElement(), "IsElement");
 
-            XSElement element = (XSElement)result.Node;
+            var element = (XSElement)result.Node;
             Assert.Equal(expectedElementName, element.Name);
 
             Assert.True(result.IsEmptyElement(), "IsEmptyElement");
@@ -169,13 +169,13 @@ namespace MSBuildProjectTools.LanguageServer.Tests
         [Theory(DisplayName = "Within attribute's value ")]
         public void InAttributeValue(string testFileName, int line, int column, string expectedAttributeName)
         {
-            Position testPosition = new Position(line, column);
+            var testPosition = new Position(line, column);
 
             string testXml = LoadTestFile("TestFiles", testFileName + ".xml");
-            TextPositions positions = new TextPositions(testXml);
+            var positions = new TextPositions(testXml);
             XmlDocumentSyntax document = Parser.ParseText(testXml);
 
-            XmlLocator locator = new XmlLocator(document, positions);
+            var locator = new XmlLocator(document, positions);
             XmlLocation result = locator.Inspect(testPosition);
             Assert.NotNull(result);
 
@@ -208,13 +208,13 @@ namespace MSBuildProjectTools.LanguageServer.Tests
         [Theory(DisplayName = "On element that can be replaced by completion ")]
         public void CanCompleteElement(string testFileName, int line, int column)
         {
-            Position testPosition = new Position(line, column);
+            var testPosition = new Position(line, column);
 
             string testXml = LoadTestFile("TestFiles", testFileName + ".xml");
-            TextPositions positions = new TextPositions(testXml);
+            var positions = new TextPositions(testXml);
             XmlDocumentSyntax document = Parser.ParseText(testXml);
 
-            XmlLocator locator = new XmlLocator(document, positions);
+            var locator = new XmlLocator(document, positions);
             XmlLocation location = locator.Inspect(testPosition);
             Assert.NotNull(location);
 
@@ -244,17 +244,17 @@ namespace MSBuildProjectTools.LanguageServer.Tests
         [Theory(DisplayName = "On completable element if parent name matches ")]
         public void CanCompleteElementInParentNamed(string testFileName, int line, int column, string expectedParent)
         {
-            Position testPosition = new Position(line, column);
+            var testPosition = new Position(line, column);
 
             string testXml = LoadTestFile("TestFiles", testFileName + ".xml");
-            TextPositions positions = new TextPositions(testXml);
+            var positions = new TextPositions(testXml);
             XmlDocumentSyntax document = Parser.ParseText(testXml);
 
-            XmlLocator locator = new XmlLocator(document, positions);
+            var locator = new XmlLocator(document, positions);
             XmlLocation location = locator.Inspect(testPosition);
             Assert.NotNull(location);
 
-            XSPath expectedParentPath = XSPath.Parse(expectedParent);
+            var expectedParentPath = XSPath.Parse(expectedParent);
 
             Assert.True(
                 location.CanCompleteElement(out XSElement replaceElement, parentPath: expectedParentPath),
@@ -286,17 +286,17 @@ namespace MSBuildProjectTools.LanguageServer.Tests
         [Theory(DisplayName = "On completable element if parent relative path matches ")]
         public void CanCompleteElementInParentWithRelativePath(string testFileName, int line, int column, string expectedParent)
         {
-            Position testPosition = new Position(line, column);
+            var testPosition = new Position(line, column);
 
             string testXml = LoadTestFile("TestFiles", testFileName + ".xml");
-            TextPositions positions = new TextPositions(testXml);
+            var positions = new TextPositions(testXml);
             XmlDocumentSyntax document = Parser.ParseText(testXml);
 
-            XmlLocator locator = new XmlLocator(document, positions);
+            var locator = new XmlLocator(document, positions);
             XmlLocation location = locator.Inspect(testPosition);
             Assert.NotNull(location);
 
-            XSPath expectedParentPath = XSPath.Parse(expectedParent);
+            var expectedParentPath = XSPath.Parse(expectedParent);
 
             Assert.True(
                 location.CanCompleteElement(out XSElement replaceElement, parentPath: expectedParentPath),
@@ -332,17 +332,17 @@ namespace MSBuildProjectTools.LanguageServer.Tests
         [Theory(DisplayName = "On completable attribute where element name matches ")]
         public void CanCompleteAttribute(string testFileName, int line, int column, string expectedElementName, PaddingType expectedPadding)
         {
-            Position testPosition = new Position(line, column);
+            var testPosition = new Position(line, column);
 
             string testXml = LoadTestFile("TestFiles", testFileName + ".xml");
-            TextPositions positions = new TextPositions(testXml);
+            var positions = new TextPositions(testXml);
             XmlDocumentSyntax document = Parser.ParseText(testXml);
 
-            XmlLocator locator = new XmlLocator(document, positions);
+            var locator = new XmlLocator(document, positions);
             XmlLocation location = locator.Inspect(testPosition);
             Assert.NotNull(location);
 
-            XSPath elementPath = XSPath.Parse(expectedElementName);
+            var elementPath = XSPath.Parse(expectedElementName);
 
             Assert.True(
                 location.CanCompleteAttribute(out XSElement element, out XSAttribute replaceAttribute, out PaddingType needsPadding, onElementWithPath: elementPath),

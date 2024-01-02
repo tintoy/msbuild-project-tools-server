@@ -30,7 +30,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests
         {
             const string text = TestData.TextWithWindowsLineEndings.Text;
 
-            TextPositions textPositions = new TextPositions(text);
+            var textPositions = new TextPositions(text);
             int absolutePosition = textPositions.GetAbsolutePosition(line, column);
             Assert.Equal(expectedChar, text[absolutePosition]);
 
@@ -61,7 +61,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests
             int absolutePosition = text.IndexOf(forChar);
             Assert.InRange(absolutePosition, 0, text.Length - 1);
 
-            TextPositions textPositions = new TextPositions(text);
+            var textPositions = new TextPositions(text);
             Position position = textPositions.GetPosition(absolutePosition);
             Assert.True(position.IsOneBased);
             Assert.Equal(expectedLine, position.LineNumber);
@@ -90,7 +90,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests
         {
             const string text = TestData.TextWithUnixLineEndings.Text;
 
-            TextPositions textPositions = new TextPositions(text);
+            var textPositions = new TextPositions(text);
             int absolutePosition = textPositions.GetAbsolutePosition(line, column);
             Assert.Equal(expectedChar, text[absolutePosition]);
 
@@ -121,7 +121,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests
             int absolutePosition = text.IndexOf(forChar);
             Assert.InRange(absolutePosition, 0, text.Length - 1);
 
-            TextPositions textPositions = new TextPositions(text);
+            var textPositions = new TextPositions(text);
             Position position = textPositions.GetPosition(absolutePosition);
             Assert.True(position.IsOneBased);
             Assert.Equal(expectedLine, position.LineNumber);

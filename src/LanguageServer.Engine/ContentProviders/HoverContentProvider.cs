@@ -56,7 +56,7 @@ namespace MSBuildProjectTools.LanguageServer.ContentProviders
             if (property == null)
                 throw new ArgumentNullException(nameof(property));
 
-            List<MarkedString> content = new List<MarkedString>
+            var content = new List<MarkedString>
             {
                 $"Property: `{property.Name}`"
             };
@@ -71,7 +71,7 @@ namespace MSBuildProjectTools.LanguageServer.ContentProviders
                 //      We'll need to build a lookup by recursively following ProjectProperty.Predecessor.
                 Position overridingDeclarationPosition = property.DeclaringXml.Location.ToNative();
 
-                StringBuilder overrideDescription = new StringBuilder();
+                var overrideDescription = new StringBuilder();
                 string declarationFile = property.DeclaringXml.Location.File;
                 if (declarationFile != property.Property.Xml.Location.File)
                 {
@@ -123,7 +123,7 @@ namespace MSBuildProjectTools.LanguageServer.ContentProviders
             if (unusedProperty == null)
                 throw new ArgumentNullException(nameof(unusedProperty));
 
-            List<MarkedString> content = new List<MarkedString>();
+            var content = new List<MarkedString>();
             if (unusedProperty.Element.HasParentPath(WellKnownElementPaths.DynamicPropertyGroup))
             {
                 content.Add(
@@ -195,7 +195,7 @@ namespace MSBuildProjectTools.LanguageServer.ContentProviders
                 );
             }
 
-            List<MarkedString> content = new List<MarkedString>
+            var content = new List<MarkedString>
             {
                 $"Item Group: `{itemGroup.OriginatingElement.ItemType}`"
             };
@@ -205,7 +205,7 @@ namespace MSBuildProjectTools.LanguageServer.ContentProviders
                 content.Add(itemTypeHelp);
 
             string[] includes = itemGroup.Includes.ToArray();
-            StringBuilder itemIncludeContent = new StringBuilder();
+            var itemIncludeContent = new StringBuilder();
             itemIncludeContent.AppendLine(
                 $"Include: `{itemGroup.OriginatingElement.Include}`  "
             );
@@ -256,7 +256,7 @@ namespace MSBuildProjectTools.LanguageServer.ContentProviders
             if (unusedItemGroup == null)
                 throw new ArgumentNullException(nameof(unusedItemGroup));
 
-            List<MarkedString> content = new List<MarkedString>
+            var content = new List<MarkedString>
             {
                 $"Unused Item Group: `{unusedItemGroup.OriginatingElement.ItemType}` (condition is false)"
             };
@@ -265,7 +265,7 @@ namespace MSBuildProjectTools.LanguageServer.ContentProviders
             if (itemTypeHelp != null)
                 content.Add(itemTypeHelp);
 
-            StringBuilder descriptionContent = new StringBuilder();
+            var descriptionContent = new StringBuilder();
 
             string[] includes = unusedItemGroup.Includes.ToArray();
             descriptionContent.AppendLine(
@@ -326,7 +326,7 @@ namespace MSBuildProjectTools.LanguageServer.ContentProviders
 
             string evaluatedCondition = _projectDocument.MSBuildProject.ExpandString(condition);
 
-            List<MarkedString> content = new List<MarkedString>
+            var content = new List<MarkedString>
             {
                 "Condition",
                 $"Evaluated: `{evaluatedCondition}`"
@@ -372,7 +372,7 @@ namespace MSBuildProjectTools.LanguageServer.ContentProviders
             if (metadataName == "Include")
                 metadataName = "Identity";
 
-            List<MarkedString> content = new List<MarkedString>
+            var content = new List<MarkedString>
             {
                 $"Item Metadata: `{itemGroup.Name}.{metadataName}`"
             };
@@ -388,7 +388,7 @@ namespace MSBuildProjectTools.LanguageServer.ContentProviders
                 .Distinct()
                 .ToArray();
 
-            StringBuilder metadataContent = new StringBuilder();
+            var metadataContent = new StringBuilder();
             if (metadataValues.Length > 0)
             {
                 metadataContent.AppendLine("Values:");
@@ -446,7 +446,7 @@ namespace MSBuildProjectTools.LanguageServer.ContentProviders
             if (metadataName == "Include")
                 metadataName = "Identity";
 
-            List<MarkedString> content = new List<MarkedString>
+            var content = new List<MarkedString>
             {
                 $"Unused Item Metadata: `{itemGroup.Name}.{metadataName}` (item condition is false)"
             };
@@ -462,7 +462,7 @@ namespace MSBuildProjectTools.LanguageServer.ContentProviders
                 .Distinct()
                 .ToArray();
 
-            StringBuilder metadataContent = new StringBuilder();
+            var metadataContent = new StringBuilder();
             if (metadataValues.Length > 0)
             {
                 metadataContent.AppendLine("Values:");
@@ -497,7 +497,7 @@ namespace MSBuildProjectTools.LanguageServer.ContentProviders
             if (target == null)
                 throw new ArgumentNullException(nameof(target));
 
-            List<MarkedString> content = new List<MarkedString>
+            var content = new List<MarkedString>
             {
                 $"Target: `{target.Name}`"
             };
@@ -527,12 +527,12 @@ namespace MSBuildProjectTools.LanguageServer.ContentProviders
             if (import == null)
                 throw new ArgumentNullException(nameof(import));
 
-            List<MarkedString> content = new List<MarkedString>
+            var content = new List<MarkedString>
             {
                 $"Import: `{import.Name}`"
             };
 
-            StringBuilder imports = new StringBuilder("Imports:");
+            var imports = new StringBuilder("Imports:");
             imports.AppendLine();
             foreach (string projectFile in import.ImportedProjectFiles)
                 imports.AppendLine($"* [{Path.GetFileName(projectFile)}]({VSCodeDocumentUri.FromFileSystemPath(projectFile)})");
@@ -572,7 +572,7 @@ namespace MSBuildProjectTools.LanguageServer.ContentProviders
             string project = unresolvedImport.Project;
             string evaluatedProject = _projectDocument.MSBuildProject.ExpandString(project);
 
-            StringBuilder descriptionContent = new StringBuilder();
+            var descriptionContent = new StringBuilder();
             descriptionContent.AppendLine(
                 $"Project: `{project}`"
             );
@@ -589,7 +589,7 @@ namespace MSBuildProjectTools.LanguageServer.ContentProviders
                 $"Evaluated Condition: `{evaluatedCondition}`"
             );
 
-            List<MarkedString> content = new List<MarkedString>
+            var content = new List<MarkedString>
             {
                 "Unresolved Import (condition is false)",
                 descriptionContent.ToString()
@@ -620,7 +620,7 @@ namespace MSBuildProjectTools.LanguageServer.ContentProviders
             if (sdkImport == null)
                 throw new ArgumentNullException(nameof(sdkImport));
 
-            StringBuilder imports = new StringBuilder("Imports:");
+            var imports = new StringBuilder("Imports:");
             imports.AppendLine();
             foreach (string projectFile in sdkImport.ImportedProjectFiles)
                 imports.AppendLine($"* `{projectFile}`");
@@ -648,7 +648,7 @@ namespace MSBuildProjectTools.LanguageServer.ContentProviders
             string condition = unresolvedSdkImport.Condition;
             string evaluatedCondition = _projectDocument.MSBuildProject.ExpandString(condition);
 
-            StringBuilder descriptionContent = new StringBuilder();
+            var descriptionContent = new StringBuilder();
             descriptionContent.AppendLine(
                 $"Condition: `{condition}`"
             );
@@ -681,7 +681,7 @@ namespace MSBuildProjectTools.LanguageServer.ContentProviders
             if (string.IsNullOrWhiteSpace(elementDescription))
                 return null;
 
-            List<MarkedString> content = new List<MarkedString>
+            var content = new List<MarkedString>
             {
                 elementDescription
             };

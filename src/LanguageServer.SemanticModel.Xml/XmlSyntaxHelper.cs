@@ -214,7 +214,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
             if (syntaxNode == null)
                 throw new ArgumentNullException(nameof(syntaxNode));
 
-            HashSet<SyntaxKind> kinds = new HashSet<SyntaxKind>(syntaxKinds);
+            var kinds = new HashSet<SyntaxKind>(syntaxKinds);
 
             if (kinds.Contains(syntaxNode.Kind))
                 return syntaxNode;

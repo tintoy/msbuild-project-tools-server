@@ -87,14 +87,14 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
             // This will also ensure that the language server's model doesn't expose any MSBuild objects anywhere.
             //
             // For now, though, let's choose the dumb option.
-            DotNetRuntimeInfo runtimeInfo = DotNetRuntimeInfo.GetCurrent(baseDirectory, logger);
+            var runtimeInfo = DotNetRuntimeInfo.GetCurrent(baseDirectory, logger);
 
             // SDK versions are in SemVer format...
             if (!SemanticVersion.TryParse(runtimeInfo.SdkVersion, out SemanticVersion targetSdkSemanticVersion))
                 throw new Exception($"Cannot determine SDK version information for current .NET SDK (located at '{runtimeInfo.BaseDirectory}').");
 
             // ...which MSBuildLocator does not understand.
-            Version targetSdkVersion = new Version(
+            var targetSdkVersion = new Version(
                 major: targetSdkSemanticVersion.Major,
                 minor: targetSdkSemanticVersion.Minor,
                 build: targetSdkSemanticVersion.Patch
@@ -175,7 +175,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
             Dictionary<string, string> globalProperties = CreateGlobalMSBuildProperties(runtimeInfo, solutionDirectory, globalPropertyOverrides);
             EnsureMSBuildEnvironment(globalProperties);
 
-            ProjectCollection projectCollection = new ProjectCollection(globalProperties) { IsBuildEnabled = false };
+            var projectCollection = new ProjectCollection(globalProperties) { IsBuildEnabled = false };
 
             if (!SemanticVersion.TryParse(runtimeInfo.SdkVersion, out SemanticVersion netcoreVersion))
                 throw new FormatException($"Cannot parse .NET SDK version '{runtimeInfo.SdkVersion}' (does not appear to be a valid semantic version).");
@@ -184,7 +184,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
             string toolsVersion = netcoreVersion <= NetCoreLastSdkVersionFor150Folder ? "15.0" : "Current";
 
             // Override toolset paths (for some reason these point to the main directory where the dotnet executable lives).
-            Toolset toolset = new Toolset(toolsVersion,
+            var toolset = new Toolset(toolsVersion,
                 toolsPath: runtimeInfo.BaseDirectory,
                 projectCollection: projectCollection,
                 msbuildOverrideTasksPath: ""
@@ -336,7 +336,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
                 throw new ArgumentNullException(nameof(project));
 
             ProjectRootElement clonedXml = project.Xml.DeepClone();
-            Project clonedProject = new Project(clonedXml, project.GlobalProperties, project.ToolsVersion, project.ProjectCollection)
+            var clonedProject = new Project(clonedXml, project.GlobalProperties, project.ToolsVersion, project.ProjectCollection)
             {
                 FullPath = Path.ChangeExtension(project.FullPath,
                     ".cached" + Path.GetExtension(project.FullPath)

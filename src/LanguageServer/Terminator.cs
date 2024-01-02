@@ -24,7 +24,7 @@ namespace MSBuildProjectTools.LanguageServer
         /// </summary>
         static Terminator()
         {
-            using Process currentProcess = Process.GetCurrentProcess();
+            using var currentProcess = Process.GetCurrentProcess();
             CurrentProcessId = currentProcess.Id;
         }
 
