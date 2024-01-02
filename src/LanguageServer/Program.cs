@@ -59,25 +59,7 @@ namespace MSBuildProjectTools.LanguageServer
 
                     log.Debug("Waiting for client to initialize language server...");
 
-                    Task initializeTask = server.Initialize();
-
-                    // Special case for probing whether language server is startable given current runtime environment.
-                    var commandLineArguments = Environment.GetCommandLineArgs();
-                    if (commandLineArguments.Length == 2 && commandLineArguments[1] == "--probe")
-                    {
-                        // Give the language server a chance to start.
-                        await Task.Yield();
-
-                        // Show any exception encountered while starting the language server.
-                        if (initializeTask.IsFaulted || initializeTask.IsCanceled)
-                            await initializeTask;
-
-                        Console.Error.WriteLine("PROBE: Yes, the language server can start.");
-
-                        return 0;
-                    }
-
-                    await initializeTask;
+                    await server.Initialize();
 
                     log.Debug("Language server initialized by client.");
 
