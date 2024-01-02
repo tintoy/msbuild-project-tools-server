@@ -72,7 +72,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
                 throw new ArgumentNullException(nameof(projectDocument));
 
             bool isIncomplete = false;
-            List<CompletionItem> completions = new List<CompletionItem>();
+            var completions = new List<CompletionItem>();
 
             Log.Verbose("Evaluate completions for {XmlLocation:l}", location);
 

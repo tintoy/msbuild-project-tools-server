@@ -71,7 +71,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
                 return null;
             }
 
-            List<CompletionItem> completions = new List<CompletionItem>();
+            var completions = new List<CompletionItem>();
 
             Log.Verbose("Evaluate completions for {XmlLocation:l}", location);
 

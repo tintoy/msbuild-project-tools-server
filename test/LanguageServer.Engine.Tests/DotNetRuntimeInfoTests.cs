@@ -23,7 +23,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests
         {
             DotNetRuntimeInfo parsedOutput;
 
-            using (StringReader outputReader = new StringReader(dotnetInfoOutput))
+            using (var outputReader = new StringReader(dotnetInfoOutput))
             {
                 parsedOutput = DotNetRuntimeInfo.ParseDotNetInfoOutput(outputReader);
             }

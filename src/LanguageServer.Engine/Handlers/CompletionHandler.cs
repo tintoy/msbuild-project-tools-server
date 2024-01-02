@@ -132,7 +132,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
             XmlLocation location;
 
             bool isIncomplete = false;
-            List<CompletionItem> completionItems = new List<CompletionItem>();
+            var completionItems = new List<CompletionItem>();
             using (await projectDocument.Lock.ReaderLockAsync(cancellationToken))
             {
                 Position position = parameters.Position.ToNative();
@@ -159,7 +159,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
                 if (parameters.Context != null && parameters.Context.TriggerKind == CompletionTriggerKind.TriggerCharacter)
                     triggerCharacters = parameters.Context.TriggerCharacter;
 
-                List<Task<CompletionList>> allProviderCompletions =
+                var allProviderCompletions =
                     _completionProviders.Select(
                         provider => provider.ProvideCompletionsAsync(location, projectDocument, triggerCharacters, cancellationToken)
                     )
@@ -167,7 +167,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
 
                 while (allProviderCompletions.Count > 0)
                 {
-                    Task<CompletionList> providerCompletionTask = await Task.WhenAny(allProviderCompletions);
+                    var providerCompletionTask = await Task.WhenAny(allProviderCompletions);
                     allProviderCompletions.Remove(providerCompletionTask);
 
                     try
@@ -201,7 +201,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
             if (completionItems.Count == 0 && !isIncomplete)
                 return NoCompletions;
 
-            CompletionList completionList = new CompletionList(completionItems, isIncomplete);
+            var completionList = new CompletionList(completionItems, isIncomplete);
 
             return completionList;
         }

@@ -261,7 +261,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
             if (logger == null)
                 throw new ArgumentNullException(nameof(logger));
 
-            Process dotnetHostProcess = new Process
+            var dotnetHostProcess = new Process
             {
                 StartInfo = new ProcessStartInfo
                 {
@@ -285,7 +285,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
                 string command = $"{dotnetHostProcess.StartInfo.FileName} {dotnetHostProcess.StartInfo.Arguments}";
 
                 // Buffer the output locally (otherwise, the process may hang if it fills up its STDOUT / STDERR buffer).
-                StringBuilder stdOutBuffer = new StringBuilder();
+                var stdOutBuffer = new StringBuilder();
                 dotnetHostProcess.OutputDataReceived += (sender, args) =>
                 {
                     lock (stdOutBuffer)
@@ -293,7 +293,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
                         stdOutBuffer.AppendLine(args.Data);
                     }
                 };
-                StringBuilder stdErrBuffer = new StringBuilder();
+                var stdErrBuffer = new StringBuilder();
                 dotnetHostProcess.ErrorDataReceived += (sender, args) =>
                 {
                     lock (stdErrBuffer)
@@ -368,7 +368,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
             if (dotnetInfoOutput == null)
                 throw new ArgumentNullException(nameof(dotnetInfoOutput));
 
-            DotNetRuntimeInfo runtimeInfo = new DotNetRuntimeInfo();
+            var runtimeInfo = new DotNetRuntimeInfo();
 
             DotnetInfoSection currentSection = DotnetInfoSection.Start;
 

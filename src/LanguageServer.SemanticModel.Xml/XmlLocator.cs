@@ -103,7 +103,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
             int absolutePosition = _documentPositions.GetAbsolutePosition(position);
 
             XmlLocationFlags flags = ComputeLocationFlags(nodeAtPosition, absolutePosition);
-            XmlLocation inspectionResult = new XmlLocation(position, absolutePosition, nodeAtPosition, flags);
+            var inspectionResult = new XmlLocation(position, absolutePosition, nodeAtPosition, flags);
 
             return inspectionResult;
         }
@@ -189,7 +189,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
                     if (nameSpan.Contains(absolutePosition))
                         flags |= XmlLocationFlags.Name;
 
-                    TextSpan attributesSpan = new TextSpan();
+                    var attributesSpan = new TextSpan();
                     if (syntaxNode.SlashGreaterThanToken != null) // This is the most accurate way to measure the span of text where the element's attributes can be located.
                         attributesSpan = new TextSpan(start: syntaxNode.NameNode.Span.End, length: syntaxNode.SlashGreaterThanToken.Span.Start - syntaxNode.NameNode.Span.End);
                     else if (syntaxNode.AttributesNode != null)
@@ -214,7 +214,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
                     if (startTagSpan.Contains(absolutePosition))
                         flags |= XmlLocationFlags.OpeningTag;
 
-                    TextSpan attributesSpan = new TextSpan();
+                    var attributesSpan = new TextSpan();
                     if (syntaxNode.StartTag?.GreaterThanToken != null) // This is the most accurate way to measure the span of text where the element's attributes can be located.
                         attributesSpan = new TextSpan(start: syntaxNode.NameNode.Span.End, length: syntaxNode.StartTag.GreaterThanToken.Span.Start - syntaxNode.NameNode.Span.End);
                     else if (syntaxNode.AttributesNode != null)

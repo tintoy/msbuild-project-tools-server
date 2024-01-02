@@ -66,13 +66,13 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
             if (packageSources == null)
                 throw new ArgumentNullException(nameof(packageSources));
 
-            List<SourceRepository> sourceRepositories = new List<SourceRepository>();
+            var sourceRepositories = new List<SourceRepository>();
 
             List<Lazy<INuGetResourceProvider>> providers = CreateResourceProviders(providerVersions);
 
             foreach (PackageSource packageSource in packageSources)
             {
-                SourceRepository sourceRepository = new SourceRepository(packageSource, providers);
+                var sourceRepository = new SourceRepository(packageSource, providers);
 
                 sourceRepositories.Add(sourceRepository);
             }
@@ -110,7 +110,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
             if (providers == null)
                 throw new ArgumentNullException(nameof(providers));
 
-            SourceRepository sourceRepository = new SourceRepository(packageSource, providers);
+            var sourceRepository = new SourceRepository(packageSource, providers);
 
             return sourceRepository;
         }
@@ -161,7 +161,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
             if (packageSources == null)
                 throw new ArgumentNullException(nameof(packageSources));
 
-            List<AutoCompleteResource> autoCompleteResources = new List<AutoCompleteResource>();
+            var autoCompleteResources = new List<AutoCompleteResource>();
 
             List<SourceRepository> sourceRepositories = packageSources.CreateResourceRepositories();
             foreach (SourceRepository sourceRepository in sourceRepositories)
@@ -249,7 +249,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
             IEnumerable<NuGetVersion>[] results = await Task.WhenAll(
                 autoCompleteResources.Select(async autoCompleteResource =>
                 {
-                    using (SourceCacheContext cacheContext = new SourceCacheContext())
+                    using (var cacheContext = new SourceCacheContext())
                     {
                         return await autoCompleteResource.VersionStartsWith(packageId, versionPrefix, includePrerelease, cacheContext, logger ?? NullLogger.Instance, cancellationToken);
                     }

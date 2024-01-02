@@ -83,9 +83,9 @@ namespace MSBuildProjectTools.LanguageServer.Logging
             if (logEvent.Level < _levelSwitch.MinimumLevel)
                 return;
 
-            StringBuilder messageBuilder = new StringBuilder();
+            var messageBuilder = new StringBuilder();
 
-            using (StringWriter messageWriter = new StringWriter(messageBuilder))
+            using (var messageWriter = new StringWriter(messageBuilder))
             {
                 logEvent.RenderMessage(messageWriter);
             }
@@ -97,7 +97,7 @@ namespace MSBuildProjectTools.LanguageServer.Logging
                 );
             }
 
-            LogMessageParams logParameters = new LogMessageParams
+            var logParameters = new LogMessageParams
             {
                 Message = messageBuilder.ToString()
             };

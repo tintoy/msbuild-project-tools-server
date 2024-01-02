@@ -115,7 +115,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
 
             string baseDirectory = Path.GetDirectoryName(taskAssemblyFile);
 
-            using MetadataLoadContext loadContext = new MetadataLoadContext(
+            using var loadContext = new MetadataLoadContext(
                 resolver: new SdkAssemblyResolver(
                     baseDirectory: Path.GetDirectoryName(taskAssemblyFile),
                     sdkBaseDirectory,

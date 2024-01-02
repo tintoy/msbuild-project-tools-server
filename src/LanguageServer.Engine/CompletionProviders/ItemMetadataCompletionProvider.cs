@@ -56,7 +56,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
 
             Log.Verbose("Evaluate completions for {XmlLocation:l}", location);
 
-            List<CompletionItem> completions = new List<CompletionItem>();
+            var completions = new List<CompletionItem>();
 
             using (await projectDocument.Lock.ReaderLockAsync(cancellationToken))
             {
@@ -67,7 +67,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
                     return null;
                 }
 
-                HashSet<string> existingMetadata = new HashSet<string>();
+                var existingMetadata = new HashSet<string>();
 
                 completions.AddRange(
                     GetAttributeCompletions(location, existingMetadata)

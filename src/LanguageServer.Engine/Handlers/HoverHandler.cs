@@ -148,7 +148,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
                 MSBuildObject msbuildObject;
 
                 MarkedStringContainer hoverContent = null;
-                HoverContentProvider contentProvider = new HoverContentProvider(projectDocument);
+                var contentProvider = new HoverContentProvider(projectDocument);
                 if (location.IsElement(out XSElement element))
                 {
                     msbuildObject = projectDocument.GetMSBuildObjectAtPosition(element.Start);
