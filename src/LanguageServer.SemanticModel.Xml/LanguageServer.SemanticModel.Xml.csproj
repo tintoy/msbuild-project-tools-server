@@ -1,16 +1,15 @@
 <Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>MSBuildProjectTools.LanguageServer.SemanticModel.Xml</AssemblyName>
+    <RootNamespace>MSBuildProjectTools.LanguageServer.SemanticModel</RootNamespace>
+  </PropertyGroup>
 
-    <PropertyGroup>
-        <AssemblyName>MSBuildProjectTools.LanguageServer.SemanticModel.Xml</AssemblyName>
-        <RootNamespace>MSBuildProjectTools.LanguageServer.SemanticModel</RootNamespace>
-    </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Language.Xml" Version="1.1.20" />
+    <PackageReference Include="Serilog" Version="2.5.0" />
+  </ItemGroup>
 
-    <ItemGroup>
-        <PackageReference Include="Microsoft.Language.Xml" Version="1.1.20" />
-        <PackageReference Include="Serilog" Version="2.5.0" />
-    </ItemGroup>
-
-    <ItemGroup>
-        <ProjectReference Include="../LanguageServer.Common/LanguageServer.Common.csproj" />
-    </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="../LanguageServer.Common/LanguageServer.Common.csproj" />
+  </ItemGroup>
 </Project>
