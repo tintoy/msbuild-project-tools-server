@@ -41,7 +41,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
 
             // We trust that all tasks discovered via GetMSBuildProjectTaskAssemblies are accessible in the current project.
 
-            Dictionary<string, MSBuildTaskMetadata> tasks = new Dictionary<string, MSBuildTaskMetadata>();
+            var tasks = new Dictionary<string, MSBuildTaskMetadata>();
             foreach (MSBuildTaskAssemblyMetadata assemblyMetadata in projectDocument.GetMSBuildProjectTaskAssemblies())
             {
                 foreach (MSBuildTaskMetadata task in assemblyMetadata.Tasks)

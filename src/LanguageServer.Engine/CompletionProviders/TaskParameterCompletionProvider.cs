@@ -71,7 +71,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
                 return null;
             }
 
-            List<CompletionItem> completions = new List<CompletionItem>();
+            var completions = new List<CompletionItem>();
 
             Log.Verbose("Evaluate completions for {XmlLocation:l}", location);
 
@@ -114,7 +114,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
                     );
                 }
 
-                HashSet<string> existingAttributeNames = new HashSet<string>(
+                var existingAttributeNames = new HashSet<string>(
                     taskElement.AttributeNames
                 );
                 if (replaceAttribute != null)

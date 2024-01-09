@@ -59,7 +59,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
             if (projectDocument == null)
                 throw new ArgumentNullException(nameof(projectDocument));
 
-            List<CompletionItem> completions = new List<CompletionItem>();
+            var completions = new List<CompletionItem>();
 
             Log.Verbose("Evaluate completions for {XmlLocation:l}", location);
 
@@ -193,7 +193,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
             {
                 priority += 100;
 
-                SortedSet<string> metadataNames = new SortedSet<string>(
+                var metadataNames = new SortedSet<string>(
                     projectDocument.MSBuildProject.GetItems(targetItemType)
                         .SelectMany(
                             item => item.Metadata.Select(metadata => metadata.Name)

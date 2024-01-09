@@ -1,5 +1,3 @@
-using Microsoft.Build.Locator;
-using System;
 using Xunit;
 
 namespace MSBuildProjectTools.LanguageServer.Tests
@@ -10,7 +8,6 @@ namespace MSBuildProjectTools.LanguageServer.Tests
     ///     An xUnit collection fixture that ensures the MSBuild Locator API is called to discover and use the latest version of the MSBuild engine before any tests are run that depend on it.
     /// </summary>
     public sealed class MSBuildEngineFixture
-        : IDisposable
     {
         /// <summary>
         ///     Create a new <see cref="MSBuildEngineFixture"/>.
@@ -18,15 +15,6 @@ namespace MSBuildProjectTools.LanguageServer.Tests
         public MSBuildEngineFixture()
         {
             MSBuildHelper.DiscoverMSBuildEngine();
-        }
-
-        /// <summary>
-        ///     Dispose of resources being used by the <see cref="MSBuildEngineFixture"/>.
-        /// </summary>
-        public void Dispose()
-        {
-            if (MSBuildLocator.IsRegistered)
-                MSBuildLocator.Unregister();
         }
     }
 

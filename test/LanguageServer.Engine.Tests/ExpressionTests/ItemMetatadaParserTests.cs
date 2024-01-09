@@ -1,6 +1,4 @@
-using System;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace MSBuildProjectTools.LanguageServer.Tests.ExpressionTests
 {
@@ -12,25 +10,6 @@ namespace MSBuildProjectTools.LanguageServer.Tests.ExpressionTests
     /// </summary>
     public class ItemMetadataParserTests
     {
-        /// <summary>
-        ///     Create a new item metadata expression parser test-suite.
-        /// </summary>
-        /// <param name="testOutput">
-        ///     Output for the current test.
-        /// </param>
-        public ItemMetadataParserTests(ITestOutputHelper testOutput)
-        {
-            if (testOutput == null)
-                throw new ArgumentNullException(nameof(testOutput));
-
-            TestOutput = testOutput;
-        }
-
-        /// <summary>
-        ///     Output for the current test.
-        /// </summary>
-        ITestOutputHelper TestOutput { get; }
-
         /// <summary>
         ///     Verify that the ItemMetadata parser can successfully parse an unqualified item metadata expression.
         /// </summary>

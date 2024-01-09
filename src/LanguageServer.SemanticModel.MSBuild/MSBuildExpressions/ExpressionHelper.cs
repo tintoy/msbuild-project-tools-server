@@ -34,7 +34,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel.MSBuildExpressions
             if (textPositions == null)
                 throw new System.ArgumentNullException(nameof(textPositions));
 
-            Dictionary<int, Position> positionCache = new Dictionary<int, Position>();
+            var positionCache = new Dictionary<int, Position>();
             void SetRange(ExpressionNode node)
             {
                 if (!positionCache.TryGetValue(node.AbsoluteStart, out Position start))

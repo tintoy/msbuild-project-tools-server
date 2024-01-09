@@ -21,7 +21,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
             var currentAssemblyDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
             var helpDirectory = Path.Combine(currentAssemblyDirectory, "help");
 
-            JsonSerializerOptions jsonOptions = new JsonSerializerOptions()
+            var jsonOptions = new JsonSerializerOptions()
             {
                 PropertyNameCaseInsensitive = true,
             };

@@ -13,22 +13,18 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
     /// <summary>
     ///     Information about the .NET Core runtime.
     /// </summary>
-    public class DotNetRuntimeInfo
+    public partial class DotNetRuntimeInfo
     {
         /// <summary>
         ///     The minimum SDK version to be considered .NET 6.x.
         /// </summary>
         static readonly SemanticVersion Sdk60Version = new SemanticVersion(6, 0, 101);
 
-        /// <summary>
-        ///     Regular expression to parse SDK information from "dotnet --list-sdks".
-        /// </summary>
-        static readonly Regex SdkInfoParser = new Regex(@"(?<SdkVersion>.*) \[(?<SdkBaseDirectory>.*)\]");
+        [GeneratedRegex(@"(?<SdkVersion>.*) \[(?<SdkBaseDirectory>.*)\]")]
+        private static partial Regex SdkInfoParser();
 
-        /// <summary>
-        ///     Regular expression to parse SDK information from "dotnet --list-runtimes".
-        /// </summary>
-        static readonly Regex RuntimeInfoParser = new Regex(@"(?<RuntimeName>.*) (?<RuntimeVersion>.*) \[(?<RuntimeBaseDirectory>.*)\]");
+        [GeneratedRegex(@"(?<RuntimeName>.*) (?<RuntimeVersion>.*) \[(?<RuntimeBaseDirectory>.*)\]")]
+        private static partial Regex RuntimeInfoParser();
 
         /// <summary>
         ///     Information, if known, about the current .NET runtime (i.e. host).
@@ -189,7 +185,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
             string currentLine;
             while ((currentLine = dotNetListSdksOutput.ReadLine()) != null)
             {
-                Match parseResult = SdkInfoParser.Match(currentLine);
+                Match parseResult = SdkInfoParser().Match(currentLine);
                 if (!parseResult.Success)
                     continue;
 
@@ -225,7 +221,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
             string currentLine;
             while ((currentLine = dotNetListRuntimesOutput.ReadLine()) != null)
             {
-                Match parseResult = RuntimeInfoParser.Match(currentLine);
+                Match parseResult = RuntimeInfoParser().Match(currentLine);
                 if (!parseResult.Success)
                     continue;
 
@@ -265,11 +261,11 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
             if (logger == null)
                 throw new ArgumentNullException(nameof(logger));
 
-            Process dotnetHostProcess = new Process
+            var dotnetHostProcess = new Process
             {
                 StartInfo = new ProcessStartInfo
                 {
-                    FileName = "dotnet",
+                    FileName = Environment.GetEnvironmentVariable("DOTNET_HOST_PATH") ?? "dotnet",
                     WorkingDirectory = baseDirectory,
                     Arguments = commandLineArguments,
                     UseShellExecute = false,
@@ -289,7 +285,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
                 string command = $"{dotnetHostProcess.StartInfo.FileName} {dotnetHostProcess.StartInfo.Arguments}";
 
                 // Buffer the output locally (otherwise, the process may hang if it fills up its STDOUT / STDERR buffer).
-                StringBuilder stdOutBuffer = new StringBuilder();
+                var stdOutBuffer = new StringBuilder();
                 dotnetHostProcess.OutputDataReceived += (sender, args) =>
                 {
                     lock (stdOutBuffer)
@@ -297,7 +293,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
                         stdOutBuffer.AppendLine(args.Data);
                     }
                 };
-                StringBuilder stdErrBuffer = new StringBuilder();
+                var stdErrBuffer = new StringBuilder();
                 dotnetHostProcess.ErrorDataReceived += (sender, args) =>
                 {
                     lock (stdErrBuffer)
@@ -372,7 +368,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
             if (dotnetInfoOutput == null)
                 throw new ArgumentNullException(nameof(dotnetInfoOutput));
 
-            DotNetRuntimeInfo runtimeInfo = new DotNetRuntimeInfo();
+            var runtimeInfo = new DotNetRuntimeInfo();
 
             DotnetInfoSection currentSection = DotnetInfoSection.Start;
 
@@ -382,7 +378,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
                 if (string.IsNullOrWhiteSpace(currentLine))
                     continue;
 
-                if (!currentLine.StartsWith(" ") && currentLine.EndsWith(":"))
+                if (!currentLine.StartsWith(' ') && currentLine.EndsWith(':'))
                 {
                     currentSection++;
 
@@ -392,7 +388,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
                     continue;
                 }
 
-                string[] property = currentLine.Split(new char[] { ':' }, count: 2);
+                string[] property = currentLine.Split(':', count: 2);
                 if (property.Length != 2)
                     continue;
 

@@ -62,7 +62,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
 
             Log.Verbose("Evaluate completions for {XmlLocation:l}", location);
 
-            List<CompletionItem> completions = new List<CompletionItem>();
+            var completions = new List<CompletionItem>();
 
             using (await projectDocument.Lock.ReaderLockAsync(cancellationToken))
             {
@@ -74,7 +74,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
                 }
 
                 Range targetRange = attribute.ValueRange;
-                HashSet<string> excludeTargetNames = new HashSet<string>();
+                var excludeTargetNames = new HashSet<string>();
 
                 // Handle potentially composite (i.e. "Value1;Value2;Value3") values, where it's legal to have them.
                 if (attribute.Name != "Name" && attribute.Value.IndexOf(';') != -1)
@@ -132,7 +132,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
         /// </returns>
         public IEnumerable<CompletionItem> GetCompletionItems(ProjectDocument projectDocument, Range replaceRange, HashSet<string> excludeTargetNames)
         {
-            HashSet<string> offeredTargetNames = new HashSet<string>(excludeTargetNames);
+            var offeredTargetNames = new HashSet<string>(excludeTargetNames);
             LspModels.Range replaceRangeLsp = replaceRange.ToLsp();
 
             // Well-known targets.

@@ -81,7 +81,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
             MSBuildTaskAssemblyMetadata metadata;
             using (StateLock.Lock())
             {
-                FileInfo assemblyFile = new FileInfo(assemblyPath);
+                var assemblyFile = new FileInfo(assemblyPath);
                 if (!Assemblies.TryGetValue(assemblyPath, out metadata) || metadata.TimestampUtc < assemblyFile.LastWriteTimeUtc)
                 {
                     metadata = MSBuildTaskScanner.GetAssemblyTaskMetadata(assemblyPath, sdkBaseDirectory,
@@ -127,7 +127,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
                 Assemblies.Clear();
 
                 using (StreamReader input = File.OpenText(cacheFile))
-                using (JsonTextReader json = new JsonTextReader(input))
+                using (var json = new JsonTextReader(input))
                 {
                     JsonSerializer.Create(SerializerSettings).Populate(json, this);
                 }
@@ -153,7 +153,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
                     File.Delete(cacheFile);
 
                 using (StreamWriter output = File.CreateText(cacheFile))
-                using (JsonTextWriter json = new JsonTextWriter(output))
+                using (var json = new JsonTextWriter(output))
                 {
                     JsonSerializer.Create(SerializerSettings).Serialize(json, this);
                 }
@@ -179,7 +179,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
             if (string.IsNullOrWhiteSpace(cacheFile))
                 throw new ArgumentException("Argument cannot be null, empty, or entirely composed of whitespace: 'cacheFile'.", nameof(cacheFile));
 
-            MSBuildTaskMetadataCache cache = new MSBuildTaskMetadataCache(logger);
+            var cache = new MSBuildTaskMetadataCache(logger);
             cache.Load(cacheFile);
 
             return cache;

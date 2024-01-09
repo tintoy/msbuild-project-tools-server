@@ -34,7 +34,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
             if (xmlPositions == null)
                 throw new ArgumentNullException(nameof(xmlPositions));
 
-            XSParserVisitor parserVisitor = new XSParserVisitor(xmlPositions);
+            var parserVisitor = new XSParserVisitor(xmlPositions);
             parserVisitor.Visit(document);
             parserVisitor.FinalizeModel();
 
@@ -61,7 +61,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
             if (xmlPositions == null)
                 throw new ArgumentNullException(nameof(xmlPositions));
 
-            XSParserVisitor parserVisitor = new XSParserVisitor(xmlPositions);
+            var parserVisitor = new XSParserVisitor(xmlPositions);
             parserVisitor.Visit(node);
             parserVisitor.FinalizeModel();
 
@@ -419,7 +419,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
                 if (CurrentElement == null || !CurrentElement.Range.Contains(textRange))
                     return text;
 
-                XSElementText elementText = new XSElementText(text, textRange, CurrentElement);
+                var elementText = new XSElementText(text, textRange, CurrentElement);
                 CurrentElement.Content = CurrentElement.Content.Add(elementText);
 
                 DiscoveredNodes.Add(elementText);

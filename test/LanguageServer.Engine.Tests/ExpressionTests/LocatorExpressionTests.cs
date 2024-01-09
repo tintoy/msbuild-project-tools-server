@@ -43,13 +43,13 @@ namespace MSBuildProjectTools.LanguageServer.Tests.ExpressionTests
         [InlineData("Test4", 5, 46, ExpressionKind.ItemMetadata)]
         public void IsExpression_Success(string testFileName, int line, int column, ExpressionKind expectedExpressionKind)
         {
-            Position testPosition = new Position(line, column);
+            var testPosition = new Position(line, column);
 
             string testXml = LoadTestFile("TestFiles", testFileName + ".xml");
-            TextPositions positions = new TextPositions(testXml);
+            var positions = new TextPositions(testXml);
             XmlDocumentSyntax document = Parser.ParseText(testXml);
 
-            XmlLocator locator = new XmlLocator(document, positions);
+            var locator = new XmlLocator(document, positions);
             XmlLocation location = locator.Inspect(testPosition);
             Assert.NotNull(location);
 

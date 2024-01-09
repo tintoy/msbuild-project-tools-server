@@ -1,5 +1,4 @@
 using Xunit;
-using Xunit.Abstractions;
 
 namespace MSBuildProjectTools.LanguageServer.Tests.ExpressionTests
 {
@@ -9,19 +8,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests.ExpressionTests
     ///     Tests for parsing of MSBuild grouped expressions.
     /// </summary>
     public class GroupedExpressionTests
-        : ParserTests
     {
-        /// <summary>
-        ///     Create a new grouped expression parser test-suite.
-        /// </summary>
-        /// <param name="testOutput">
-        ///     Output for the current test.
-        /// </param>
-        public GroupedExpressionTests(ITestOutputHelper testOutput)
-            : base(testOutput)
-        {
-        }
-
         /// <summary>
         ///     Verify that the GroupedExpression parser can successfully parse a logical unary expression composed of a comparison between quoted strings.
         /// </summary>

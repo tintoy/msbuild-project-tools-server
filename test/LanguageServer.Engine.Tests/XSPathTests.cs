@@ -8,18 +8,8 @@ namespace MSBuildProjectTools.LanguageServer.Tests
     /// <summary>
     ///     Tests for <see cref="XSPath"/> and <see cref="XSPathSegment"/>.
     /// </summary>
-    public class XSPathTests
-        : TestBase
+    public class XSPathTests(ITestOutputHelper testOutput) : TestBase(testOutput)
     {
-        /// <summary>
-        ///     Create a new <see cref="XSPath"/> test suite.
-        /// </summary>
-        /// <param name="testOutput"></param>
-        public XSPathTests(ITestOutputHelper testOutput)
-            : base(testOutput)
-        {
-        }
-
         /// <summary>
         ///     Verify that <see cref="XSPath.Parse(string)"/> can parse an absolute path.
         /// </summary>
@@ -37,7 +27,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests
         [Theory(DisplayName = "XSPath can parse absolute path ")]
         public void Can_Parse_Path_Absolute(string path, int expectedSegmentCount)
         {
-            XSPath actual = XSPath.Parse(path);
+            var actual = XSPath.Parse(path);
             Assert.NotNull(actual);
 
             Assert.True(actual.IsAbsolute, "IsAbsolute");
@@ -60,7 +50,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests
         [Theory(DisplayName = "XSPath can parse relative path ")]
         public void Can_Parse_Path_Relative(string path, int expectedSegmentCount)
         {
-            XSPath actual = XSPath.Parse(path);
+            var actual = XSPath.Parse(path);
             Assert.NotNull(actual);
 
             Assert.True(actual.IsRelative, "IsRelative");
@@ -84,7 +74,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests
         [Theory(DisplayName = "XSPath can append relative string segment ")]
         public void Can_Append_String_Segment_To_Path_Relative(string path, string segment, string expectedPath)
         {
-            XSPath actual = XSPath.Parse(path);
+            var actual = XSPath.Parse(path);
             actual += segment;
 
             Assert.Equal(expectedPath, actual.Path);
@@ -108,7 +98,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests
         [Theory(DisplayName = "XSPath can append relative string segment ")]
         public void Can_Append_String_Segment_To_Path_Absolute(string path, string segment, string expectedPath)
         {
-            XSPath actual = XSPath.Parse(path);
+            var actual = XSPath.Parse(path);
             actual += segment;
 
             Assert.Equal(expectedPath, actual.Path);
@@ -130,8 +120,8 @@ namespace MSBuildProjectTools.LanguageServer.Tests
         [Theory(DisplayName = "XSPath.StartsWith succeeds with absolute base path ")]
         public void Path_StartsWith_Absolute_Success(string path, string basePath)
         {
-            XSPath actual = XSPath.Parse(path);
-            XSPath actualBase = XSPath.Parse(basePath);
+            var actual = XSPath.Parse(path);
+            var actualBase = XSPath.Parse(basePath);
 
             Assert.True(actual.StartsWith(actualBase), "StartsWith");
         }
@@ -151,8 +141,8 @@ namespace MSBuildProjectTools.LanguageServer.Tests
         [Theory(DisplayName = "XSPath.EndsWith succeeds with relative base path ")]
         public void Path_EndsWith_Relative_Success(string path, string ancestorPath)
         {
-            XSPath actual = XSPath.Parse(path);
-            XSPath actualAncestor = XSPath.Parse(ancestorPath);
+            var actual = XSPath.Parse(path);
+            var actualAncestor = XSPath.Parse(ancestorPath);
 
             Assert.True(actual.EndsWith(actualAncestor), "EndsWith");
         }
@@ -174,8 +164,8 @@ namespace MSBuildProjectTools.LanguageServer.Tests
         [Theory(DisplayName = "XSPath.IsChildOf succeeds with absolute base path ")]
         public void Path_IsChildOf_Absolute_Success(string path, string ancestorPath)
         {
-            XSPath actual = XSPath.Parse(path);
-            XSPath actualAncestor = XSPath.Parse(ancestorPath);
+            var actual = XSPath.Parse(path);
+            var actualAncestor = XSPath.Parse(ancestorPath);
 
             Assert.True(actual.IsChildOf(actualAncestor), "IsChildOf");
         }
@@ -194,8 +184,8 @@ namespace MSBuildProjectTools.LanguageServer.Tests
         [Theory(DisplayName = "XSPath.IsChildOf fails with absolute base path ")]
         public void Path_IsChildOf_Absolute_Failure(string path, string ancestorPath)
         {
-            XSPath actual = XSPath.Parse(path);
-            XSPath actualAncestor = XSPath.Parse(ancestorPath);
+            var actual = XSPath.Parse(path);
+            var actualAncestor = XSPath.Parse(ancestorPath);
 
             Assert.False(actual.IsChildOf(actualAncestor), "IsChildOf");
         }
@@ -214,8 +204,8 @@ namespace MSBuildProjectTools.LanguageServer.Tests
         [Theory(DisplayName = "XSPath.IsChildOf succeeds with relative base path ")]
         public void Path_IsChildOf_Relative_Success(string path, string ancestorPath)
         {
-            XSPath actual = XSPath.Parse(path);
-            XSPath actualAncestor = XSPath.Parse(ancestorPath);
+            var actual = XSPath.Parse(path);
+            var actualAncestor = XSPath.Parse(ancestorPath);
 
             Assert.True(actual.IsChildOf(actualAncestor), "IsChildOf");
         }
@@ -235,8 +225,8 @@ namespace MSBuildProjectTools.LanguageServer.Tests
         [Theory(DisplayName = "XSPath.IsChildOf fails with relative base path ")]
         public void Path_IsChildOf_Relative_Failure(string path, string ancestorPath)
         {
-            XSPath actual = XSPath.Parse(path);
-            XSPath actualAncestor = XSPath.Parse(ancestorPath);
+            var actual = XSPath.Parse(path);
+            var actualAncestor = XSPath.Parse(ancestorPath);
 
             Assert.False(actual.IsChildOf(actualAncestor), "IsChildOf");
         }

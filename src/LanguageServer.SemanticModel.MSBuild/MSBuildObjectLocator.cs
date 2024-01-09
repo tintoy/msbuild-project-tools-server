@@ -252,7 +252,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
             }
 
             // Now process item elements and their associated items.
-            HashSet<ProjectItem> usedItems = new HashSet<ProjectItem>(_project.Items);
+            var usedItems = new HashSet<ProjectItem>(_project.Items);
             foreach (ProjectItemElement itemXml in itemsByXml.Keys)
             {
                 Position itemStart = itemXml.Location.ToNative();
@@ -290,7 +290,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
         /// </remarks>
         void AddImports()
         {
-            HashSet<ProjectImportElement> resolvedImportElements = new HashSet<ProjectImportElement>();
+            var resolvedImportElements = new HashSet<ProjectImportElement>();
             var importsBySdk =
                 _project.Imports.Where(import =>
                     IsFromCurrentProject(import.ImportingElement)
@@ -313,7 +313,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
                 ));
             }
 
-            HashSet<ProjectImportElement> unresolvedImportElements = new HashSet<ProjectImportElement>(_project.Xml.Imports);
+            var unresolvedImportElements = new HashSet<ProjectImportElement>(_project.Xml.Imports);
             unresolvedImportElements.ExceptWith(resolvedImportElements);
 
             foreach (ProjectImportElement importElement in unresolvedImportElements)

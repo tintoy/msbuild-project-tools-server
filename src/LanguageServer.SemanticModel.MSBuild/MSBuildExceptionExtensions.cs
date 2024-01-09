@@ -25,7 +25,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
             if (invalidProjectFileException == null)
                 throw new ArgumentNullException(nameof(invalidProjectFileException));
 
-            Position startPosition = new Position(
+            var startPosition = new Position(
                 invalidProjectFileException.LineNumber,
                 invalidProjectFileException.ColumnNumber
             );
@@ -36,7 +36,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
                 return location.Node.Range;
 
             // Otherwise, fall back to using the exception's declared end position...
-            Position endPosition = new Position(
+            var endPosition = new Position(
                 invalidProjectFileException.EndLineNumber,
                 invalidProjectFileException.EndColumnNumber
             );

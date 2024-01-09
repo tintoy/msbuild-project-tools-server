@@ -1,15 +1,13 @@
 <Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>MSBuildProjectTools.LanguageServer.Common</AssemblyName>
+    <RootNamespace>MSBuildProjectTools.LanguageServer</RootNamespace>
+  </PropertyGroup>
 
-    <PropertyGroup>
-        <AssemblyName>MSBuildProjectTools.LanguageServer.Common</AssemblyName>
-        <RootNamespace>MSBuildProjectTools.LanguageServer</RootNamespace>
-    </PropertyGroup>
-
-    <ItemGroup>
-        <PackageReference Include="Microsoft.Build" Version="16.7.0" ExcludeAssets="runtime" />
-        <PackageReference Include="Microsoft.Build.Locator" Version="1.2.6" />
-        <PackageReference Include="NuGet.Protocol" Version="6.0.5" />
-        <PackageReference Include="Serilog" Version="2.5.0" />
-    </ItemGroup>
-
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Build" Version="16.7.0" ExcludeAssets="runtime" />
+    <PackageReference Include="Microsoft.Build.Locator" Version="1.6.10" />
+    <PackageReference Include="NuGet.Protocol" Version="6.0.5" />
+    <PackageReference Include="Serilog" Version="2.5.0" />
+  </ItemGroup>
 </Project>

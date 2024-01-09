@@ -2,6 +2,7 @@ using Autofac;
 using NuGet.Credentials;
 using Serilog;
 using System;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -29,6 +30,8 @@ namespace MSBuildProjectTools.LanguageServer
                 new SynchronizationContext()
             );
 
+            EnsureMSBuildEnvironment();
+
             try
             {
                 // Ensure the initial MSBuild discovery process has a logger to work with.
@@ -44,7 +47,7 @@ namespace MSBuildProjectTools.LanguageServer
                 ConfigureNuGetCredentialProviders();
 
                 using (ActivityCorrelationManager.BeginActivityScope())
-                using (Terminator terminator = new Terminator())
+                using (var terminator = new Terminator())
                 using (IContainer container = BuildContainer())
                 {
                     // Force initialization of logging.
@@ -56,25 +59,7 @@ namespace MSBuildProjectTools.LanguageServer
 
                     log.Debug("Waiting for client to initialize language server...");
 
-                    Task initializeTask = server.Initialize();
-
-                    // Special case for probing whether language server is startable given current runtime environment.
-                    string[] commandLineArguments = Environment.GetCommandLineArgs();
-                    if (commandLineArguments.Length == 2 && commandLineArguments[1] == "--probe")
-                    {
-                        // Give the language server a chance to start.
-                        await Task.Yield();
-
-                        // Show any exception encountered while starting the language server.
-                        if (initializeTask.IsFaulted || initializeTask.IsCanceled)
-                            await initializeTask;
-
-                        Console.Error.WriteLine("PROBE: Yes, the language server can start.");
-
-                        return 0;
-                    }
-
-                    await initializeTask;
+                    await server.Initialize();
 
                     log.Debug("Language server initialized by client.");
 
@@ -111,6 +96,22 @@ namespace MSBuildProjectTools.LanguageServer
         }
 
         /// <summary>
+        ///     Ensures that either both DOTNET_HOST_PATH and DOTNET_ROOT are initialized or none of them
+        /// </summary>
+        static void EnsureMSBuildEnvironment()
+        {
+            var dotnetHostPath = Environment.GetEnvironmentVariable("DOTNET_HOST_PATH");
+            var dotnetRoot = Environment.GetEnvironmentVariable("DOTNET_ROOT");
+
+            // If DOTNET_HOST_PATH is present, but DOTNET_ROOT isn't set DOTNET_ROOT to be the directory of DOTNET_HOST_PATH
+            if (dotnetHostPath is not null && dotnetRoot is null)
+            {
+                var dotnetRootFromHostPath = Path.GetDirectoryName(dotnetHostPath);
+                Environment.SetEnvironmentVariable("DOTNET_ROOT", dotnetRootFromHostPath);
+            }
+        }
+
+        /// <summary>
         ///     Build a container for language server components.
         /// </summary>
         /// <returns>
@@ -118,7 +119,7 @@ namespace MSBuildProjectTools.LanguageServer
         /// </returns>
         static IContainer BuildContainer()
         {
-            ContainerBuilder builder = new ContainerBuilder();
+            var builder = new ContainerBuilder();
 
             builder.RegisterModule<LoggingModule>();
             builder.RegisterModule<LanguageServerModule>();

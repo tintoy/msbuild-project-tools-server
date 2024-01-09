@@ -13,7 +13,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests
     /// <summary>
     ///     Tests for <see cref="XSParser"/>
     /// </summary>
-    public sealed class XSParserTests
+    public sealed class XSParserTests(ITestOutputHelper testOutput)
     {
         /// <summary>
         ///     The directory for test files.
@@ -23,23 +23,9 @@ namespace MSBuildProjectTools.LanguageServer.Tests
         ));
 
         /// <summary>
-        ///     Create a new <see cref="XSParser"/> test suite.
-        /// </summary>
-        /// <param name="testOutput">
-        ///     Output for the current test.
-        /// </param>
-        public XSParserTests(ITestOutputHelper testOutput)
-        {
-            if (testOutput == null)
-                throw new ArgumentNullException(nameof(testOutput));
-
-            TestOutput = testOutput;
-        }
-
-        /// <summary>
         ///     Output for the current test.
         /// </summary>
-        ITestOutputHelper TestOutput { get; }
+        ITestOutputHelper TestOutput { get; } = testOutput;
 
         /// <summary>
         ///     XSParser should discover the specified number of nodes.
@@ -52,10 +38,10 @@ namespace MSBuildProjectTools.LanguageServer.Tests
         /// </param>
         [InlineData("Test1", 12)]
         [Theory(DisplayName = "XSParser discovers node count ")]
-        void NodeCount(string testFileName, int expectedNodeCount)
+        public void NodeCount(string testFileName, int expectedNodeCount)
         {
             string testXml = LoadTestFile("TestFiles", testFileName + ".xml");
-            TextPositions xmlPositions = new TextPositions(testXml);
+            var xmlPositions = new TextPositions(testXml);
             XmlDocumentSyntax xmlDocument = Parser.ParseText(testXml);
 
             List<XSNode> nodes = xmlDocument.GetSemanticModel(xmlPositions);
@@ -101,10 +87,10 @@ namespace MSBuildProjectTools.LanguageServer.Tests
         [InlineData("Invalid1.EmptyOpeningTag", 11, XSNodeKind.Whitespace)]
         [InlineData("Invalid1.EmptyOpeningTag", 12, XSNodeKind.Element)]
         [Theory(DisplayName = "XSParser discovers node of kind ")]
-        void NodeKind(string testFileName, int index, XSNodeKind nodeKind)
+        public void NodeKind(string testFileName, int index, XSNodeKind nodeKind)
         {
             string testXml = LoadTestFile("TestFiles", testFileName + ".xml");
-            TextPositions xmlPositions = new TextPositions(testXml);
+            var xmlPositions = new TextPositions(testXml);
             XmlDocumentSyntax xmlDocument = Parser.ParseText(testXml);
 
             List<XSNode> nodes = xmlDocument.GetSemanticModel(xmlPositions);
@@ -129,10 +115,10 @@ namespace MSBuildProjectTools.LanguageServer.Tests
         [InlineData("Invalid1.EmptyOpeningTag", 9)]
         [InlineData("Invalid1.DoubleOpeningTag", 7)]
         [Theory(DisplayName = "XSParser discovers invalid element ")]
-        void InvalidElement(string testFileName, int index)
+        public void InvalidElement(string testFileName, int index)
         {
             string testXml = LoadTestFile("TestFiles", testFileName + ".xml");
-            TextPositions xmlPositions = new TextPositions(testXml);
+            var xmlPositions = new TextPositions(testXml);
             XmlDocumentSyntax xmlDocument = Parser.ParseText(testXml);
 
             List<XSNode> nodes = xmlDocument.GetSemanticModel(xmlPositions);
@@ -180,10 +166,10 @@ namespace MSBuildProjectTools.LanguageServer.Tests
         [InlineData("Test1", 10, 6, 5, 6, 27)]
         [InlineData("Test1", 11, 6, 27, 7, 1)]
         [Theory(DisplayName = "XSParser discovers node with range ")]
-        void NodeRange(string testFileName, int index, int startLine, int startColumn, int endLine, int endColumn)
+        public void NodeRange(string testFileName, int index, int startLine, int startColumn, int endLine, int endColumn)
         {
             string testXml = LoadTestFile("TestFiles", testFileName + ".xml");
-            TextPositions xmlPositions = new TextPositions(testXml);
+            var xmlPositions = new TextPositions(testXml);
             XmlDocumentSyntax xmlDocument = Parser.ParseText(testXml);
 
             List<XSNode> nodes = xmlDocument.GetSemanticModel(xmlPositions);
@@ -199,7 +185,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests
                 node.Kind
             );
 
-            Range expectedRange = new Range(
+            var expectedRange = new Range(
                 start: new Position(startLine, startColumn),
                 end: new Position(endLine, endColumn)
             );
@@ -234,10 +220,10 @@ namespace MSBuildProjectTools.LanguageServer.Tests
         [InlineData("Test1", "Element2", 2, 15, 2, 35)]
         [InlineData("Test2", "PackageReference", 11, 27, 11, 70)]
         [Theory(DisplayName = "XSParser discovers element with attributes range ")]
-        void ElementAttributesRange(string testFileName, string elementName, int startLine, int startColumn, int endLine, int endColumn)
+        public void ElementAttributesRange(string testFileName, string elementName, int startLine, int startColumn, int endLine, int endColumn)
         {
             string testXml = LoadTestFile("TestFiles", testFileName + ".xml");
-            TextPositions xmlPositions = new TextPositions(testXml);
+            var xmlPositions = new TextPositions(testXml);
             XmlDocumentSyntax xmlDocument = Parser.ParseText(testXml);
 
             List<XSNode> nodes = xmlDocument.GetSemanticModel(xmlPositions);
@@ -246,10 +232,9 @@ namespace MSBuildProjectTools.LanguageServer.Tests
             XSNode targetNode = nodes.Find(node => node.Name == elementName);
             Assert.NotNull(targetNode);
 
-            Assert.IsAssignableFrom<XSElement>(targetNode);
-            XSElement targetElement = (XSElement)targetNode;
+            XSElement targetElement = Assert.IsAssignableFrom<XSElement>(targetNode);
 
-            Range expectedRange = new Range(
+            var expectedRange = new Range(
                 start: new Position(startLine, startColumn),
                 end: new Position(endLine, endColumn)
             );
@@ -286,7 +271,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests
         public void InvalidElementRange(string testFileName, int nodeIndex, string elementName, int startLine, int startColumn, int endLine, int endColumn)
         {
             string testXml = LoadTestFile("TestFiles", testFileName + ".xml");
-            TextPositions xmlPositions = new TextPositions(testXml);
+            var xmlPositions = new TextPositions(testXml);
             XmlDocumentSyntax xmlDocument = Parser.ParseText(testXml);
 
             List<XSNode> nodes = xmlDocument.GetSemanticModel(xmlPositions);
@@ -295,13 +280,12 @@ namespace MSBuildProjectTools.LanguageServer.Tests
             XSNode targetNode = nodes[nodeIndex];
             Assert.NotNull(targetNode);
 
-            Assert.IsAssignableFrom<XSElement>(targetNode);
-            XSElement targetElement = (XSElement)targetNode;
+            XSElement targetElement = Assert.IsAssignableFrom<XSElement>(targetNode);
 
             Assert.Equal(elementName, targetElement.Name);
             Assert.False(targetElement.IsValid, "IsValid");
 
-            Range expectedRange = new Range(
+            var expectedRange = new Range(
                 start: new Position(startLine, startColumn),
                 end: new Position(endLine, endColumn)
             );

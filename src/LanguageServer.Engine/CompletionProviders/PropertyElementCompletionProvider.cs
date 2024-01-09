@@ -58,7 +58,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
             if (projectDocument == null)
                 throw new ArgumentNullException(nameof(projectDocument));
 
-            List<CompletionItem> completions = new List<CompletionItem>();
+            var completions = new List<CompletionItem>();
 
             Log.Verbose("Evaluate completions for {XmlLocation:l}", location);
 
@@ -125,7 +125,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
         {
             LspModels.Range replaceRangeLsp = replaceRange.ToLsp();
 
-            HashSet<string> offeredPropertyNames = new HashSet<string>();
+            var offeredPropertyNames = new HashSet<string>();
 
             // Well-known (but standard-format) properties.
 
@@ -223,7 +223,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
         /// </returns>
         static string GetCompletionText(string propertyName, IReadOnlyList<string> defaultValues)
         {
-            StringBuilder completionText = new StringBuilder();
+            var completionText = new StringBuilder();
             completionText.AppendFormat("<{0}>", propertyName);
 
             bool haveValue = false;

@@ -1,5 +1,4 @@
 using Xunit;
-using Xunit.Abstractions;
 
 namespace MSBuildProjectTools.LanguageServer.Tests.ExpressionTests
 {
@@ -9,19 +8,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests.ExpressionTests
     ///     Tests for parsing of MSBuild type-reference expressions.
     /// </summary>
     public class TypeRefParserTests
-        : ParserTests
     {
-        /// <summary>
-        ///     Create a new type-reference expression parser test-suite.
-        /// </summary>
-        /// <param name="testOutput">
-        ///     Output for the current test.
-        /// </param>
-        public TypeRefParserTests(ITestOutputHelper testOutput)
-            : base(testOutput)
-        {
-        }
-
         /// <summary>
         ///     Verify that the TypeRef parser can successfully parse the specified input.
         /// </summary>

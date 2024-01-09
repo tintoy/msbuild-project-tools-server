@@ -11,26 +11,12 @@ namespace MSBuildProjectTools.LanguageServer.Tests.ExpressionTests
     /// <summary>
     ///     Tests for parsing of MSBuild comparison expressions.
     /// </summary>
-    public class RootParserTests
+    public class RootParserTests(ITestOutputHelper testOutput)
     {
         /// <summary>
-        ///     Create a new comparison Root parser test-suite.
-        /// </summary>
-        /// <param name="testOutput">
-        ///     Output for the current test.
-        /// </param>
-        public RootParserTests(ITestOutputHelper testOutput)
-        {
-            if (testOutput == null)
-                throw new ArgumentNullException(nameof(testOutput));
-
-            TestOutput = testOutput;
-        }
-
-        /// <summary>
         ///     Output for the current test.
         /// </summary>
-        ITestOutputHelper TestOutput { get; }
+        ITestOutputHelper TestOutput { get; } = testOutput;
 
         /// <summary>
         ///     Verify that the Root parser can successfully parse the specified input.

@@ -58,7 +58,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
             if (projectDocument == null)
                 throw new ArgumentNullException(nameof(projectDocument));
 
-            List<CompletionItem> completions = new List<CompletionItem>();
+            var completions = new List<CompletionItem>();
 
             Log.Verbose("Evaluate completions for {XmlLocation:l}", location);
 
@@ -116,7 +116,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
         {
             LspModels.Range replaceRangeLsp = replaceRange.ToLsp();
 
-            HashSet<string> offeredItemGroupNames = new HashSet<string>
+            var offeredItemGroupNames = new HashSet<string>
             {
                 "*" // Skip virtual item type representing well-known metadata.
             };
