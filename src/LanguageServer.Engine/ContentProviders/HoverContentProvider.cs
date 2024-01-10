@@ -171,9 +171,11 @@ namespace MSBuildProjectTools.LanguageServer.ContentProviders
         public MarkedStringContainer ItemGroup(MSBuildItemGroup itemGroup)
         {
             if (itemGroup == null)
+            {
                 throw new ArgumentNullException(nameof(itemGroup));
+            }
 
-            if (itemGroup.Name == "PackageReference")
+            if (itemGroup.Name is "PackageReference" || itemGroup.Name is "PackageVersion")
             {
                 string packageId = itemGroup.FirstInclude;
                 string packageRequestedVersion = itemGroup.GetFirstMetadataValue("Version");
@@ -363,7 +365,7 @@ namespace MSBuildProjectTools.LanguageServer.ContentProviders
             if (string.IsNullOrWhiteSpace(metadataName))
                 throw new ArgumentException("Argument cannot be null, empty, or entirely composed of whitespace: 'metadataName'.", nameof(metadataName));
 
-            if (itemGroup.Name == "PackageReference")
+            if (itemGroup.Name is "PackageReference" or "PackageVersion")
                 return ItemGroup(itemGroup);
 
             if (metadataName == "Condition")
@@ -437,7 +439,7 @@ namespace MSBuildProjectTools.LanguageServer.ContentProviders
             if (string.IsNullOrWhiteSpace(metadataName))
                 throw new ArgumentException("Argument cannot be null, empty, or entirely composed of whitespace: 'metadataName'.", nameof(metadataName));
 
-            if (itemGroup.Name == "PackageReference")
+            if (itemGroup.Name is "PackageReference" or "PackageVersion")
                 return UnusedItemGroup(itemGroup);
 
             if (metadataName == "Condition")

@@ -26,6 +26,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
         static readonly HashSet<string> SupportedElementNames = new HashSet<string>
         {
             "PackageReference",
+            "PackageVersion",
             "DotNetCliToolReference"
         };
 
@@ -248,6 +249,20 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
                     TextEdit = new TextEdit
                     {
                         NewText = "<PackageReference Include=\"${1:PackageId}\" Version=\"${2:PackageVersion}\" />$0",
+                        Range = replaceRange.ToLsp()
+                    },
+                    InsertTextFormat = InsertTextFormat.Snippet
+                },
+                new CompletionItem
+                {
+                    Label = "<PackageVersion />",
+                    Detail = "Element",
+                    Documentation = "A NuGet package",
+                    SortText = $"{Priority}A<PackageVersion />",
+                    Kind = CompletionItemKind.Class,
+                    TextEdit = new TextEdit
+                    {
+                        NewText = "<PackageVersion Include=\"${1:PackageId}\" Version=\"${2:PackageVersion}\" />$0",
                         Range = replaceRange.ToLsp()
                     },
                     InsertTextFormat = InsertTextFormat.Snippet

@@ -132,6 +132,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
             var offeredItemNames = new HashSet<string>
             {
                 "PackageReference",
+                "PackageVersion",
                 "DotNetCliToolReference"
             };
 
