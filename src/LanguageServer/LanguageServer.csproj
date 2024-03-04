@@ -18,12 +18,7 @@
     <PackageReference Include="Microsoft.Extensions.Logging" Version="2.0.0" />
     <PackageReference Include="Nito.AsyncEx.Tasks" Version="1.0.1" />
     <PackageReference Include="Nito.AsyncEx.Coordination" Version="1.0.1" />
-    <PackageReference Include="NuGet.Client" Version="4.2.0" />
-    <PackageReference Include="NuGet.Configuration" Version="6.0.5" />
-    <PackageReference Include="NuGet.Credentials" Version="6.0.5" />
-    <PackageReference Include="NuGet.PackageManagement" Version="6.0.5" />
-    <PackageReference Include="NuGet.Packaging" Version="6.0.5" />
-    <PackageReference Include="NuGet.Versioning" Version="6.0.5" />
+    <PackageReference Include="NuGet.PackageManagement" Version="6.0.6" />
     <PackageReference Include="Serilog" Version="2.5.0" />
     <PackageReference Include="Serilog.Enrichers.Demystify" Version="0.1.0-dev-00016" />
     <PackageReference Include="Serilog.Extensions.Logging" Version="2.0.2" />
