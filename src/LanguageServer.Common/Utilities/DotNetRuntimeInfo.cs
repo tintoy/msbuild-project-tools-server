@@ -15,11 +15,6 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
     /// </summary>
     public partial class DotNetRuntimeInfo
     {
-        /// <summary>
-        ///     The minimum SDK version to be considered .NET 6.x.
-        /// </summary>
-        static readonly SemanticVersion Sdk60Version = new SemanticVersion(6, 0, 101);
-
         [GeneratedRegex(@"(?<SdkVersion>.*) \[(?<SdkBaseDirectory>.*)\]")]
         private static partial Regex SdkInfoParser();
 
@@ -87,58 +82,43 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
                 logger.Verbose("Discovered .NET SDK v{SdkVersion:l}.", sdkVersion);
             }
 
-            if (sdkVersion >= Sdk60Version)
+            DotnetSdkInfo targetSdk;
+
+            using (TextReader dotnetListSdksOutput = InvokeDotNetHost("--list-sdks", baseDirectory, logger))
             {
-                // From .NET 6.x onwards, we can rely on "dotnet --list-sdks" and "dotnet --list-runtimes" to give us the information we need.
-                logger.Verbose("Using new SDK discovery logic because .NET SDK v{SdkVersion:l} is greater than or equal to the minimum required v6 SDK version (v{MinSdkVersion:l}).", sdkVersion, Sdk60Version);
+                List<DotnetSdkInfo> discoveredSdks = ParseDotNetListSdksOutput(dotnetListSdksOutput);
 
-                DotnetSdkInfo targetSdk;
-
-                using (TextReader dotnetListSdksOutput = InvokeDotNetHost("--list-sdks", baseDirectory, logger))
-                {
-                    List<DotnetSdkInfo> discoveredSdks = ParseDotNetListSdksOutput(dotnetListSdksOutput);
-
-                    targetSdk = discoveredSdks.Find(sdk => sdk.Version == sdkVersion);
-                    if (targetSdk != null)
-                        logger.Verbose("Target .NET SDK is v{SdkVersion:l} in {SdkBaseDirectory}.", targetSdk.Version, targetSdk.BaseDirectory);
-                    else
-                        logger.Error("Cannot find SDK v{SdkVersion} via 'dotnet --list-sdks'.", sdkVersion);
-                }
-
-                DotnetRuntimeInfo hostRuntime = null;
-
-                using (TextReader dotnetListRuntimesOutput = InvokeDotNetHost("--list-runtimes", baseDirectory, logger))
-                {
-                    List<DotnetRuntimeInfo> discoveredRuntimes = ParseDotNetListRuntimesOutput(dotnetListRuntimesOutput);
-
-                    // AF: As far as I can tell, the host runtime version always corresponds to the latest version of the "Microsoft.NETCore.App" runtime (i.e. is not affected by global.json).
-
-                    hostRuntime = discoveredRuntimes
-                        .Where(runtime => runtime.Name == WellKnownDotnetRuntimes.NetCore)
-                        .OrderByDescending(runtime => runtime.Version)
-                        .FirstOrDefault();
-
-                    if (hostRuntime != null)
-                        logger.Verbose(".NET host runtime is v{RuntimeVersion:l} ({RuntimeName}).", hostRuntime.Version, hostRuntime.Name);
-                    else
-                        logger.Error("Failed to discover any runtimes via 'dotnet --list-runtimes'.");
-                }
-
-                return new DotNetRuntimeInfo
-                {
-                    Runtime = hostRuntime,
-                    Sdk = targetSdk,
-                };
+                targetSdk = discoveredSdks.Find(sdk => sdk.Version == sdkVersion);
+                if (targetSdk != null)
+                    logger.Verbose("Target .NET SDK is v{SdkVersion:l} in {SdkBaseDirectory}.", targetSdk.Version, targetSdk.BaseDirectory);
+                else
+                    logger.Error("Cannot find SDK v{SdkVersion} via 'dotnet --list-sdks'.", sdkVersion);
             }
-            else
+
+            DotnetRuntimeInfo hostRuntime = null;
+
+            using (TextReader dotnetListRuntimesOutput = InvokeDotNetHost("--list-runtimes", baseDirectory, logger))
             {
-                // Fall back to legacy parser.
-                logger.Verbose("Using legacy (pre-v6) SDK discovery logic because .NET SDK v{SdkVersion:l} is less than the minimum required v6 SDK version (v{MinSdkVersion:l}).", sdkVersion, Sdk60Version);
+                List<DotnetRuntimeInfo> discoveredRuntimes = ParseDotNetListRuntimesOutput(dotnetListRuntimesOutput);
 
-                using TextReader dotnetInfoOutput = InvokeDotNetHost("--info", baseDirectory, logger);
-                
-                return ParseDotNetInfoOutput(dotnetInfoOutput);
+                // AF: As far as I can tell, the host runtime version always corresponds to the latest version of the "Microsoft.NETCore.App" runtime (i.e. is not affected by global.json).
+
+                hostRuntime = discoveredRuntimes
+                    .Where(runtime => runtime.Name == WellKnownDotnetRuntimes.NetCore)
+                    .OrderByDescending(runtime => runtime.Version)
+                    .FirstOrDefault();
+
+                if (hostRuntime != null)
+                    logger.Verbose(".NET host runtime is v{RuntimeVersion:l} ({RuntimeName}).", hostRuntime.Version, hostRuntime.Name);
+                else
+                    logger.Error("Failed to discover any runtimes via 'dotnet --list-runtimes'.");
             }
+
+            return new DotNetRuntimeInfo
+            {
+                Runtime = hostRuntime,
+                Sdk = targetSdk,
+            };
         }
 
         /// <summary>
@@ -352,145 +332,6 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
 
                 return new StringReader(stdOut);
             }
-        }
-
-        /// <summary>
-        ///     Parse the output of "dotnet --info" into a <see cref="DotNetRuntimeInfo"/>.
-        /// </summary>
-        /// <param name="dotnetInfoOutput">
-        ///     A <see cref="TextReader"/> containing the output of "dotnet --info".
-        /// </param>
-        /// <returns>
-        ///     The <see cref="DotNetRuntimeInfo"/>.
-        /// </returns>
-        public static DotNetRuntimeInfo ParseDotNetInfoOutput(TextReader dotnetInfoOutput)
-        {
-            if (dotnetInfoOutput == null)
-                throw new ArgumentNullException(nameof(dotnetInfoOutput));
-
-            var runtimeInfo = new DotNetRuntimeInfo();
-
-            DotnetInfoSection currentSection = DotnetInfoSection.Start;
-
-            string currentLine;
-            while ((currentLine = dotnetInfoOutput.ReadLine()) != null)
-            {
-                if (string.IsNullOrWhiteSpace(currentLine))
-                    continue;
-
-                if (!currentLine.StartsWith(' ') && currentLine.EndsWith(':'))
-                {
-                    currentSection++;
-
-                    if (currentSection > DotnetInfoSection.RuntimeEnvironment)
-                        break;
-
-                    continue;
-                }
-
-                string[] property = currentLine.Split(':', count: 2);
-                if (property.Length != 2)
-                    continue;
-
-                property[0] = property[0].Trim();
-                property[1] = property[1].Trim();
-
-                switch (currentSection)
-                {
-                    case DotnetInfoSection.ProductInformation:
-                    {
-                        switch (property[0])
-                        {
-                            case "Version":
-                            {
-                                runtimeInfo.Sdk = runtimeInfo.Sdk with
-                                {
-                                    Version = SemanticVersion.Parse(property[1]),
-                                };
-
-                                break;
-                            }
-                        }
-
-                        break;
-                    }
-                    case DotnetInfoSection.RuntimeEnvironment:
-                    {
-                        switch (property[0])
-                        {
-                            case "Base Path":
-                            {
-                                runtimeInfo.Sdk = runtimeInfo.Sdk with
-                                {
-                                    BaseDirectory = property[1],
-                                };
-
-                                break;
-                            }
-                        }
-
-                        break;
-                    }
-                    case DotnetInfoSection.Host:
-                    {
-                        switch (property[0])
-                        {
-                            case "Version":
-                            {
-                                runtimeInfo.Runtime = runtimeInfo.Runtime with
-                                {
-                                    Version = SemanticVersion.Parse(property[1]),
-                                };
-
-                                break;
-                            }
-                        }
-
-                        break;
-                    }
-                }
-            }
-
-            return runtimeInfo;
-        }
-
-        /// <summary>
-        ///     Well-known sections returned by "dotnet --info".
-        /// </summary>
-        /// <remarks>
-        ///     Since the section titles returned by "dotnet --info" are now localized, we have to resort to this (more-fragile) method of parsing the output.
-        /// </remarks>
-        enum DotnetInfoSection
-        {
-            /// <summary>
-            ///     Start of output.
-            /// </summary>
-            Start = 0,
-
-            /// <summary>
-            ///     The product information section (e.g. ".NET Core SDK (reflecting any global.json)").
-            /// </summary>
-            ProductInformation = 1,
-
-            /// <summary>
-            ///     The runtime environment section (e.g. "Runtime Environment").
-            /// </summary>
-            RuntimeEnvironment = 2,
-
-            /// <summary>
-            ///     The host section (e.g. "Host (useful for support)").
-            /// </summary>
-            Host = 3,
-
-            /// <summary>
-            ///     The SDK list section (e.g. ".NET Core SDKs installed").
-            /// </summary>
-            SdkList = 4,
-
-            /// <summary>
-            ///     The runtime list section (e.g. ".NET Core runtimes installed").
-            /// </summary>
-            RuntimeList = 5
         }
     }
 
