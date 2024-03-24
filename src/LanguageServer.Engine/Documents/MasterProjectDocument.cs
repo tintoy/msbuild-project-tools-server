@@ -11,6 +11,7 @@ using System.Xml;
 namespace MSBuildProjectTools.LanguageServer.Documents
 {
     using SemanticModel;
+    using System.Collections.Concurrent;
     using Utilities;
 
     /// <summary>
@@ -22,7 +23,7 @@ namespace MSBuildProjectTools.LanguageServer.Documents
         /// <summary>
         ///     Sub-projects (if any).
         /// </summary>
-        readonly Dictionary<Uri, SubProjectDocument> _subProjects = new Dictionary<Uri, SubProjectDocument>();
+        readonly ConcurrentDictionary<Uri, SubProjectDocument> _subProjects = new ConcurrentDictionary<Uri, SubProjectDocument>();
 
         /// <summary>
         ///     Create a new <see cref="MasterProjectDocument"/>.
@@ -67,15 +68,21 @@ namespace MSBuildProjectTools.LanguageServer.Documents
         /// <summary>
         ///     Add a sub-project.
         /// </summary>
-        /// <param name="subProjectDocument">
+        /// <param name="documentUri">
         ///     The sub-project.
         /// </param>
-        public void AddSubProject(SubProjectDocument subProjectDocument)
+        /// <param name="createSubProjectDocument">
+        ///     A factory delegate to create the <see cref="SubProjectDocument"/> if it does not already exist.
+        /// </param>
+        public SubProjectDocument GetOrAddSubProject(Uri documentUri, Func<SubProjectDocument> createSubProjectDocument)
         {
-            if (subProjectDocument == null)
-                throw new ArgumentNullException(nameof(subProjectDocument));
+            if (documentUri == null)
+                throw new ArgumentNullException(nameof(documentUri));
 
-            _subProjects.Add(subProjectDocument.DocumentUri, subProjectDocument);
+            if (createSubProjectDocument == null)
+                throw new ArgumentNullException(nameof(createSubProjectDocument));
+
+            return _subProjects.GetOrAdd(documentUri, _ => createSubProjectDocument());
         }
 
         /// <summary>
@@ -89,11 +96,8 @@ namespace MSBuildProjectTools.LanguageServer.Documents
             if (documentUri == null)
                 throw new ArgumentNullException(nameof(documentUri));
 
-            if (!_subProjects.TryGetValue(documentUri, out SubProjectDocument subProjectDocument))
-                return;
-
-            subProjectDocument.Unload();
-            _subProjects.Remove(documentUri);
+            if (_subProjects.TryRemove(documentUri, out SubProjectDocument subProjectDocument))
+                subProjectDocument.Unload();
         }
 
         /// <summary>
