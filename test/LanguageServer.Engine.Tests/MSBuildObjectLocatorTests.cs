@@ -106,11 +106,10 @@ namespace MSBuildProjectTools.LanguageServer.Tests
             if (relativePathSegments == null)
                 throw new ArgumentNullException(nameof(relativePathSegments));
 
-            return TestProject.Load(
-                projectCollection: ref _projectCollection,
-                logger: Log,
-                relativePathSegments: [TestDirectory.FullName, .. relativePathSegments]
-            );
+            if (_projectCollection == null)
+                _projectCollection = TestProjects.CreateProjectCollection<MSBuildObjectLocatorTests>(Log, relativePathSegments);
+
+            return _projectCollection.LoadTestProject<MSBuildObjectLocatorTests>(relativePathSegments);
         }
     }
 }
