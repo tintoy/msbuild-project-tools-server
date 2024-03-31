@@ -1,4 +1,5 @@
 mode: ContinuousDeployment
+next-version: 0.6.3
 branches:
   main:
     regex: ^master$|^main$
@@ -25,7 +26,7 @@ branches:
     mode: ContinuousDeployment
     source-branches:
     - main
-    tag: beta
+    tag: useBranchName
     increment: Patch
     prevent-increment-of-merged-branch-version: false
     track-merge-target: false
@@ -33,4 +34,6 @@ branches:
     is-release-branch: false
     is-mainline: false
 ignore:
-  sha: []
+  sha:
+  - 937c06026995c95da4bb13a02714a81db87876b1
+
