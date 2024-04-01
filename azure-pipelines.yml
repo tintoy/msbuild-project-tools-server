@@ -62,6 +62,7 @@ steps:
     projects: './src/LanguageServer/LanguageServer.csproj'
     arguments: '--configuration "$(buildConfiguration)" -o "./out/language-server" /p:VersionPrefix="$(GitVersion.MajorMinorPatch)" /p:VersionSuffix="$(GitVersion.PreReleaseTag)"'
     modifyOutputPath: false
+    zipAfterPublish: false
 
 - task: ArchiveFiles@2
   displayName: 'Package language-server artifact'
