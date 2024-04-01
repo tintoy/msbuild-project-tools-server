@@ -10,32 +10,17 @@ namespace MSBuildProjectTools.LanguageServer.Tests
     /// <summary>
     ///     Tests for locating MSBuild objects by position.
     /// </summary>
+    /// <param name="testOutput">
+    ///     The xUnit test output for the current test.
+    /// </param>
     [Collection(MSBuildEngineFixture.CollectionName)]
-    public class MSBuildObjectLocatorTests
-        : TestBase, IDisposable
+    public class MSBuildObjectLocatorTests(ITestOutputHelper testOutput)
+        : TestBase(testOutput), IDisposable
     {
-        /// <summary>
-        ///     The directory for test files.
-        /// </summary>
-        static readonly DirectoryInfo TestDirectory = new DirectoryInfo(Path.GetDirectoryName(
-            typeof(MSBuildObjectLocatorTests).Assembly.Location
-        ));
-
         /// <summary>
         ///     The project collection for any projects loaded by the current test.
         /// </summary>
         ProjectCollection _projectCollection;
-
-        /// <summary>
-        ///     Create new <see cref="MSBuildObjectLocatorTests"/>.
-        /// </summary>
-        /// <param name="testOutput">
-        ///     The xUnit test output for the current test.
-        /// </param>
-        public MSBuildObjectLocatorTests(ITestOutputHelper testOutput)
-            : base(testOutput)
-        {
-        }
 
         /// <summary>
         ///     Dispose of resources being used by the test.

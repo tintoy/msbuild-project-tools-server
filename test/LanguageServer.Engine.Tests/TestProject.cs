@@ -275,10 +275,10 @@ namespace MSBuildProjectTools.LanguageServer.Tests
 
             string testDeploymentDirectory = GetTestDeploymentDirectory(testClassType);
 
-            string projectFileName = Path.Combine(
+            string projectFileName = Path.Combine([
                 testDeploymentDirectory,
-                Path.Combine(relativePathSegments)
-            );
+                .. relativePathSegments
+            ]);
             projectFileName = Path.GetFullPath(projectFileName); // Flush out any relative-path issues now, rather than when we are trying to open the file.
 
             return projectFileName;
@@ -361,7 +361,11 @@ namespace MSBuildProjectTools.LanguageServer.Tests
     /// <param name="TextPositions">
     ///     The <see cref="TextPositions"/> for the project text.
     /// </param>
-    public record class TestProjectXml(XmlDocumentSyntax ProjectXml, XmlLocator XmlLocations, TextPositions TextPositions);
+    public record class TestProjectXml(
+        XmlDocumentSyntax ProjectXml,
+        XmlLocator XmlLocations,
+        TextPositions TextPositions
+    );
 
     /// <summary>
     ///     An MSBuild project, loaded for a test.
@@ -381,6 +385,12 @@ namespace MSBuildProjectTools.LanguageServer.Tests
     /// <param name="TextPositions">
     ///     The <see cref="TextPositions"/> for the project text.
     /// </param>
-    public record class TestProject(Project MSBuildProject, MSBuildObjectLocator ObjectLocations, XmlDocumentSyntax ProjectXml, XmlLocator XmlLocations, TextPositions TextPositions)
+    public record class TestProject(
+        Project MSBuildProject,
+        MSBuildObjectLocator ObjectLocations,
+        XmlDocumentSyntax ProjectXml,
+        XmlLocator XmlLocations,
+        TextPositions TextPositions
+    )
         : TestProjectXml(ProjectXml, XmlLocations, TextPositions);
 }

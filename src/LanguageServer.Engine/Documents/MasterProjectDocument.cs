@@ -1,6 +1,9 @@
 using Microsoft.Build.Exceptions;
+using MSBuildProjectTools.LanguageServer.SemanticModel;
+using MSBuildProjectTools.LanguageServer.Utilities;
 using Serilog;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -10,10 +13,6 @@ using System.Xml;
 
 namespace MSBuildProjectTools.LanguageServer.Documents
 {
-    using SemanticModel;
-    using System.Collections.Concurrent;
-    using Utilities;
-
     /// <summary>
     ///     Represents the document state for an MSBuild project.
     /// </summary>
@@ -23,7 +22,7 @@ namespace MSBuildProjectTools.LanguageServer.Documents
         /// <summary>
         ///     Sub-projects (if any).
         /// </summary>
-        readonly ConcurrentDictionary<Uri, SubProjectDocument> _subProjects = new ConcurrentDictionary<Uri, SubProjectDocument>();
+        readonly ConcurrentDictionary<Uri, SubProjectDocument> _subProjects = new();
 
         /// <summary>
         ///     Create a new <see cref="MasterProjectDocument"/>.
@@ -69,7 +68,7 @@ namespace MSBuildProjectTools.LanguageServer.Documents
         ///     Add a sub-project.
         /// </summary>
         /// <param name="documentUri">
-        ///     The sub-project.
+        ///     The sub-project's document URI.
         /// </param>
         /// <param name="createSubProjectDocument">
         ///     A factory delegate to create the <see cref="SubProjectDocument"/> if it does not already exist.

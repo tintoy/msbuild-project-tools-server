@@ -172,7 +172,12 @@ namespace MSBuildProjectTools.LanguageServer.Documents
                 isNewProject = true;
 
                 if (MasterProject == null)
-                    return MasterProject = new MasterProjectDocument(this, documentUri, Log);
+                {
+                    MasterProjectDocument masterProjectDocument = new(this, documentUri, Log);
+                    MasterProject = masterProjectDocument;
+
+                    return masterProjectDocument;
+                }
 
                 SubProjectDocument subProject = MasterProject.GetOrAddSubProject(documentUri,
                     () => new SubProjectDocument(this, documentUri, Log, MasterProject)
