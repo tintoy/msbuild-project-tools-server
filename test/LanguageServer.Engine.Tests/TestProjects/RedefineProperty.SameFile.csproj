@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <Property1>true</Property1>
+    <Property2>false</Property2>
+    <Property2 Condition=" '$(Property1)' == 'true' ">true</Property2>
+  </PropertyGroup>
+</Project>

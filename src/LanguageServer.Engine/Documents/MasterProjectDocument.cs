@@ -1,6 +1,9 @@
 using Microsoft.Build.Exceptions;
+using MSBuildProjectTools.LanguageServer.SemanticModel;
+using MSBuildProjectTools.LanguageServer.Utilities;
 using Serilog;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -10,9 +13,6 @@ using System.Xml;
 
 namespace MSBuildProjectTools.LanguageServer.Documents
 {
-    using SemanticModel;
-    using Utilities;
-
     /// <summary>
     ///     Represents the document state for an MSBuild project.
     /// </summary>
@@ -22,7 +22,7 @@ namespace MSBuildProjectTools.LanguageServer.Documents
         /// <summary>
         ///     Sub-projects (if any).
         /// </summary>
-        readonly Dictionary<Uri, SubProjectDocument> _subProjects = new Dictionary<Uri, SubProjectDocument>();
+        readonly ConcurrentDictionary<Uri, SubProjectDocument> _subProjects = new();
 
         /// <summary>
         ///     Create a new <see cref="MasterProjectDocument"/>.
@@ -67,15 +67,21 @@ namespace MSBuildProjectTools.LanguageServer.Documents
         /// <summary>
         ///     Add a sub-project.
         /// </summary>
-        /// <param name="subProjectDocument">
-        ///     The sub-project.
+        /// <param name="documentUri">
+        ///     The sub-project's document URI.
         /// </param>
-        public void AddSubProject(SubProjectDocument subProjectDocument)
+        /// <param name="createSubProjectDocument">
+        ///     A factory delegate to create the <see cref="SubProjectDocument"/> if it does not already exist.
+        /// </param>
+        public SubProjectDocument GetOrAddSubProject(Uri documentUri, Func<SubProjectDocument> createSubProjectDocument)
         {
-            if (subProjectDocument == null)
-                throw new ArgumentNullException(nameof(subProjectDocument));
+            if (documentUri == null)
+                throw new ArgumentNullException(nameof(documentUri));
 
-            _subProjects.Add(subProjectDocument.DocumentUri, subProjectDocument);
+            if (createSubProjectDocument == null)
+                throw new ArgumentNullException(nameof(createSubProjectDocument));
+
+            return _subProjects.GetOrAdd(documentUri, _ => createSubProjectDocument());
         }
 
         /// <summary>
@@ -89,11 +95,8 @@ namespace MSBuildProjectTools.LanguageServer.Documents
             if (documentUri == null)
                 throw new ArgumentNullException(nameof(documentUri));
 
-            if (!_subProjects.TryGetValue(documentUri, out SubProjectDocument subProjectDocument))
-                return;
-
-            subProjectDocument.Unload();
-            _subProjects.Remove(documentUri);
+            if (_subProjects.TryRemove(documentUri, out SubProjectDocument subProjectDocument))
+                subProjectDocument.Unload();
         }
 
         /// <summary>
