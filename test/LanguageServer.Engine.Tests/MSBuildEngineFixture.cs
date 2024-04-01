@@ -9,6 +9,8 @@ namespace MSBuildProjectTools.LanguageServer.Tests
     /// </summary>
     public sealed class MSBuildEngineFixture
     {
+        public const string CollectionName = "MSBuild Engine";
+
         /// <summary>
         ///     Create a new <see cref="MSBuildEngineFixture"/>.
         /// </summary>
@@ -21,7 +23,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests
     /// <summary>
     ///     The collection-fixture binding for <see cref="MSBuildEngineFixture"/>.
     /// </summary>
-    [CollectionDefinition("MSBuild Engine")]
+    [CollectionDefinition(MSBuildEngineFixture.CollectionName)]
     public sealed class MSBuildEngineFixtureCollection
         : ICollectionFixture<MSBuildEngineFixture>
     {

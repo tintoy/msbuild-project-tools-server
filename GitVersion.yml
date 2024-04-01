@@ -1,16 +1,19 @@
-next-version: 0.6.1
+mode: ContinuousDeployment
+next-version: 0.6.3
 branches:
   main:
     regex: ^master$|^main$
     mode: ContinuousDelivery
-    source-branches: [ ]
+    source-branches: []
     increment: Patch
     prevent-increment-of-merged-branch-version: true
     is-mainline: true
   feature:
     regex: ^feature(s)?\/[\d-]+
     mode: ContinuousDelivery
-    source-branches: [ 'main', 'bugfix' ]
+    source-branches:
+    - main
+    - bugfix
     tag: useBranchName
     increment: Patch
     prevent-increment-of-merged-branch-version: false
@@ -21,8 +24,9 @@ branches:
   bugfix:
     regex: ^bug(s)?\/[\d-]+|^hotfix(s)?\/[\d-]+|^fix(s)?\/[\d-]+
     mode: ContinuousDeployment
-    source-branches: [ 'main' ]
-    tag: beta
+    source-branches:
+    - main
+    tag: useBranchName
     increment: Patch
     prevent-increment-of-merged-branch-version: false
     track-merge-target: false
@@ -30,4 +34,6 @@ branches:
     is-release-branch: false
     is-mainline: false
 ignore:
-  sha: []
+  sha:
+  - 937c06026995c95da4bb13a02714a81db87876b1
+
