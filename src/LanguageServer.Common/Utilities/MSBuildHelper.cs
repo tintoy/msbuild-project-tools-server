@@ -100,6 +100,12 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
                 build: targetSdkSemanticVersion.Patch
             );
 
+            if (!string.IsNullOrEmpty(targetSdkSemanticVersion.Release))
+            {
+                // MSBuildLocator will query preview version.
+                MSBuildLocator.AllowQueryAllRuntimeVersions = true;
+            }
+
             var allInstances = MSBuildLocator.QueryVisualStudioInstances();
 
             VisualStudioInstance latestInstance = allInstances
