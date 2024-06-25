@@ -72,7 +72,12 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         /// <param name="logger">
         ///     An optional <see cref="ILogger"/> to use for diagnostic purposes (if not specified, the static <see cref="Log.Logger"/> will be used).
         /// </param>
-        public static void DiscoverMSBuildEngine(string baseDirectory = null, ILogger logger = null)
+        /// <param name="includePreReleaseVersions">
+        ///     Allow pre-release versions of SDKs / MSBuild to be discovered? 
+        ///     
+        ///     If <c>false</c>, pre-release SDKs / MSBuild versions will be ignored.
+        /// </param>
+        public static void DiscoverMSBuildEngine(string baseDirectory = null, ILogger logger = null, bool includePreReleaseVersions = false)
         {
             _registeredMSBuildInstance = null;
 
@@ -100,7 +105,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
                 build: targetSdkSemanticVersion.Patch
             );
 
-            if (!string.IsNullOrEmpty(targetSdkSemanticVersion.Release))
+            if (!string.IsNullOrEmpty(targetSdkSemanticVersion.Release) && includePreReleaseVersions)
             {
                 // MSBuildLocator will query preview version.
                 MSBuildLocator.AllowQueryAllRuntimeVersions = true;

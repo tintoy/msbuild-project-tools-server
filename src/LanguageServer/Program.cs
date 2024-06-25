@@ -39,9 +39,11 @@ namespace MSBuildProjectTools.LanguageServer
                     .CreateLogger()
                     .ForContext("Operation", "MSBuildDiscovery");
 
+                bool enablePreReleaseSdkDiscovery = Environment.GetEnvironmentVariable("MSBUILD_PROJECT_TOOLS_ENABLE_PRERELEASE_SDKS") == "1";
+
                 using (msbuildDiscoveryLogger as IDisposable)
                 {
-                    MSBuildHelper.DiscoverMSBuildEngine(logger: msbuildDiscoveryLogger);
+                    MSBuildHelper.DiscoverMSBuildEngine(logger: msbuildDiscoveryLogger, includePreReleaseVersions: enablePreReleaseSdkDiscovery);
                 }
 
                 ConfigureNuGetCredentialProviders();
