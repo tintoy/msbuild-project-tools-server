@@ -75,18 +75,35 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
             if (Environment.GetEnvironmentVariable("MSBUILD_PROJECT_TOOLS_DOTNET_HOST_DIAGNOSTICS") == "1")
                 enableDotnetHostDiagnostics = true;
 
-            using (TextReader dotnetVersionOutput = InvokeDotNetHost("--version", baseDirectory, logger, enableHostTracing: enableDotnetHostDiagnostics))
+            int dotNetExitCode;
+            TextReader dotnetOutput;
+
+            (dotNetExitCode, dotnetOutput) = InvokeDotNetHost("--version", baseDirectory, logger, enableHostTracing: enableDotnetHostDiagnostics);
+            using (dotnetOutput)
             {
-                sdkVersion = ParseDotNetVersionOutput(dotnetVersionOutput);
+                if (dotNetExitCode == DotNetExitCodes.CannotResolveTargetSdkOrRuntime)
+                {
+                    logger.Error("Cannot resolve the target .NET SDK tooling or runtime. Please verify that the SDK version referenced in global.json (or a compatible runtime that matches the configured roll-forward policy) is correctly installed.");
+
+                    throw new Exception("Cannot resolve the target .NET SDK tooling or runtime. Please verify that the SDK version referenced in global.json (or a compatible runtime that matches the configured roll-forward policy) is correctly installed.");
+                }
+                else if (dotNetExitCode != DotNetExitCodes.Success)
+                    throw new Exception("Failed to determine current .NET version.");
+
+                sdkVersion = ParseDotNetVersionOutput(dotnetOutput);
 
                 logger.Verbose("Discovered .NET SDK v{SdkVersion:l}.", sdkVersion);
             }
 
             DotnetSdkInfo targetSdk;
 
-            using (TextReader dotnetListSdksOutput = InvokeDotNetHost("--list-sdks", baseDirectory, logger))
+            (dotNetExitCode, dotnetOutput) = InvokeDotNetHost("--list-sdks", baseDirectory, logger);
+            using (dotnetOutput)
             {
-                List<DotnetSdkInfo> discoveredSdks = ParseDotNetListSdksOutput(dotnetListSdksOutput);
+                if (dotNetExitCode != DotNetExitCodes.Success)
+                    throw new Exception("Failed to discover available .NET SDKs.");
+
+                List<DotnetSdkInfo> discoveredSdks = ParseDotNetListSdksOutput(dotnetOutput);
 
                 targetSdk = discoveredSdks.Find(sdk => sdk.Version == sdkVersion);
                 if (targetSdk != null)
@@ -97,9 +114,13 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
 
             DotnetRuntimeInfo hostRuntime = null;
 
-            using (TextReader dotnetListRuntimesOutput = InvokeDotNetHost("--list-runtimes", baseDirectory, logger))
+            (dotNetExitCode, dotnetOutput) = InvokeDotNetHost("--list-runtimes", baseDirectory, logger);
+            using (dotnetOutput)
             {
-                List<DotnetRuntimeInfo> discoveredRuntimes = ParseDotNetListRuntimesOutput(dotnetListRuntimesOutput);
+                if (dotNetExitCode != DotNetExitCodes.Success)
+                    throw new Exception("Failed to discover available .NET runtimes.");
+
+                List<DotnetRuntimeInfo> discoveredRuntimes = ParseDotNetListRuntimesOutput(dotnetOutput);
 
                 // AF: As far as I can tell, the host runtime version always corresponds to the latest version of the "Microsoft.NETCore.App" runtime (i.e. is not affected by global.json).
 
@@ -234,9 +255,9 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         ///     Enable host-level tracing?
         /// </param>
         /// <returns>
-        ///     A <see cref="TextReader"/> containing the program output (STDOUT and STDERR).
+        ///     The process exit code, and a <see cref="TextReader"/> containing the program output (STDOUT and STDERR).
         /// </returns>
-        static TextReader InvokeDotNetHost(string commandLineArguments, string baseDirectory, ILogger logger, bool enableHostTracing = false)
+        static (int ExitCode, TextReader StdOut) InvokeDotNetHost(string commandLineArguments, string baseDirectory, ILogger logger, bool enableHostTracing = false)
         {
             if (logger == null)
                 throw new ArgumentNullException(nameof(logger));
@@ -330,7 +351,10 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
                         logger.Debug("{Command} returned no output on STDERR.", command);
                 }
 
-                return new StringReader(stdOut);
+                return (
+                    ExitCode: dotnetHostProcess.ExitCode,
+                    StdOut: new StringReader(stdOut)
+                );
             }
         }
     }
@@ -388,5 +412,21 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         ///     The name of the .NET runtime for Windows Desktop.
         /// </summary>
         public static readonly string WindowsDesktop = "Microsoft.WindowsDesktop.App";
+    }
+
+    /// <summary>
+    ///     Well-known process exit codes for the "dotnet" executable.
+    /// </summary>
+    public static class DotNetExitCodes
+    {
+        /// <summary>
+        ///     The dotnet host exit code indicating that the requested operation was successful.
+        /// </summary>
+        public static readonly int Success = 0;
+
+        /// <summary>
+        ///     The dotnet host exit code indicating that the target SDK or runtime version cannot be resolved.
+        /// </summary>
+        public static readonly int CannotResolveTargetSdkOrRuntime = -2147450735;
     }
 }
