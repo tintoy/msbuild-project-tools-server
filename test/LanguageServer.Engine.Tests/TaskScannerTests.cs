@@ -37,11 +37,11 @@ namespace MSBuildProjectTools.LanguageServer.Tests
                 Log.Information("Runtime Directory = {RuntimeDirectory}", RuntimeEnvironment.GetRuntimeDirectory());
 
                 Environment.SetEnvironmentVariable("MSBUILD_PROJECT_TOOLS_DOTNET_HOST_DIAGNOSTICS", "1");
-                RuntimeInfo = DotNetRuntimeInfo.GetCurrent(logger: Log);
+                RuntimeInfo = DotnetInfo.GetCurrent(logger: Log);
                 Environment.SetEnvironmentVariable("MSBUILD_PROJECT_TOOLS_DOTNET_HOST_DIAGNOSTICS", null);
             }
             else
-                RuntimeInfo = DotNetRuntimeInfo.GetCurrent();
+                RuntimeInfo = DotnetInfo.GetCurrent();
 
             Assert.NotNull(RuntimeInfo.BaseDirectory);
         }
@@ -49,7 +49,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests
         /// <summary>
         ///     Information about the current .NET runtime.
         /// </summary>
-        DotNetRuntimeInfo RuntimeInfo { get; }
+        DotnetInfo RuntimeInfo { get; }
 
         /// <summary>
         ///     Verify that the task scanner can retrieve task metadata from an assembly.

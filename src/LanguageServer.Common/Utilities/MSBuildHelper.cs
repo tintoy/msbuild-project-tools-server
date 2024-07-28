@@ -87,11 +87,11 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
             // This will also ensure that the language server's model doesn't expose any MSBuild objects anywhere.
             //
             // For now, though, let's choose the dumb option.
-            var runtimeInfo = DotNetRuntimeInfo.GetCurrent(baseDirectory, logger);
+            var dotnetInfo = DotnetInfo.GetCurrent(baseDirectory, logger);
 
             // SDK versions are in SemVer format...
-            if (!SemanticVersion.TryParse(runtimeInfo.SdkVersion, out SemanticVersion targetSdkSemanticVersion))
-                throw new Exception($"Cannot determine SDK version information for current .NET SDK (located at '{runtimeInfo.BaseDirectory}').");
+            if (!SemanticVersion.TryParse(dotnetInfo.SdkVersion, out SemanticVersion targetSdkSemanticVersion))
+                throw new Exception($"Cannot determine SDK version information for current .NET SDK (located at '{dotnetInfo.BaseDirectory}').");
 
             // ...which MSBuildLocator does not understand.
             var targetSdkVersion = new Version(
@@ -141,7 +141,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
             logger ??= Log.Logger;
 
             return CreateProjectCollection(solutionDirectory,
-                DotNetRuntimeInfo.GetCurrent(solutionDirectory, logger),
+                DotnetInfo.GetCurrent(solutionDirectory, logger),
                 globalPropertyOverrides
             );
         }
@@ -161,7 +161,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         /// <returns>
         ///     The project collection.
         /// </returns>
-        public static ProjectCollection CreateProjectCollection(string solutionDirectory, DotNetRuntimeInfo runtimeInfo, Dictionary<string, string> globalPropertyOverrides = null)
+        public static ProjectCollection CreateProjectCollection(string solutionDirectory, DotnetInfo runtimeInfo, Dictionary<string, string> globalPropertyOverrides = null)
         {
             if (string.IsNullOrWhiteSpace(solutionDirectory))
                 throw new ArgumentException("Argument cannot be null, empty, or entirely composed of whitespace: 'baseDir'.", nameof(solutionDirectory));
@@ -216,7 +216,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         /// <returns>
         ///     A dictionary containing the global properties.
         /// </returns>
-        public static Dictionary<string, string> CreateGlobalMSBuildProperties(DotNetRuntimeInfo runtimeInfo, string solutionDirectory, Dictionary<string, string> globalPropertyOverrides = null)
+        public static Dictionary<string, string> CreateGlobalMSBuildProperties(DotnetInfo runtimeInfo, string solutionDirectory, Dictionary<string, string> globalPropertyOverrides = null)
         {
             if (runtimeInfo == null)
                 throw new ArgumentNullException(nameof(runtimeInfo));

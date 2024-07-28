@@ -13,7 +13,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
     /// <summary>
     ///     Information about the .NET Core runtime.
     /// </summary>
-    public partial class DotNetRuntimeInfo
+    public partial class DotnetInfo
     {
         [GeneratedRegex(@"(?<SdkVersion>.*) \[(?<SdkBaseDirectory>.*)\]")]
         private static partial Regex SdkInfoParser();
@@ -47,9 +47,9 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         public string BaseDirectory => Sdk?.BaseDirectory;
 
         /// <summary>
-        ///     Create a new <see cref="DotNetRuntimeInfo"/>.
+        ///     Create a new <see cref="DotnetInfo"/>.
         /// </summary>
-        public DotNetRuntimeInfo()
+        public DotnetInfo()
         {
         }
 
@@ -63,10 +63,11 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         ///     An optional <see cref="ILogger"/> to use for diagnostic purposes (if not specified, the static <see cref="Log.Logger"/> will be used).
         /// </param>
         /// <returns>
-        ///     A <see cref="DotNetRuntimeInfo"/> containing the runtime information.
+        ///     A <see cref="DotnetInfo"/> containing the runtime information.
         /// </returns>
-        public static DotNetRuntimeInfo GetCurrent(string baseDirectory = null, ILogger logger = null)
+        public static DotnetInfo GetCurrent(string baseDirectory = null, ILogger logger = null)
         {
+            baseDirectory ??= Directory.GetCurrentDirectory();
             logger ??= Log.Logger;
 
             SemanticVersion sdkVersion;
@@ -78,68 +79,77 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
             DotNetHostExitCode dotNetExitCode;
             TextReader dotnetOutput;
 
-            (dotNetExitCode, dotnetOutput) = InvokeDotNetHost("--version", baseDirectory, logger, enableHostTracing: enableDotnetHostDiagnostics);
-            using (dotnetOutput)
+            try
             {
-                if (dotNetExitCode == DotNetHostExitCode.LibHostSdkFindFailure)
+                (dotNetExitCode, dotnetOutput) = InvokeDotNetHost("--version", baseDirectory, logger, enableHostTracing: enableDotnetHostDiagnostics);
+                using (dotnetOutput)
                 {
-                    logger.Error("Cannot resolve the target .NET SDK tooling or runtime. Please verify that the SDK version referenced in global.json (or a compatible runtime that matches the configured roll-forward policy) is correctly installed.");
+                    if (dotNetExitCode == DotNetHostExitCode.LibHostSdkFindFailure)
+                    {
+                        logger.Error("Cannot resolve the target .NET SDK tooling or runtime for directory {BaseDirectory}. Please verify that the SDK version referenced in global.json (or a compatible runtime that matches the configured roll-forward policy) is correctly installed. Visit https://learn.microsoft.com/en-us/dotnet/core/tools/global-json#rollforward for more information.", baseDirectory);
 
-                    throw new Exception("Cannot resolve the target .NET SDK tooling or runtime. Please verify that the SDK version referenced in global.json (or a compatible runtime that matches the configured roll-forward policy) is correctly installed.");
+                        throw new DotnetDiscoveryException($"Cannot resolve the target .NET SDK tooling or runtime for directory '{baseDirectory}'. Please verify that the SDK version referenced in global.json (or a compatible runtime that matches the configured roll-forward policy) is correctly installed. Visit https://learn.microsoft.com/en-us/dotnet/core/tools/global-json#rollforward for more information.");
+                    }
+                    else if (dotNetExitCode != DotNetHostExitCode.Success)
+                        throw new DotnetDiscoveryException($"Failed to determine current .NET version for directory '{baseDirectory}' ({dotNetExitCode}).");
+
+                    sdkVersion = ParseDotNetVersionOutput(dotnetOutput);
+
+                    logger.Verbose("Discovered .NET SDK v{SdkVersion:l}.", sdkVersion);
                 }
-                else if (dotNetExitCode != DotNetHostExitCode.Success)
-                    throw new Exception("Failed to determine current .NET version.");
 
-                sdkVersion = ParseDotNetVersionOutput(dotnetOutput);
+                DotnetSdkInfo targetSdk;
 
-                logger.Verbose("Discovered .NET SDK v{SdkVersion:l}.", sdkVersion);
+                (dotNetExitCode, dotnetOutput) = InvokeDotNetHost("--list-sdks", baseDirectory, logger);
+                using (dotnetOutput)
+                {
+                    if (dotNetExitCode != DotNetHostExitCode.Success)
+                        throw new DotnetDiscoveryException($"Failed to discover available .NET SDKs for directory '{baseDirectory}' ({dotNetExitCode}) .");
+
+                    List<DotnetSdkInfo> discoveredSdks = ParseDotNetListSdksOutput(dotnetOutput);
+
+                    targetSdk = discoveredSdks.Find(sdk => sdk.Version == sdkVersion);
+                    if (targetSdk != null)
+                        logger.Verbose("Target .NET SDK is v{SdkVersion:l} in {SdkBaseDirectory}.", targetSdk.Version, targetSdk.BaseDirectory);
+                    else
+                        logger.Error("Cannot find SDK v{SdkVersion} via 'dotnet --list-sdks'.", sdkVersion);
+                }
+
+                DotnetRuntimeInfo hostRuntime = null;
+
+                (dotNetExitCode, dotnetOutput) = InvokeDotNetHost("--list-runtimes", baseDirectory, logger);
+                using (dotnetOutput)
+                {
+                    if (dotNetExitCode != DotNetHostExitCode.Success)
+                        throw new DotnetDiscoveryException($"Failed to discover available .NET runtimes for directory '{baseDirectory}' ({dotNetExitCode}) .");
+
+                    List<DotnetRuntimeInfo> discoveredRuntimes = ParseDotNetListRuntimesOutput(dotnetOutput);
+
+                    // AF: As far as I can tell, the host runtime version always corresponds to the latest version of the "Microsoft.NETCore.App" runtime (i.e. is not affected by global.json).
+
+                    hostRuntime = discoveredRuntimes
+                        .Where(runtime => runtime.Name == WellKnownDotnetRuntimes.NetCore)
+                        .OrderByDescending(runtime => runtime.Version)
+                        .FirstOrDefault();
+
+                    if (hostRuntime != null)
+                        logger.Verbose(".NET host runtime is v{RuntimeVersion:l} ({RuntimeName}).", hostRuntime.Version, hostRuntime.Name);
+                    else
+                        logger.Error("Failed to discover any runtimes via 'dotnet --list-runtimes'.");
+                }
+
+                return new DotnetInfo
+                {
+                    Runtime = hostRuntime,
+                    Sdk = targetSdk,
+                };
             }
-
-            DotnetSdkInfo targetSdk;
-
-            (dotNetExitCode, dotnetOutput) = InvokeDotNetHost("--list-sdks", baseDirectory, logger);
-            using (dotnetOutput)
+            catch (Exception unexpectedError) when (unexpectedError is not DotnetInfoException)
             {
-                if (dotNetExitCode != DotNetHostExitCode.Success)
-                    throw new Exception("Failed to discover available .NET SDKs.");
+                logger.Error(unexpectedError, "Unexpected error while attempting to discover target .NET runtime/SDK for directory {BaseDirectory}.", baseDirectory);
 
-                List<DotnetSdkInfo> discoveredSdks = ParseDotNetListSdksOutput(dotnetOutput);
-
-                targetSdk = discoveredSdks.Find(sdk => sdk.Version == sdkVersion);
-                if (targetSdk != null)
-                    logger.Verbose("Target .NET SDK is v{SdkVersion:l} in {SdkBaseDirectory}.", targetSdk.Version, targetSdk.BaseDirectory);
-                else
-                    logger.Error("Cannot find SDK v{SdkVersion} via 'dotnet --list-sdks'.", sdkVersion);
+                throw new DotnetDiscoveryException($"Unexpected error while attempting to discover target .NET runtime/SDK for directory {baseDirectory}.", unexpectedError);
             }
-
-            DotnetRuntimeInfo hostRuntime = null;
-
-            (dotNetExitCode, dotnetOutput) = InvokeDotNetHost("--list-runtimes", baseDirectory, logger);
-            using (dotnetOutput)
-            {
-                if (dotNetExitCode != DotNetHostExitCode.Success)
-                    throw new Exception("Failed to discover available .NET runtimes.");
-
-                List<DotnetRuntimeInfo> discoveredRuntimes = ParseDotNetListRuntimesOutput(dotnetOutput);
-
-                // AF: As far as I can tell, the host runtime version always corresponds to the latest version of the "Microsoft.NETCore.App" runtime (i.e. is not affected by global.json).
-
-                hostRuntime = discoveredRuntimes
-                    .Where(runtime => runtime.Name == WellKnownDotnetRuntimes.NetCore)
-                    .OrderByDescending(runtime => runtime.Version)
-                    .FirstOrDefault();
-
-                if (hostRuntime != null)
-                    logger.Verbose(".NET host runtime is v{RuntimeVersion:l} ({RuntimeName}).", hostRuntime.Version, hostRuntime.Name);
-                else
-                    logger.Error("Failed to discover any runtimes via 'dotnet --list-runtimes'.");
-            }
-
-            return new DotNetRuntimeInfo
-            {
-                Runtime = hostRuntime,
-                Sdk = targetSdk,
-            };
         }
 
         /// <summary>
@@ -159,7 +169,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
             // Output of "dotnet --version" is expected to be a single line containing a valid semantic version (SemVer).
             string rawVersion = dotnetVersionOutput.ReadToEnd().Trim();
             if (rawVersion.Length == 0)
-                throw new InvalidOperationException("The 'dotnet --version' command did not return any output.");
+                throw new DotnetDiscoveryException("The 'dotnet --version' command did not return any output.");
 
             if (!SemanticVersion.TryParse(rawVersion, out SemanticVersion parsedVersion))
                 throw new FormatException($"The 'dotnet --version' command did not return valid version information ('{rawVersion}' is not a valid semantic version).");
@@ -327,7 +337,10 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
 
                 var hostExitCode = (DotNetHostExitCode)dotnetHostProcess.ExitCode;
 
-                logger.Debug("{Command} terminated with exit code {ExitCode:X} ({ExitCodeName}).", command, (int)hostExitCode, hostExitCode);
+                if (Enum.IsDefined(hostExitCode))
+                    logger.Debug("{Command} terminated with exit code 0x{ExitCode:x} ({ExitCodeName}).", command, (int)hostExitCode, hostExitCode);
+                else
+                    logger.Debug("{Command} terminated with exit code 0x{ExitCode:x}.", command, (int)hostExitCode);
 
                 string stdOut;
                 lock (stdOutBuffer)
@@ -362,6 +375,70 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
     }
 
     /// <summary>
+    ///     Base class for exceptions raised by <see cref="DotnetInfo"/>.
+    /// </summary>
+    public abstract class DotnetInfoException
+        : Exception
+    {
+        /// <summary>
+        ///     Create a new <see cref="DotnetInfoException"/>.
+        /// </summary>
+        /// <param name="message">
+        ///     The exception message.
+        /// </param>
+        protected DotnetInfoException(string message)
+            : base(message)
+        {
+        }
+
+        /// <summary>
+        ///     Create a new <see cref="DotnetInfoException"/>.
+        /// </summary>
+        /// <param name="message">
+        ///     The exception message.
+        /// </param>
+        /// <param name="innerException">
+        ///     The exception that caused the <see cref="DotnetInfoException"/> to be raised.
+        /// </param>
+        protected DotnetInfoException(string message, Exception innerException)
+            : base(message, innerException)
+        {
+        }
+    }
+
+    /// <summary>
+    ///     Exception raised by <see cref="DotnetInfo"/> when it is unable to discover information about the .NET runtime or SDK.
+    /// </summary>
+    public class DotnetDiscoveryException
+        : DotnetInfoException
+    {
+        /// <summary>
+        ///     Create a new <see cref="DotnetDiscoveryException"/>.
+        /// </summary>
+        /// <param name="message">
+        ///     The exception message.
+        /// </param>
+        public DotnetDiscoveryException(string message)
+            : base(message)
+        {
+        }
+
+        /// <summary>
+        ///     Create a new <see cref="DotnetDiscoveryException"/>.
+        /// </summary>
+        /// <param name="message">
+        ///     The exception message.
+        /// </param>
+        /// <param name="innerException">
+        ///     The exception that caused the <see cref="DotnetDiscoveryException"/> to be raised.
+        /// </param>
+        public DotnetDiscoveryException(string message, Exception innerException)
+            : base(message, innerException)
+        {
+        }
+    }
+
+    /// <summary>
     ///     Information about a discovered version of the .NET SDK.
     /// </summary>
     /// <param name="Version">
@@ -375,7 +452,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         /// <summary>
         ///     Empty <see cref="DotnetRuntimeInfo"/>.
         /// </summary>
-        public static readonly DotnetSdkInfo Empty = new DotnetSdkInfo(null, null);
+        public static readonly DotnetSdkInfo Empty = new DotnetSdkInfo(Version: null, BaseDirectory: null);
     };
 
     /// <summary>
@@ -392,7 +469,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         /// <summary>
         ///     Empty <see cref="DotnetRuntimeInfo"/>.
         /// </summary>
-        public static readonly DotnetRuntimeInfo Empty = new DotnetRuntimeInfo(null, null);
+        public static readonly DotnetRuntimeInfo Empty = new DotnetRuntimeInfo(Name: null, Version: null);
     };
 
     /// <summary>
@@ -420,7 +497,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
     ///     Well-known process exit codes for the "dotnet" executable.
     /// </summary>
     /// <remarks>
-    ///     <seealso href="https://github.com/dotnet/runtime/blob/d123560a23078989f9563b83fa49a24802e88378/docs/design/features/host-error-codes.md"/>
+    ///     Derived from <seealso href="https://github.com/dotnet/runtime/blob/d123560a23078989f9563b83fa49a24802e88378/docs/design/features/host-error-codes.md"/>.
     /// </remarks>
     public enum DotNetHostExitCode
         : int
