@@ -37,19 +37,19 @@ namespace MSBuildProjectTools.LanguageServer.Tests
                 Log.Information("Runtime Directory = {RuntimeDirectory}", RuntimeEnvironment.GetRuntimeDirectory());
 
                 Environment.SetEnvironmentVariable("MSBUILD_PROJECT_TOOLS_DOTNET_HOST_DIAGNOSTICS", "1");
-                RuntimeInfo = DotnetInfo.GetCurrent(logger: Log);
+                CurrentDotnetInfo = DotnetInfo.GetCurrent(logger: Log);
                 Environment.SetEnvironmentVariable("MSBUILD_PROJECT_TOOLS_DOTNET_HOST_DIAGNOSTICS", null);
             }
             else
-                RuntimeInfo = DotnetInfo.GetCurrent();
+                CurrentDotnetInfo = DotnetInfo.GetCurrent();
 
-            Assert.NotNull(RuntimeInfo.BaseDirectory);
+            Assert.NotNull(CurrentDotnetInfo.BaseDirectory);
         }
 
         /// <summary>
         ///     Information about the current .NET runtime.
         /// </summary>
-        DotnetInfo RuntimeInfo { get; }
+        DotnetInfo CurrentDotnetInfo { get; }
 
         /// <summary>
         ///     Verify that the task scanner can retrieve task metadata from an assembly.
@@ -68,7 +68,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests
                 $"Task assembly '{taskAssemblyFile}' exists"
             );
 
-            MSBuildTaskAssemblyMetadata metadata = MSBuildTaskScanner.GetAssemblyTaskMetadata(taskAssemblyFile, RuntimeInfo.Sdk, Log);
+            MSBuildTaskAssemblyMetadata metadata = MSBuildTaskScanner.GetAssemblyTaskMetadata(taskAssemblyFile, CurrentDotnetInfo.Sdk, Log);
             Assert.NotNull(metadata);
 
             Assert.NotEmpty(metadata.Tasks);
@@ -91,7 +91,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests
             if (string.IsNullOrWhiteSpace(assemblyFileName))
                 throw new ArgumentException($"Argument cannot be null, empty, or entirely composed of whitespace: {nameof(assemblyFileName)}.", nameof(assemblyFileName));
 
-            return Path.Combine(RuntimeInfo.BaseDirectory,
+            return Path.Combine(CurrentDotnetInfo.BaseDirectory,
                 assemblyFileName.Replace('/', Path.DirectorySeparatorChar)
             );
         }
