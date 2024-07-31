@@ -507,22 +507,6 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         Success = 0,
 
         /// <summary>
-        ///     Initialization was successful, but another host context is already initialized, so the returned context is "secondary" (the requested context was otherwise fully compatible with the already initialized context).
-        /// </summary>
-        /// <remarks>
-        ///     Probably not used as an actual exit code; returned by <c>hostfxr_initialize_for_runtime_config</c> if it's called when the host is already initialized in the process.
-        /// </remarks>
-        Success_HostAlreadyInitialized = 0x00000001,
-
-        /// <summary>
-        ///     Initialization was successful, but another host context is already initialized and the requested context specified some runtime properties which are not the same (either in value or in presence) to the already initialized context.
-        /// </summary>
-        /// <remarks>
-        ///     Probably not used as an actual exit code; returned by <c>hostfxr_initialize_for_runtime_config</c> if it's called when the host is already initialized in the process.
-        /// </remarks>
-        Success_DifferentRuntimeProperties = 0x00000002,
-
-        /// <summary>
         ///     One of the specified arguments for the operation is invalid.
         /// </summary>
         InvalidArgFailure = unchecked((int)0x80008081),
@@ -560,36 +544,6 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         ///     For example the <c>hostfxr</c> may look at its location and try to deduce the location of the <c>shared</c> folder with the framework from it; it assumes the typical install layout on disk but if that doesn't work, then this error will be returned.
         /// </remarks>
         CoreHostCurHostFindFailure = unchecked((int)0x80008085),
-
-        /// <summary>
-        ///     The <c>coreclr</c> library could not be found.
-        /// </summary>
-        /// <remarks>
-        ///     The hosting layer (<c>hostpolicy</c>) looks for the <c>coreclr</c> library either next to the app itself (for self-contained) or in the root framework (for framework-dependent).
-        ///     This search can be done purely by looking at disk or more commonly by looking into the respective <c>.deps.json</c>. If the <c>coreclr</c> library is missing in <c>.deps.json</c> or it's there but doesn't exist on disk, then this error is returned.
-        /// </remarks>
-        CoreClrResolveFailure = unchecked((int)0x80008087),
-
-        /// <summary>
-        ///     The loaded <c>coreclr</c> library doesn't have one of the required entry points.
-        /// </summary>
-        CoreClrBindFailure = unchecked((int)0x80008088),
-
-        /// <summary>
-        ///     The call to <c>coreclr_initialize</c> failed.
-        /// </summary>
-        /// <remarks>
-        ///     The actual error returned by coreclr is reported in the error message.
-        /// </remarks>
-        CoreClrInitFailure = unchecked((int)0x80008089),
-
-        /// <summary>
-        ///     The call to <c>coreclr_execute_assembly</c> failed.
-        /// </summary>
-        /// <remarks>
-        ///     Note that this failure does not relate to the app's exit code; it occurs if <c>coreclr</c> failed to run the app itself.
-        /// </remarks>
-        CoreClrExeFailure = unchecked((int)0x8000808a),
 
         /// <summary>
         ///     Initialization of the <c>hostpolicy</c> dependency resolver failed.
@@ -643,14 +597,6 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         LibHostSdkFindFailure = unchecked((int)0x80008091),
 
         /// <summary>
-        ///     Arguments to <c>hostpolicy</c> are invalid.
-        /// </summary>
-        /// <remarks>
-        ///     This is used in three unrelated places in the <c>hostpolicy</c> but, in all cases, it means that the component calling <c>hostpolicy</c> did something wrong
-        /// </remarks>
-        LibHostInvalidArgs = unchecked((int)0x80008092),
-
-        /// <summary>
         ///     The .runtimeconfig.json file is invalid.
         /// </summary>
         /// <remarks>
@@ -671,28 +617,6 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         InvalidConfigFile = unchecked((int)0x80008093),
 
         /// <summary>
-        ///     Used internally when the command line for <c>dotnet.exe</c> doesn't contain path to the application to run.
-        /// </summary>
-        /// <remarks>
-        ///     In this scenario, the command line is considered to be a CLI/SDK command. This error code should never be returned to an external caller.
-        /// </remarks>
-        AppArgNotRunnable = unchecked((int)0x80008094),
-
-        /// <summary>
-        ///     <c>apphost</c> failed to determine which application to run.
-        /// </summary>
-        /// <remarks>
-        ///     The reasons for this failure can include:
-        ///     
-        ///     <list type="bullet">
-        ///         <item>The <c>apphost</c> binary has not been imprinted with the path to the app to run (so freshly built <c>apphost.exe</c> from the branch will fail to run like this)</item>
-        ///         <item>The <c>apphost</c> is a bundle (single-file exe) and it failed to extract correctly</item>
-        ///         <item>The <c>apphost</c> binary has been imprinted with invalid .NET search options</item>
-        ///     </list>
-        /// </remarks>
-        AppHostExeNotBoundFailure = unchecked((int)0x80008095),
-
-        /// <summary>
         ///     It was not possible to find a compatible framework version.
         /// </summary>
         /// <remarks>
@@ -707,36 +631,6 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         ///     Returned by <c>hostfxr_get_native_search_directories</c> if the <c>hostpolicy</c> could not calculate the <c>NATIVE_DLL_SEARCH_DIRECTORIES</c>.
         /// </summary>
         HostApiFailed = unchecked((int)0x80008097),
-
-        /// <summary>
-        ///     Returned when the buffer specified to an API is not big enough to fit the requested value. 
-        /// </summary>
-        /// <remarks>
-        ///     Can be returned from:
-        ///     
-        ///     <list type="bullet">
-        ///         <item><c>hostfxr_get_runtime_properties</c></item>
-        ///         <item><c>hostfxr_get_native_search_directories</c></item>
-        ///         <item><c>get_hostfxr_path</c></item>
-        ///     </list>
-        /// </remarks>
-        HostApiBufferTooSmall = unchecked((int)0x80008098),
-
-        /// <summary>
-        ///     Returned by <c>hostpolicy</c> if the corehost_main_with_output_buffer is called with unsupported host command.
-        /// </summary>
-        /// <remarks>
-        ///     This error code means there is incompatibility between the <c>hostfxr</c> and <c>hostpolicy</c>. In reality, this should pretty much never happen.
-        /// </remarks>
-        LibHostUnknownCommand = unchecked((int)0x80008099),
-
-        /// <summary>
-        ///     Returned by <c>apphost</c> if the imprinted application path doesn't exist.
-        /// </summary>
-        /// <remarks>
-        ///     This would happen if the app is built with an executable (the apphost) and the main app.dll is missing.
-        /// </remarks>
-        LibHostAppRootFindFailure = unchecked((int)0x8000809a),
 
         /// <summary>
         ///     Returned from <c>hostfxr_resolve_sdk2</c> when it fails to find a matching SDK.
@@ -758,44 +652,6 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         FrameworkCompatFailure = unchecked((int)0x8000809c),
 
         /// <summary>
-        ///     Error used internally if the processing of framework references from .runtimeconfig.json reached a point where it needs to reprocess another already processed framework reference.
-        /// </summary>
-        /// <remarks>
-        ///     If this error is returned to the external caller, it would mean there's a bug in the framework resolution algorithm.
-        /// </remarks>
-        FrameworkCompatRetry = unchecked((int)0x8000809d),
-
-        /// <summary>
-        ///     Error reading the bundle footer metadata from a single-file <c>apphost</c>.
-        /// </summary>
-        /// <remarks>
-        ///     This indicates a corrupted <c>apphost</c>.
-        /// </remarks>
-        AppHostExeNotBundle = unchecked((int)0x8000809e),
-
-        /// <summary>
-        ///     Error extracting single-file apphost bundle.
-        /// </summary>
-        /// <remarks>
-        ///     This is used in case of any error related to the bundle itself. Typically would mean a corrupted bundle.
-        /// </remarks>
-        BundleExtractionFailure = unchecked((int)0x8000809f),
-
-        /// <summary>
-        ///     Error reading or writing files during single-file apphost bundle extraction.
-        /// </summary>
-        BundleExtractionIOError = unchecked((int)0x800080a0),
-
-        /// <summary>
-        ///     The .runtimeconfig.json specified by the app contains a runtime property which is also produced by the hosting layer.
-        /// </summary>
-        /// <remarks>
-        ///     For example if the .runtimeconfig.json would specify a property TRUSTED_PLATFORM_ROOTS, this error code would be returned.
-        ///     It is not allowed to specify properties which are otherwise populated by the hosting layer (<c>hostpolicy</c>) as there is not good way to resolve such conflicts.
-        /// </remarks>
-        LibHostDuplicateProperty = unchecked((int)0x800080a1),
-
-        /// <summary>
         ///     Feature which requires certain version of the hosting layer binaries was used on a version which doesn't support it.
         /// </summary>
         /// <remarks>
@@ -804,32 +660,12 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         HostApiUnsupportedVersion = unchecked((int)0x800080a2),
         
         /// <summary>
-        ///     Error code returned by the hosting APIs in <c>hostfxr</c> if the current state is incompatible with the requested operation. 
-        /// </summary>
-        HostInvalidState = unchecked((int)0x800080a3),
-
-        /// <summary>
-        ///     A property requested by <c>hostfxr_get_runtime_property_value</c> doesn't exist.
-        /// </summary>
-        HostPropertyNotFound = unchecked((int)0x800080a4),
-
-        /// <summary>
         ///     Error returned by <c>hostfxr_initialize_for_runtime_config</c> if the component being initialized requires framework which is not available or incompatible with the frameworks loaded by the runtime already in the process.
         /// </summary>
         /// <remarks>
         ///     For example trying to load a component which requires 3.0 into a process which is already running a 2.0 runtime.
         /// </remarks>
         CoreHostIncompatibleConfig = unchecked((int)0x800080a5),
-
-        /// <summary>
-        ///     Error returned by <c>hostfxr_get_runtime_delegate</c> when <c>hostfxr</c> doesn't currently support requesting the given delegate type using the given context.
-        /// </summary>
-        HostApiUnsupportedScenario = unchecked((int)0x800080a6),
-
-        /// <summary>
-        ///     Error returned by <c>hostfxr_get_runtime_delegate</c> when managed feature support for native host is disabled.
-        /// </summary>
-        HostFeatureDisabled = unchecked((int)0x800080a7),
     }
 
     /// <summary>
