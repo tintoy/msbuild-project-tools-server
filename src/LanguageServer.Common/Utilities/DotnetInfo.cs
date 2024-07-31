@@ -337,7 +337,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
 
                 var hostExitCode = (DotNetHostExitCode)dotnetHostProcess.ExitCode;
 
-                if (Enum.IsDefined(hostExitCode))
+                if (hostExitCode.IsWellKnownExitCode())
                     logger.Debug("{Command} terminated with exit code 0x{ExitCode:x} ({ExitCodeName}).", command, (int)hostExitCode, hostExitCode);
                 else
                     logger.Debug("{Command} terminated with exit code 0x{ExitCode:x}.", command, (int)hostExitCode);
@@ -353,7 +353,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
                     stdErr = stdErrBuffer.ToString();
                 }
 
-                if (dotnetHostProcess.ExitCode != 0 || logger.IsEnabled(Serilog.Events.LogEventLevel.Verbose))
+                if (!hostExitCode.IsSuccess() || logger.IsEnabled(Serilog.Events.LogEventLevel.Verbose))
                 {
                     if (!string.IsNullOrWhiteSpace(stdOut))
                         logger.Debug("{Command} returned the following text on STDOUT:\n\n{DotNetOutput:l}", command, stdOut);
@@ -500,7 +500,6 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
     ///     Derived from <seealso href="https://github.com/dotnet/runtime/blob/d123560a23078989f9563b83fa49a24802e88378/docs/design/features/host-error-codes.md"/>.
     /// </remarks>
     public enum DotNetHostExitCode
-        : int
     {
         /// <summary>
         ///     Operation was successful.
@@ -831,5 +830,33 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         ///     Error returned by <c>hostfxr_get_runtime_delegate</c> when managed feature support for native host is disabled.
         /// </summary>
         HostFeatureDisabled = unchecked((int)0x800080a7),
+    }
+
+    /// <summary>
+    ///     Extension methods for <see cref="DotnetInfo"/> and related types.
+    /// </summary>
+    public static class DotnetInfoExtensions
+    {
+        /// <summary>
+        ///     Determine whether a .NET host exit code is well-known (i.e. a defined member of <see cref="DotNetHostExitCode"/>).
+        /// </summary>
+        /// <param name="hostExitCode">
+        ///     The .NET host exit code.
+        /// </param>
+        /// <returns>
+        ///     <c>true</c>, if the exit code represents a well-known host exit code; otherwise, <c>false</c>.
+        /// </returns>
+        public static bool IsWellKnownExitCode(this DotNetHostExitCode hostExitCode) => Enum.IsDefined(hostExitCode);
+
+        /// <summary>
+        ///     Determine whether a .NET host exit code represents success.
+        /// </summary>
+        /// <param name="hostExitCode">
+        ///     The .NET host exit code.
+        /// </param>
+        /// <returns>
+        ///     <c>true</c>, if the exit code represents success; otherwise, <c>false</c>.
+        /// </returns>
+        public static bool IsSuccess(this DotNetHostExitCode hostExitCode) => hostExitCode >= DotNetHostExitCode.Success;
     }
 }
