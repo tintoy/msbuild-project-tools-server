@@ -752,7 +752,7 @@ namespace MSBuildProjectTools.LanguageServer.Documents
             if (!HasMSBuildProject)
                 throw new InvalidOperationException($"MSBuild project '{ProjectFile.FullName}' is not loaded.");
 
-            var currentRuntime = DotNetRuntimeInfo.GetCurrent();
+            var currentRuntime = DotnetInfo.GetCurrent();
 
             var taskAssemblyFiles = new List<string>
             {
