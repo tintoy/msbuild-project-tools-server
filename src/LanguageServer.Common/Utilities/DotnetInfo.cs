@@ -380,26 +380,13 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
     public abstract class DotnetInfoException
         : Exception
     {
-        /// <summary>
-        ///     Create a new <see cref="DotnetInfoException"/>.
-        /// </summary>
-        /// <param name="message">
-        ///     The exception message.
-        /// </param>
+        /// <inheritdoc cref="Exception(string)" />
         protected DotnetInfoException(string message)
             : base(message)
         {
         }
 
-        /// <summary>
-        ///     Create a new <see cref="DotnetInfoException"/>.
-        /// </summary>
-        /// <param name="message">
-        ///     The exception message.
-        /// </param>
-        /// <param name="innerException">
-        ///     The exception that caused the <see cref="DotnetInfoException"/> to be raised.
-        /// </param>
+        /// <inheritdoc cref="Exception(string, Exception)" />
         protected DotnetInfoException(string message, Exception innerException)
             : base(message, innerException)
         {
@@ -412,26 +399,13 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
     public class DotnetDiscoveryException
         : DotnetInfoException
     {
-        /// <summary>
-        ///     Create a new <see cref="DotnetDiscoveryException"/>.
-        /// </summary>
-        /// <param name="message">
-        ///     The exception message.
-        /// </param>
+        /// <inheritdoc cref="Exception(string)" />
         public DotnetDiscoveryException(string message)
             : base(message)
         {
         }
 
-        /// <summary>
-        ///     Create a new <see cref="DotnetDiscoveryException"/>.
-        /// </summary>
-        /// <param name="message">
-        ///     The exception message.
-        /// </param>
-        /// <param name="innerException">
-        ///     The exception that caused the <see cref="DotnetDiscoveryException"/> to be raised.
-        /// </param>
+        /// <inheritdoc cref="Exception(string, Exception)" />
         public DotnetDiscoveryException(string message, Exception innerException)
             : base(message, innerException)
         {
@@ -498,6 +472,8 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
     /// </summary>
     /// <remarks>
     ///     Derived from <seealso href="https://github.com/dotnet/runtime/blob/d123560a23078989f9563b83fa49a24802e88378/docs/design/features/host-error-codes.md"/>.
+    ///     
+    ///     Note that these exit codes are basically HRESULTs.
     /// </remarks>
     public enum DotNetHostExitCode
     {
@@ -509,7 +485,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         /// <summary>
         ///     One of the specified arguments for the operation is invalid.
         /// </summary>
-        InvalidArgFailure = unchecked((int)0x80008081),
+        InvalidArgFailure = -2147450751,
 
         /// <summary>
         ///     There was a failure loading a dependent library.
@@ -520,7 +496,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         ///     
         ///      Probably means corrupted or incomplete installation.
         /// </remarks>
-        CoreHostLibLoadFailure = unchecked((int)0x80008082),
+        CoreHostLibLoadFailure = -2147450750,
 
         /// <summary>
         ///     One of the dependent libraries is missing.
@@ -530,12 +506,12 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         ///     
         ///     Probably means corrupted or incomplete installation.
         /// </remarks>
-        CoreHostLibMissingFailure = unchecked((int)0x80008083),
+        CoreHostLibMissingFailure = -2147450749,
 
         /// <summary>
         ///     One of the dependent libraries is missing a required entry point.
         /// </summary>
-        CoreHostEntryPointFailure = unchecked((int)0x80008084),
+        CoreHostEntryPointFailure = -2147450748,
 
         /// <summary>
         ///     The hosting component is trying to use the path to the current module (the hosting component itself) and, from it, deduce the location of the installation, but either the location of the current module could not be determined (some weird OS call failure) or the location is not in the right place relative to other expected components.
@@ -543,7 +519,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         /// <remarks>
         ///     For example the <c>hostfxr</c> may look at its location and try to deduce the location of the <c>shared</c> folder with the framework from it; it assumes the typical install layout on disk but if that doesn't work, then this error will be returned.
         /// </remarks>
-        CoreHostCurHostFindFailure = unchecked((int)0x80008085),
+        CoreHostCurHostFindFailure = -2147450747,
 
         /// <summary>
         ///     Initialization of the <c>hostpolicy</c> dependency resolver failed.
@@ -555,7 +531,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         ///         <item>One of the frameworks or the app is missing a required <c>.deps.json</c> file.</item>
         ///     </list>
         /// </remarks>
-        ResolverInitFailure = unchecked((int)0x8000808b),
+        ResolverInitFailure = -2147450741,
 
         /// <summary>
         ///     Resolution of dependencies in <c>hostpolicy</c> failed.
@@ -563,7 +539,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         /// <remarks>
         ///     This can have several different causes but, in general, it means that one of the processed <c>.deps.json</c> contains an entry for a file which could not found, or its resolution failed for some other reason (conflict for example).
         /// </remarks>
-        ResolverResolveFailure = unchecked((int)0x8000808c),
+        ResolverResolveFailure = -2147450740,
 
         /// <summary>
         ///     Failure to determine the location of the current executable.
@@ -571,7 +547,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         /// <remarks>
         ///     The hosting layer uses the current executable path to deduce the install location (in some cases). If that path can't be obtained (OS call fails, or the returned path doesn't exist), then this error is returned.
         /// </remarks>
-        LibHostCurExeFindFailure = unchecked((int)0x8000808d),
+        LibHostCurExeFindFailure = -2147450739,
 
         /// <summary>
         ///     Initialization of the <c>hostpolicy</c> library failed.
@@ -583,7 +559,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         ///     This would in general mean incompatibility between the <c>hostfxr</c> and <c>hostpolicy</c>, which should really only happen if somehow a newer <c>hostpolicy</c> is used by older <c>hostfxr</c>.
         ///     Typically, that indicates a corrupted installation.
         /// </remarks>
-        LibHostInitFailure = unchecked((int)0x8000808e),
+        LibHostInitFailure = -2147450738,
 
         /// <summary>
         ///     Failure to find the requested SDK.
@@ -594,7 +570,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         ///     The search is based on deduced install location and on the requested version (potentially from a <c>global.json</c> file).
         ///     If either no matching SDK version can be found, or that version exists, but it's missing the dotnet.dll file, this error code is returned.
         /// </remarks>
-        LibHostSdkFindFailure = unchecked((int)0x80008091),
+        LibHostSdkFindFailure = -2147450735,
 
         /// <summary>
         ///     The .runtimeconfig.json file is invalid.
@@ -614,7 +590,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         ///     
         ///     It is also used when there is a problem reading the CLSID map file in comhost.
         /// </remarks>
-        InvalidConfigFile = unchecked((int)0x80008093),
+        InvalidConfigFile = -2147450733,
 
         /// <summary>
         ///     It was not possible to find a compatible framework version.
@@ -625,12 +601,12 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         ///     
         ///     Typically, it would be returned if, for example, a 3.0 app is trying to run on a machine which has no 3.0 installed or a 32bit 3.0 app is running on a machine which has 3.0 installed but only for 64bit.
         /// </remarks>
-        FrameworkMissingFailure = unchecked((int)0x80008096),
+        FrameworkMissingFailure = -2147450730,
 
         /// <summary>
         ///     Returned by <c>hostfxr_get_native_search_directories</c> if the <c>hostpolicy</c> could not calculate the <c>NATIVE_DLL_SEARCH_DIRECTORIES</c>.
         /// </summary>
-        HostApiFailed = unchecked((int)0x80008097),
+        HostApiFailed = -2147450729,
 
         /// <summary>
         ///     Returned from <c>hostfxr_resolve_sdk2</c> when it fails to find a matching SDK.
@@ -638,7 +614,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         /// <remarks>
         ///     Similar to <c>LibHostSdkFindFailure</c>, but only used in the <c>hostfxr_resolve_sdk2</c>.
         /// </remarks>
-        SdkResolverResolveFailure = unchecked((int)0x8000809b),
+        SdkResolverResolveFailure = -2147450725,
 
         /// <summary>
         ///     During processing of .runtimeconfig.json there were two framework references to the same framework which were not compatible.
@@ -649,7 +625,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         ///     In such case the Microsoft.AspNet.App has .runtimeconfig.json which also references Microsoft.NETCore.App but it only allows versions 2.0 up to 2.9 (via roll forward options).
         ///     So the version 3.0 requested by the app is incompatible.
         /// </remarks>
-        FrameworkCompatFailure = unchecked((int)0x8000809c),
+        FrameworkCompatFailure = -2147450724,
 
         /// <summary>
         ///     Feature which requires certain version of the hosting layer binaries was used on a version which doesn't support it.
@@ -657,15 +633,15 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         /// <remarks>
         ///     For example if a COM component specified to run on 2.0 Microsoft.NETCore.App - as that contains older version of <c>hostpolicy</c> which doesn't support the necessary features to provide COM services.
         /// </remarks>
-        HostApiUnsupportedVersion = unchecked((int)0x800080a2),
-        
+        HostApiUnsupportedVersion = -2147450718,
+
         /// <summary>
         ///     Error returned by <c>hostfxr_initialize_for_runtime_config</c> if the component being initialized requires framework which is not available or incompatible with the frameworks loaded by the runtime already in the process.
         /// </summary>
         /// <remarks>
         ///     For example trying to load a component which requires 3.0 into a process which is already running a 2.0 runtime.
         /// </remarks>
-        CoreHostIncompatibleConfig = unchecked((int)0x800080a5),
+        CoreHostIncompatibleConfig = -2147450715,
     }
 
     /// <summary>
