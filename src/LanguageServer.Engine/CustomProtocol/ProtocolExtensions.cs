@@ -123,7 +123,6 @@ namespace MSBuildProjectTools.LanguageServer.CustomProtocol
                 throw new ArgumentNullException(nameof(settingsJson));
 
             // Temporary workaround - JsonSerializer.Populate reuses existing HashSet.
-            configuration.Language.CompletionsFromProject.Clear();
             configuration.EnableExperimentalFeatures.Clear();
 
             using JsonReader reader = settingsJson.CreateReader();

@@ -197,14 +197,11 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
                 Log.Verbose("===========================");
                 if (projectDocument.HasMSBuildProject)
                 {
-                    if (Workspace.Configuration.Language.CompletionsFromProject.Contains(CompletionSource.Task))
-                    {
-                        Log.Verbose("Scanning task definitions for project {ProjectName}...", projectDocument.ProjectFile.Name);
-                        List<MSBuildTaskAssemblyMetadata> taskAssemblies = projectDocument.GetMSBuildProjectTaskAssemblies();
-                        Log.Verbose("Scan complete for task definitions of project {ProjectName} ({AssemblyCount} assemblies scanned).", projectDocument.ProjectFile.Name, taskAssemblies.Count);
+                    Log.Verbose("Scanning task definitions for project {ProjectName}...", projectDocument.ProjectFile.Name);
+                    List<MSBuildTaskAssemblyMetadata> taskAssemblies = projectDocument.GetMSBuildProjectTaskAssemblies();
+                    Log.Verbose("Scan complete for task definitions of project {ProjectName} ({AssemblyCount} assemblies scanned).", projectDocument.ProjectFile.Name, taskAssemblies.Count);
 
-                        Log.Verbose("===========================");
-                    }
+                    Log.Verbose("===========================");
 
                     if (!projectDocument.IsMSBuildProjectCached)
                     {

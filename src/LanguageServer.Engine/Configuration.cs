@@ -154,12 +154,6 @@ namespace MSBuildProjectTools.LanguageServer
         /// </summary>
         [JsonProperty("disable", ObjectCreationHandling = ObjectCreationHandling.Reuse)]
         public DisabledFeatureConfiguration DisableFeature { get; } = new DisabledFeatureConfiguration();
-
-        /// <summary>
-        ///     Types of object from the current project to include when offering completions.
-        /// </summary>
-        [JsonProperty("completionsFromProject", ObjectCreationHandling = ObjectCreationHandling.Reuse)]
-        public HashSet<CompletionSource> CompletionsFromProject { get; } = new HashSet<CompletionSource>();
     }
 
     /// <summary>
