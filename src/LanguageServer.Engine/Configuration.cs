@@ -228,35 +228,4 @@ namespace MSBuildProjectTools.LanguageServer
         [JsonProperty("newestVersionsFirst")]
         public bool ShowNewestVersionsFirst { get; set; } = true;
     }
-
-    /// <summary>
-    ///     Represents a data-source for completion.
-    /// </summary>
-    public enum CompletionSource
-    {
-        /// <summary>
-        ///     Item types.
-        /// </summary>
-        ItemType,
-
-        /// <summary>
-        ///     Item metadata names.
-        /// </summary>
-        ItemMetadata,
-
-        /// <summary>
-        ///     Property names.
-        /// </summary>
-        Property,
-
-        /// <summary>
-        ///     Target names.
-        /// </summary>
-        Target,
-
-        /// <summary>
-        ///     Task metadata (names, parameters, etc).
-        /// </summary>
-        Task
-    }
 }
