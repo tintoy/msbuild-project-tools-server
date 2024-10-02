@@ -135,10 +135,6 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
             if (!projectDocument.HasMSBuildProject)
                 yield break; // Without a valid MSBuild project (even a cached one will do), we can't inspect existing MSBuild properties.
 
-
-            if (!projectDocument.Workspace.Configuration.Language.CompletionsFromProject.Contains(CompletionSource.ItemType))
-                yield break;
-
             int otherItemGroupPriority = Priority + 10;
 
             string[] otherItemTypes =
