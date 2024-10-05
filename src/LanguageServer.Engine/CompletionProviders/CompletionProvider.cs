@@ -94,13 +94,18 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
                 throw new ArgumentNullException(nameof(projectDocument));
 
             // Replace any characters that were typed to trigger the completion.
-            if (triggerCharacters != null)
+            if (!String.IsNullOrEmpty(triggerCharacters))
             {
-                targetRange = projectDocument.XmlPositions.ExtendLeft(targetRange, byCharCount: triggerCharacters.Length);
+                // The last character typed is implicitly part of the current selection, if it triggered completion.
+                int extendSelectionByCharCount = triggerCharacters.Length - 1;
+                if (extendSelectionByCharCount > 0)
+                {
+                    targetRange = projectDocument.XmlPositions.ExtendLeft(targetRange, extendSelectionByCharCount);
 
-                Log.Verbose("Completion was triggered by typing one or more characters; target range will be extended by {TriggerCharacterCount} characters toward start of document (now: {TargetRange}).", triggerCharacters.Length, targetRange);
+                    Log.Verbose("Completion was triggered by typing one or more characters; target range will be extended by {TriggerCharacterCount} characters toward start of document (now: {TargetRange}).", triggerCharacters.Length, targetRange);
 
-                return true;
+                    return true;
+                }
             }
 
             return false;
