@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <AssemblyName>MSBuildProjectTools.ProjectServer.Common</AssemblyName>
+    <RootNamespace>MSBuildProjectTools.ProjectServer</RootNamespace>
+    
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+</Project>

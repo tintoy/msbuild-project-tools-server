@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>MSBuildProjectTools.ProjectServer.Protocol</AssemblyName>
+    <RootNamespace>MSBuildProjectTools.ProjectServer.Protocol</RootNamespace>
+
+    <Nullable>enable</Nullable>
+    <NoWarn>$(NoWarn);CS8981</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Protobuf Include="Contracts\*.proto" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Grpc.AspNetCore" Version="2.47.0" />
+  </ItemGroup>
+</Project>
