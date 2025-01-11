@@ -3,8 +3,14 @@
   <PropertyGroup>
     <AssemblyName>MSBuildProjectTools.ProjectServer.Common</AssemblyName>
     <RootNamespace>MSBuildProjectTools.ProjectServer</RootNamespace>
-    
+
     <Nullable>enable</Nullable>
   </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Build.Locator" Version="1.7.1" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="8.0.0" />
+    <PackageReference Include="NuGet.Versioning" Version="6.0.6" />
+  </ItemGroup>
 
 </Project>
