@@ -6,8 +6,8 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Build" Version="16.7.0" ExcludeAssets="runtime" />
-    <PackageReference Include="Microsoft.Build.Locator" Version="1.7.1" />
-    <PackageReference Include="NuGet.Protocol" Version="6.0.6" />
-    <PackageReference Include="Serilog" Version="4.0.1" />
+    <PackageReference Include="Microsoft.Build.Locator" Version="$(PackageVersion_MSBuildLocator)" />
+    <PackageReference Include="NuGet.Protocol" Version="$(PackageVersion_NuGet)" />
+    <PackageReference Include="Serilog" Version="$(PackageVersion_Serilog)" />
   </ItemGroup>
 </Project>

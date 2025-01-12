@@ -1,16 +1,21 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <AssemblyName>MSBuildProjectTools.ProjectServer.Common</AssemblyName>
-    <RootNamespace>MSBuildProjectTools.ProjectServer</RootNamespace>
+    <AssemblyName>MSBuildProjectTools.ProjectServer.Engine</AssemblyName>
+    <RootNamespace>MSBuildProjectTools.ProjectServer.Engine</RootNamespace>
 
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.Build" Version="$(PackageVersion_MSBuild)" ExcludeAssets="runtime" />
     <PackageReference Include="Microsoft.Build.Locator" Version="$(PackageVersion_MSBuildLocator)" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="$(PackageVersion_MSExtensions)" />
     <PackageReference Include="NuGet.Versioning" Version="$(PackageVersion_NuGet)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../ProjectServer.Common/ProjectServer.Common.csproj" />
   </ItemGroup>
 
 </Project>

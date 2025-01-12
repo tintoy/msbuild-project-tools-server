@@ -2,4 +2,25 @@
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
   </PropertyGroup>
+
+  <!-- Common package versions -->
+  <PropertyGroup>
+    <!-- Microsoft.Build -->
+    <PackageVersion_MSBuild>17.11.4</PackageVersion_MSBuild>
+
+    <!-- Microsoft.Build.Locator -->
+    <PackageVersion_MSBuildLocator>1.7.8</PackageVersion_MSBuildLocator>
+
+    <!-- NuGet.* -->
+    <PackageVersion_NuGet>6.0.6</PackageVersion_NuGet>
+    
+    <!-- Serilog -->
+    <PackageVersion_Serilog>4.0.1</PackageVersion_Serilog>
+    
+    <!-- System.Reactive.* -->
+    <PackageVersion_Rx>3.1.1</PackageVersion_Rx>
+    
+    <!-- Microsoft.Extensions.*  -->
+    <PackageVersion_MSExtensions>8.0.0</PackageVersion_MSExtensions>
+  </PropertyGroup>
 </Project>

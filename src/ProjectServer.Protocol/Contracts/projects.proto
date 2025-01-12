@@ -24,7 +24,7 @@ message HostInfoResponse {
     string msbuildVersion = 4;
 }
 
-// Request: get a list of projects loaded by the project server.
+// Request: get a list all of projects loaded by the project server.
 message ListProjectsRequest {
     // No fields.
 }

@@ -16,11 +16,6 @@ namespace MSBuildProjectTools.ProjectServer.Utilities
     public partial class DotnetInfo
     {
         /// <summary>
-        ///     A dummy logger used when no logger is supplied.
-        /// </summary>
-        static ILogger DummyLogger => LoggerFactory.Create(logging => logging.ClearProviders()).CreateLogger<DotnetInfo>();
-
-        /// <summary>
         ///     The regular expression used to parse SDK information from the output of "dotnet --list-sdks".
         /// </summary>
         [GeneratedRegex(@"(?<SdkVersion>.*) \[(?<SdkBaseDirectory>.*)\]")]
@@ -38,24 +33,9 @@ namespace MSBuildProjectTools.ProjectServer.Utilities
         public DotnetRuntimeInfo Runtime { get; set; } = DotnetRuntimeInfo.Empty;
 
         /// <summary>
-        ///     The .NET runtime (host) version.
-        /// </summary>
-        public string? RuntimeVersion => Runtime.GetVersionString();
-
-        /// <summary>
         ///     Information, if known, about the current .NET SDK.
         /// </summary>
         public DotnetSdkInfo Sdk { get; set; } = DotnetSdkInfo.Empty;
-
-        /// <summary>
-        ///     The .NET SDK version.
-        /// </summary>
-        public string? SdkVersion => Sdk.GetVersionString();
-
-        /// <summary>
-        ///     The .NET SDK base directory.
-        /// </summary>
-        public string? BaseDirectory => Sdk.HasBaseDirectory ? Sdk.BaseDirectory : null;
 
         /// <summary>
         ///     Create a new <see cref="DotnetInfo"/>.
@@ -82,7 +62,7 @@ namespace MSBuildProjectTools.ProjectServer.Utilities
         public static DotnetInfo GetCurrent(string? baseDirectory = null, bool enableDotnetHostDiagnostics = false, ILogger? logger = null)
         {
             baseDirectory ??= Directory.GetCurrentDirectory();
-            logger ??= DummyLogger;
+            logger ??= LogHelper.CreateDummyLogger<DotnetInfo>();
 
             SemanticVersion sdkVersion;
 

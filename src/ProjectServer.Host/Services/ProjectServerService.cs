@@ -1,6 +1,5 @@
 using Grpc.Core;
 using Microsoft.Extensions.Logging;
-using MSBuildProjectTools.ProjectServer.Protocol;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
@@ -8,12 +7,24 @@ using PSP = MSBuildProjectTools.ProjectServer.Protocol;
 
 namespace ProjectServer.Host.Services
 {
+    /// <summary>
+    ///     gRPC service endpoint for the project server protocol.
+    /// </summary>
     public class ProjectServerService
         : PSP.ProjectServer.ProjectServerBase
 
     {
+        /// <summary>
+        ///     The logger for <see cref="ProjectServerService"/>.
+        /// </summary>
         readonly ILogger<ProjectServerService> _logger;
 
+        /// <summary>
+        ///     Create a new <see cref="ProjectServerService"/>.
+        /// </summary>
+        /// <param name="logger">
+        ///     The logger for <see cref="ProjectServerService"/>.
+        /// </param>
         public ProjectServerService(ILogger<ProjectServerService> logger)
         {
             if (logger == null)
@@ -22,13 +33,25 @@ namespace ProjectServer.Host.Services
             _logger = logger;
         }
 
-        public override async Task<HostInfoResponse> GetHostInfo(HostInfoRequest request, ServerCallContext context)
+        /// <summary>
+        ///     Get information about the project server and its target runtime/SDK/MSBuild version.
+        /// </summary>
+        /// <param name="request">
+        ///     The current request.
+        /// </param>
+        /// <param name="context">
+        ///     Contextual information about the current request.
+        /// </param>
+        /// <returns>
+        ///     The response.
+        /// </returns>
+        public override async Task<PSP.HostInfoResponse> GetHostInfo(PSP.HostInfoRequest request, ServerCallContext context)
         {
             await Task.Yield();
 
             context.CancellationToken.ThrowIfCancellationRequested();
 
-            return new HostInfoResponse
+            return new PSP.HostInfoResponse
             {
                 ProtocolVersion = 1,
                 RuntimeVersion = RuntimeEnvironment.GetSystemVersion(),
@@ -37,28 +60,40 @@ namespace ProjectServer.Host.Services
             };
         }
 
-        public override async Task<ListProjectsResponse> ListProjects(ListProjectsRequest request, ServerCallContext context)
+        /// <summary>
+        ///     Get a list all of projects loaded by the project server.
+        /// </summary>
+        /// <param name="request">
+        ///     The current request.
+        /// </param>
+        /// <param name="context">
+        ///     Contextual information about the current request.
+        /// </param>
+        /// <returns>
+        ///     The response.
+        /// </returns>
+        public override async Task<PSP.ListProjectsResponse> ListProjects(PSP.ListProjectsRequest request, ServerCallContext context)
         {
             await Task.Yield();
             
             context.CancellationToken.ThrowIfCancellationRequested();
 
-            return new ListProjectsResponse
+            return new PSP.ListProjectsResponse
             {
                 // TODO: Get from runtime state.
                 Projects =
                 {
-                    new ProjectMetadata
+                    new PSP.ProjectMetadata
                     {
                         Name = "Bar",
                         Location = "C:\\Foo\\Bar\\Bar.csproj",
-                        Status = ProjectStatus.Valid,
+                        Status = PSP.ProjectStatus.Valid,
                     },
-                    new ProjectMetadata
+                    new PSP.ProjectMetadata
                     {
                         Name = "Baz",
                         Location = "C:\\Foo\\Baz\\Baz.csproj",
-                        Status = ProjectStatus.Invalid,
+                        Status = PSP.ProjectStatus.Invalid,
                     },
                 }
             };
