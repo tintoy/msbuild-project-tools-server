@@ -4,6 +4,7 @@ using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
 using PSP = MSBuildProjectTools.ProjectServer.Protocol;
+using PSC = MSBuildProjectTools.ProjectServer.Protocol.Contracts;
 
 namespace ProjectServer.Host.Services
 {
@@ -45,13 +46,13 @@ namespace ProjectServer.Host.Services
         /// <returns>
         ///     The response.
         /// </returns>
-        public override async Task<PSP.HostInfoResponse> GetHostInfo(PSP.HostInfoRequest request, ServerCallContext context)
+        public override async Task<PSC.HostInfoResponse> GetHostInfo(PSC.HostInfoRequest request, ServerCallContext context)
         {
             await Task.Yield();
 
             context.CancellationToken.ThrowIfCancellationRequested();
 
-            return new PSP.HostInfoResponse
+            return new PSC.HostInfoResponse
             {
                 ProtocolVersion = 1,
                 RuntimeVersion = RuntimeEnvironment.GetSystemVersion(),
@@ -72,28 +73,28 @@ namespace ProjectServer.Host.Services
         /// <returns>
         ///     The response.
         /// </returns>
-        public override async Task<PSP.ListProjectsResponse> ListProjects(PSP.ListProjectsRequest request, ServerCallContext context)
+        public override async Task<PSC.ListProjectsResponse> ListProjects(PSC.ListProjectsRequest request, ServerCallContext context)
         {
             await Task.Yield();
             
             context.CancellationToken.ThrowIfCancellationRequested();
 
-            return new PSP.ListProjectsResponse
+            return new PSC.ListProjectsResponse
             {
                 // TODO: Get from runtime state.
                 Projects =
                 {
-                    new PSP.ProjectMetadata
+                    new PSC.ProjectMetadata
                     {
                         Name = "Bar",
                         Location = "C:\\Foo\\Bar\\Bar.csproj",
-                        Status = PSP.ProjectStatus.Valid,
+                        Status = PSC.ProjectStatus.Valid,
                     },
-                    new PSP.ProjectMetadata
+                    new PSC.ProjectMetadata
                     {
                         Name = "Baz",
                         Location = "C:\\Foo\\Baz\\Baz.csproj",
-                        Status = PSP.ProjectStatus.Invalid,
+                        Status = PSC.ProjectStatus.Invalid,
                     },
                 }
             };

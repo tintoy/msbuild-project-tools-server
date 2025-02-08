@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+option csharp_namespace = "MSBuildProjectTools.ProjectServer.Protocol";
+
+package projectserver;
+
+import "contracts/configuration.proto";
+import "contracts/projects.proto";
+
+service ProjectServer {
+    rpc GetHostInfo (configuration.HostInfoRequest) returns (configuration.HostInfoResponse);
+    rpc ListProjects (projects.ListProjectsRequest) returns (projects.ListProjectsResponse);
+}
+

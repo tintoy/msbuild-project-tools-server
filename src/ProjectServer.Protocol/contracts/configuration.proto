@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+option csharp_namespace = "MSBuildProjectTools.ProjectServer.Protocol.Contracts";
+
+package configuration;
+
+// Request: get information about the project server and its target runtime/SDK/MSBuild version.
+message HostInfoRequest {
+    // No fields.
+}
+
+// Response: information about the project server and its target runtime/SDK/MSBuild version.
+message HostInfoResponse {
+    // The version of the project-server protocol supported by the project server.
+    int32 protocolVersion = 1;
+    
+    string runtimeVersion = 2;
+    string sdkVersion = 3;
+    string msbuildVersion = 4;
+}

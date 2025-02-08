@@ -8,6 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="DotNext.Threading" Version="5.18.1" />
     <PackageReference Include="Microsoft.Build.Locator" Version="$(PackageVersion_MSBuildLocator)" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="$(PackageVersion_MSExtensions)" />
     <PackageReference Include="NuGet.Versioning" Version="$(PackageVersion_NuGet)" />

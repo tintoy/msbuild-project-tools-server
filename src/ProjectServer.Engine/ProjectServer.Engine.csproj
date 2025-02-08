@@ -16,6 +16,7 @@
 
   <ItemGroup>
     <ProjectReference Include="../ProjectServer.Common/ProjectServer.Common.csproj" />
+    <ProjectReference Include="../ProjectServer.Protocol/ProjectServer.Protocol.csproj" />
   </ItemGroup>
 
 </Project>
