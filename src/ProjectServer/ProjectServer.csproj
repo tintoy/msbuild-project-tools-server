@@ -6,8 +6,4 @@
     <Nullable>enable</Nullable>
     <NoWarn>$(NoWarn);CS8981</NoWarn>
   </PropertyGroup>
-  
-  <ItemGroup>
-    <PackageReference Include="Grpc.AspNetCore" Version="2.47.0" />
-  </ItemGroup>
 </Project>

@@ -8,10 +8,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Protobuf Include="Contracts\*.proto" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Grpc.AspNetCore" Version="2.47.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="$(PackageVersion_MSExtensions)" />
   </ItemGroup>
 </Project>

@@ -5,13 +5,17 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Grpc.AspNetCore" Version="2.57.0" />
-    <PackageReference Include="Microsoft.Build" Version="16.7.0" ExcludeAssets="runtime" />
+    <PackageReference Include="Microsoft.Build" Version="$(PackageVersion_MSBuild)" ExcludeAssets="runtime" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="8.0.0" />
+    <PackageReference Include="Nito.AsyncEx.Coordination" Version="1.0.1" />
+    <PackageReference Include="Serilog" Version="$(PackageVersion_Serilog)" />
+    <PackageReference Include="Serilog.Enrichers.Demystifier" Version="1.0.2" />
+    <PackageReference Include="Serilog.Extensions.Logging" Version="8.0.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ProjectServer.Protocol\ProjectServer.Protocol.csproj" />
+    <ProjectReference Include="../ProjectServer.Engine/ProjectServer.Engine.csproj" />
+    <ProjectReference Include="../ProjectServer.Protocol/ProjectServer.Protocol.csproj" />
   </ItemGroup>
 
 </Project>

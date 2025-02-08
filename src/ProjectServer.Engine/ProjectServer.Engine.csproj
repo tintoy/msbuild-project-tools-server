@@ -11,11 +11,13 @@
     <PackageReference Include="Microsoft.Build" Version="$(PackageVersion_MSBuild)" ExcludeAssets="runtime" />
     <PackageReference Include="Microsoft.Build.Locator" Version="$(PackageVersion_MSBuildLocator)" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="$(PackageVersion_MSExtensions)" />
+    <PackageReference Include="Nito.AsyncEx.Coordination" Version="1.0.1" />
     <PackageReference Include="NuGet.Versioning" Version="$(PackageVersion_NuGet)" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="../ProjectServer.Common/ProjectServer.Common.csproj" />
+    <ProjectReference Include="../ProjectServer.Protocol/ProjectServer.Protocol.csproj" />
   </ItemGroup>
 
 </Project>

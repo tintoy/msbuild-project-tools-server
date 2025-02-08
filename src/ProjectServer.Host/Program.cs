@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
-using ProjectServer.Host.Services;
+using System;
 
-namespace ProjectServer.Host
+namespace MSBuildProjectTools.ProjectServer.Host
 {
     /// <summary>
     ///     Contains the main program entry-point for the project server host.
@@ -17,18 +17,38 @@ namespace ProjectServer.Host
         /// </param>
         public static void Main(string[] args)
         {
-            var builder = WebApplication.CreateBuilder(args);
+            WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
             // TODO: Parse command-line arguments, and configure Kestrel to listen on either a Unix domain socket or a named pipe (whose name was passed on the command line).
 
-            builder.Services.AddGrpc();
+            if (OperatingSystem.IsWindows())
+            {
+                /*
+                builder.WebHost.UseKestrel(kestrel =>
+                {
+                    kestrel.ListenNamedPipe("my-pipe-name");
+                });
+                builder.WebHost.UseNamedPipes(namedPipes =>
+                {
+                    namedPipes.CurrentUserOnly = true;
+                });
+                */
+            }
+            else if (OperatingSystem.IsLinux() || OperatingSystem.IsMacOS())
+            {
+                //builder.WebHost.UseKestrel(kestrel =>
+                //{
+                //    kestrel.ListenUnixSocket("/my/socket-path");
+                //});
+            }
 
-            var app = builder.Build();
+            builder.Services.AddMvc();
 
-            // Configure the HTTP request pipeline.
-            app.MapGrpcService<ProjectServerService>();
-            app.MapGet("/", () => "Communication with gRPC endpoints must be made through a gRPC client. To learn how to create a client, visit: https://go.microsoft.com/fwlink/?linkid=2086909");
+            builder.Services.AddProjectServerEngine();
 
+            WebApplication app = builder.Build();
+
+            app.MapControllers();
             app.Run();
         }
     }

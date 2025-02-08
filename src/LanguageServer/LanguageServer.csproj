@@ -13,7 +13,7 @@
     <PackageReference Include="OmniSharp.Extensions.JsonRpc" Version="0.7.9" />
     <PackageReference Include="OmniSharp.Extensions.LanguageProtocol" Version="0.7.9" />
     <PackageReference Include="OmniSharp.Extensions.LanguageServer" Version="0.7.9" />
-    <PackageReference Include="Microsoft.Build" Version="16.7.0" ExcludeAssets="runtime" />
+    <PackageReference Include="Microsoft.Build" Version="$(PackageVersion_MSBuild)" ExcludeAssets="runtime" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="8.0.0" />
     <PackageReference Include="Nito.AsyncEx.Tasks" Version="1.0.1" />
     <PackageReference Include="Nito.AsyncEx.Coordination" Version="1.0.1" />
