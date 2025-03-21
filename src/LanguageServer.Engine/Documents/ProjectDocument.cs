@@ -804,7 +804,7 @@ namespace MSBuildProjectTools.LanguageServer.Documents
         /// </summary>
         protected virtual Dictionary<string, string> GetMSBuildGlobalPropertyOverrides()
         {
-            var propertyOverrides = new Dictionary<string, string>();
+            var propertyOverrides = new Dictionary<string, string>(Workspace.Configuration.MSBuild.GlobalProperties, Workspace.Configuration.MSBuild.GlobalProperties.Comparer);
             if (!string.IsNullOrWhiteSpace(Workspace.Configuration.MSBuild.ExtensionsPath))
                 propertyOverrides[MSBuildHelper.WellKnownPropertyNames.MSBuildExtensionsPath] = Workspace.Configuration.MSBuild.ExtensionsPath;
             if (!string.IsNullOrWhiteSpace(Workspace.Configuration.MSBuild.ExtensionsPath32))

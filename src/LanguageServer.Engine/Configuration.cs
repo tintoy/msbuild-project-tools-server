@@ -169,6 +169,12 @@ namespace MSBuildProjectTools.LanguageServer
         }
 
         /// <summary>
+        ///     Overrides for default MSBuild properties used when a project is first loaded.
+        /// </summary>
+        [JsonProperty("globalProperties", ObjectCreationHandling = ObjectCreationHandling.Reuse)]
+        public Dictionary<string, string> GlobalProperties { get; } = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
+        /// <summary>
         ///     Override the default value of MSBuildExtensionsPath.
         /// </summary>
         [JsonProperty("extensionsPath")]
