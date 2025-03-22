@@ -18,6 +18,7 @@
     <PackageReference Include="Microsoft.Build" Version="16.7.0" ExcludeAssets="runtime" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="2.0.0" />
     <PackageReference Include="Microsoft.Language.Xml" Version="1.1.20" />
+    <PackageReference Include="Microsoft.VisualStudio.SolutionPersistence" Version="1.0.52" />
     <PackageReference Include="Nito.AsyncEx.Tasks" Version="1.0.1" />
     <PackageReference Include="Nito.AsyncEx.Coordination" Version="1.0.1" />
     <PackageReference Include="NuGet.PackageManagement" Version="6.0.6" />
