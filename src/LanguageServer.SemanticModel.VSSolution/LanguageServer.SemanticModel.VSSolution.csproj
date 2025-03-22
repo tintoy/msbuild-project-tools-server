@@ -16,8 +16,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- Copy `help` folder from solution root to output and publish directories -->
-    <Content Include="..\..\help\**" LinkBase="help">
+    <!-- Copy `help/vssolution` folder from solution root to output and publish directories -->
+    <Content Include="..\..\help\vssolution\**" LinkBase="help">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </Content>
