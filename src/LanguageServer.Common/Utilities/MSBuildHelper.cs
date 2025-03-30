@@ -124,8 +124,8 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         /// <summary>
         ///     Create an MSBuild project collection.
         /// </summary>
-        /// <param name="solutionDirectory">
-        ///     The base (i.e. solution) directory.
+        /// <param name="baseDirectory">
+        ///     The base directory (used to discover global.json, etc).
         /// </param>
         /// <param name="globalPropertyOverrides">
         ///     An optional dictionary containing property values to override.
@@ -136,12 +136,12 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         /// <returns>
         ///     The project collection.
         /// </returns>
-        public static ProjectCollection CreateProjectCollection(string solutionDirectory, Dictionary<string, string> globalPropertyOverrides = null, ILogger logger = null)
+        public static ProjectCollection CreateProjectCollection(string baseDirectory, Dictionary<string, string> globalPropertyOverrides = null, ILogger logger = null)
         {
             logger ??= Log.Logger;
 
-            return CreateProjectCollection(solutionDirectory,
-                DotnetInfo.GetCurrent(solutionDirectory, logger),
+            return CreateProjectCollection(
+                DotnetInfo.GetCurrent(baseDirectory, logger),
                 globalPropertyOverrides
             );
         }
@@ -149,9 +149,6 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         /// <summary>
         ///     Create an MSBuild project collection.
         /// </summary>
-        /// <param name="solutionDirectory">
-        ///     The base (i.e. solution) directory.
-        /// </param>
         /// <param name="runtimeInfo">
         ///     Information about the current .NET runtime.
         /// </param>
@@ -161,18 +158,18 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         /// <returns>
         ///     The project collection.
         /// </returns>
-        public static ProjectCollection CreateProjectCollection(string solutionDirectory, DotnetInfo runtimeInfo, Dictionary<string, string> globalPropertyOverrides = null)
+        /// <remarks>
+        ///     Note: if you want the <see cref="ProjectCollection"/> to behave as if it was loaded for a solution, you'll need to configure it after creation, populating MSBuild's "SolutionDir" property (among others) by calling <see cref="ProjectCollection.SetGlobalProperty(string, string)"/>.
+        /// </remarks>
+        public static ProjectCollection CreateProjectCollection(DotnetInfo runtimeInfo, Dictionary<string, string> globalPropertyOverrides = null)
         {
-            if (string.IsNullOrWhiteSpace(solutionDirectory))
-                throw new ArgumentException("Argument cannot be null, empty, or entirely composed of whitespace: 'baseDir'.", nameof(solutionDirectory));
-
             if (runtimeInfo == null)
                 throw new ArgumentNullException(nameof(runtimeInfo));
 
             if (string.IsNullOrWhiteSpace(runtimeInfo.BaseDirectory))
                 throw new InvalidOperationException("Cannot determine base directory for .NET (check the output of 'dotnet --info').");
 
-            Dictionary<string, string> globalProperties = CreateGlobalMSBuildProperties(runtimeInfo, solutionDirectory, globalPropertyOverrides);
+            Dictionary<string, string> globalProperties = CreateGlobalMSBuildProperties(runtimeInfo, solutionDirectory: null, globalPropertyOverrides);
             EnsureMSBuildEnvironment(globalProperties);
 
             var projectCollection = new ProjectCollection(globalProperties) { IsBuildEnabled = false };
@@ -208,7 +205,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         ///     Information about the current .NET runtime.
         /// </param>
         /// <param name="solutionDirectory">
-        ///     The base (i.e. solution) directory.
+        ///     An optional base (i.e. solution) directory.
         /// </param>
         /// <param name="globalPropertyOverrides">
         ///     An optional dictionary containing property values to override.
@@ -221,12 +218,6 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
             if (runtimeInfo == null)
                 throw new ArgumentNullException(nameof(runtimeInfo));
 
-            if (string.IsNullOrWhiteSpace(solutionDirectory))
-                throw new ArgumentException("Argument cannot be null, empty, or entirely composed of whitespace: 'solutionDirectory'.", nameof(solutionDirectory));
-
-            if (solutionDirectory.Length > 0 && solutionDirectory[^1] != Path.DirectorySeparatorChar)
-                solutionDirectory += Path.DirectorySeparatorChar;
-
             // Support overriding of SDKs path.
             string sdksPath = Environment.GetEnvironmentVariable("MSBuildSDKsPath");
             if (string.IsNullOrWhiteSpace(sdksPath))
@@ -237,11 +228,18 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
                 [WellKnownPropertyNames.DesignTimeBuild] = "true",
                 [WellKnownPropertyNames.BuildProjectReferences] = "false",
                 [WellKnownPropertyNames.ResolveReferenceDependencies] = "true",
-                [WellKnownPropertyNames.SolutionDir] = solutionDirectory,
                 [WellKnownPropertyNames.MSBuildExtensionsPath] = runtimeInfo.BaseDirectory,
                 [WellKnownPropertyNames.MSBuildSDKsPath] = sdksPath,
                 [WellKnownPropertyNames.RoslynTargetsPath] = Path.Combine(runtimeInfo.BaseDirectory, "Roslyn")
             };
+
+            if (!String.IsNullOrWhiteSpace(solutionDirectory))
+            {
+                if (solutionDirectory.Length > 0 && !Path.EndsInDirectorySeparator(solutionDirectory))
+                    solutionDirectory += Path.DirectorySeparatorChar;
+
+                globalProperties[WellKnownPropertyNames.SolutionDir] = solutionDirectory;
+            }
 
             if (globalPropertyOverrides != null)
             {

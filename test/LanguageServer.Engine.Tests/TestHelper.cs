@@ -46,5 +46,35 @@ namespace MSBuildProjectTools.LanguageServer.Tests
 
             return file;
         }
+
+        /// <summary>
+        ///     Attempt to find a file in the target directory or one of its ancestors.
+        /// </summary>
+        /// <param name="directory">
+        ///     A <see cref="DirectoryInfo"/> representing the target directory.
+        /// </param>
+        /// <param name="relativePathName">
+        ///     The relative path name of the file to find.
+        /// </param>
+        /// <returns>
+        ///     A <see cref="FileInfo"/> representing the file, if one was found; otherwise, <c>null</c>.
+        /// </returns>
+        public static FileInfo GetFile(this DirectoryInfo directory, string relativePathName)
+        {
+            if (directory == null)
+                throw new ArgumentNullException(nameof(directory));
+
+            if (string.IsNullOrWhiteSpace(relativePathName))
+                throw new ArgumentException($"Argument cannot be null, empty, or entirely composed of whitespace: {nameof(relativePathName)}.", nameof(relativePathName));
+
+            relativePathName = relativePathName.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
+
+            string filePath = Path.Combine(directory.FullName, relativePathName);
+            var file = new FileInfo(filePath);
+            if (file.Exists)
+                return file;
+
+            return null;
+        }
     }
 }

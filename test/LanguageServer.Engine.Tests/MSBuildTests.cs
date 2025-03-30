@@ -119,12 +119,31 @@ namespace MSBuildProjectTools.LanguageServer.Tests
             if (relativePathSegments == null)
                 throw new ArgumentNullException(nameof(relativePathSegments));
 
-            return MSBuildHelper.CreateProjectCollection(TestDirectory.FullName, logger: Log).LoadProject(
-                Path.Combine(TestDirectory.FullName,
-                    "TestProjects",
-                    Path.Combine(relativePathSegments)
-                )
-            );
+            FileInfo projectFile = GetProjectFile(relativePathSegments);
+
+            return MSBuildHelper.CreateProjectCollection(TestDirectory.FullName, logger: Log).LoadProject(projectFile.FullName);
+        }
+
+        /// <summary>
+        ///     Get a <see cref="FileInfo"/> representing a test project file.
+        /// </summary>
+        /// <param name="relativePathSegments">
+        ///     The file's path segments (relative to the TestProjects directory).
+        /// </param>
+        /// <returns>
+        ///     The <see cref="FileInfo"/>.
+        /// </returns>
+        FileInfo GetProjectFile(params string[] relativePathSegments)
+        {
+            if (relativePathSegments == null)
+                throw new ArgumentNullException(nameof(relativePathSegments));
+
+            NormalizePath(relativePathSegments);
+
+            return new FileInfo(Path.Combine(TestDirectory.FullName,
+                "TestProjects",
+                Path.Combine(relativePathSegments)
+            ));
         }
     }
 }
