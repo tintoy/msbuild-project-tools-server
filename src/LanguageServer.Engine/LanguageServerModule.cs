@@ -13,7 +13,7 @@ namespace MSBuildProjectTools.LanguageServer
     using CustomProtocol;
     using Diagnostics;
     using Handlers;
-
+    using Newtonsoft.Json.Linq;
     using LanguageServer = OmniSharp.Extensions.LanguageServer.Server.LanguageServer;
 
     /// <summary>
@@ -72,6 +72,13 @@ namespace MSBuildProjectTools.LanguageServer
 
                         // Handle subsequent logging configuration changes.
                         configurationHandler.ConfigurationChanged += (sender, args) => configureServerLogLevel();
+
+                        if (languageServer.Client.InitializationOptions != null)
+                        {
+                            JObject rawInitializationOptions = JObject.FromObject(languageServer.Client.InitializationOptions); // Handle whatever format LSP client sends down the wire, as long as the layout matches up.
+                            LanguageServerInitializationOptions initializationOptions = rawInitializationOptions.ToObject<LanguageServerInitializationOptions>();
+                            configurationHandler.Configuration.InitializationOptions.UpdateFrom(initializationOptions);
+                        }
 
                         return Task.CompletedTask;
                     });

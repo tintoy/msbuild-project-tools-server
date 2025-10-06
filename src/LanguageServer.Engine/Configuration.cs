@@ -54,6 +54,11 @@ namespace MSBuildProjectTools.LanguageServer
         /// </summary>
         [JsonProperty("experimentalFeatures", ObjectCreationHandling = ObjectCreationHandling.Reuse)]
         public HashSet<string> EnableExperimentalFeatures { get; } = new HashSet<string>();
+
+        /// <summary>
+        ///     The language-server initialisation options.
+        /// </summary>
+        public LanguageServerInitializationOptions InitializationOptions { get; } = new LanguageServerInitializationOptions();
     }
 
     /// <summary>
@@ -233,5 +238,19 @@ namespace MSBuildProjectTools.LanguageServer
         /// </summary>
         [JsonProperty("newestVersionsFirst")]
         public bool ShowNewestVersionsFirst { get; set; } = true;
+    }
+
+    public class LanguageServerInitializationOptions
+    {
+        [JsonProperty("expandGlobalPropertiesFromVSCodeVariables")]
+        public bool ExpandGlobalPropertiesFromVSCodeVariables { get; set; }
+
+        internal void UpdateFrom(LanguageServerInitializationOptions other)
+        {
+            if (other == null)
+                throw new ArgumentNullException(nameof(other));
+
+            ExpandGlobalPropertiesFromVSCodeVariables = other.ExpandGlobalPropertiesFromVSCodeVariables;
+        }
     }
 }

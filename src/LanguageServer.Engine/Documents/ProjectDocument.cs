@@ -106,6 +106,9 @@ namespace MSBuildProjectTools.LanguageServer.Documents
                 Kind = ProjectDocumentKind.Other;
 
             Log = logger.ForContext(GetType()).ForContext("ProjectDocument", ProjectFile.FullName);
+
+            // Features we only enable if the client claims to support them.
+            ExpandGlobalPropertiesFromVSCodeVariables = workspace.Configuration.InitializationOptions.ExpandGlobalPropertiesFromVSCodeVariables;
         }
 
         /// <summary>
@@ -204,6 +207,11 @@ namespace MSBuildProjectTools.LanguageServer.Documents
         ///     The project MSBuild object-lookup facility.
         /// </summary>
         protected MSBuildObjectLocator MSBuildLocator { get; private set; }
+        
+        /// <summary>
+        ///     Expand global MSBuild properties from VSCode variables?
+        /// </summary>
+        protected bool ExpandGlobalPropertiesFromVSCodeVariables { get; }
 
         /// <summary>
         ///     MSBuild objects in the project that correspond to locations in the file.
@@ -809,6 +817,11 @@ namespace MSBuildProjectTools.LanguageServer.Documents
                 propertyOverrides[MSBuildHelper.WellKnownPropertyNames.MSBuildExtensionsPath] = Workspace.Configuration.MSBuild.ExtensionsPath;
             if (!string.IsNullOrWhiteSpace(Workspace.Configuration.MSBuild.ExtensionsPath32))
                 propertyOverrides[MSBuildHelper.WellKnownPropertyNames.MSBuildExtensionsPath32] = Workspace.Configuration.MSBuild.ExtensionsPath32;
+
+            if (ExpandGlobalPropertiesFromVSCodeVariables)
+            {
+                // TODO: Call IExpandVariables.
+            }
 
             return propertyOverrides;
         }
