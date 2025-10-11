@@ -13,8 +13,8 @@
     <PackageVersion Include="OmniSharp.Extensions.LanguageServer" Version="0.7.9" />
     
     <!-- Microsoft.Build -->
-    <PackageVersion Include="Microsoft.Build" Version="16.7.0" />
-    <PackageVersion Include="Microsoft.Build.Locator" Version="1.7.1" />
+    <PackageVersion Include="Microsoft.Build" Version="17.11.4" />
+    <PackageVersion Include="Microsoft.Build.Locator" Version="1.10.2" />
     
     <!-- Microsoft.Extensions -->
     <PackageVersion Include="Microsoft.Extensions.Logging" Version="8.0.0" />
