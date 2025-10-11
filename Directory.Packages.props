@@ -27,8 +27,8 @@
     <PackageVersion Include="Nito.AsyncEx.Coordination" Version="1.0.1" />
     
     <!-- NuGet -->
-    <PackageVersion Include="NuGet.PackageManagement" Version="6.0.6" />
-    <PackageVersion Include="NuGet.Protocol" Version="6.0.6" />
+    <PackageVersion Include="NuGet.PackageManagement" Version="6.14.0" />
+    <PackageVersion Include="NuGet.Protocol" Version="6.14.0" />
     
     <!-- Serilog -->
     <PackageVersion Include="Serilog" Version="4.0.1" />
