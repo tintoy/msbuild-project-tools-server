@@ -1,8 +1,6 @@
-using OmniSharp.Extensions.JsonRpc;
 using OmniSharp.Extensions.LanguageServer.Protocol;
 using OmniSharp.Extensions.LanguageServer.Protocol.Client.Capabilities;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
-using OmniSharp.Extensions.LanguageServer.Server;
 using Serilog;
 using System;
 using System.Linq;
@@ -12,6 +10,8 @@ using System.Threading.Tasks;
 namespace MSBuildProjectTools.LanguageServer.Handlers
 {
     using Documents;
+    using OmniSharp.Extensions.Embedded.MediatR;
+    using OmniSharp.Extensions.LanguageServer.Protocol.Server;
     using SemanticModel;
     using Utilities;
 
@@ -33,7 +33,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         /// <param name="logger">
         ///     The application logger.
         /// </param>
-        public DefinitionHandler(ILanguageServer server, Workspace workspace, ILogger logger)
+        public DefinitionHandler(OmniSharp.Extensions.LanguageServer.Server.ILanguageServer server, Workspace workspace, ILogger logger)
             : base(server, logger)
         {
             if (workspace == null)
@@ -158,7 +158,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         /// <returns>
         ///     A <see cref="Task"/> representing the operation whose result is definition location or <c>null</c> if no definition is provided.
         /// </returns>
-        async Task<LocationOrLocations> IRequestHandler<TextDocumentPositionParams, LocationOrLocations>.Handle(TextDocumentPositionParams parameters, CancellationToken cancellationToken)
+        async Task<LocationOrLocations> IRequestHandler<DefinitionParams, LocationOrLocations>.Handle(DefinitionParams parameters, CancellationToken cancellationToken)
         {
             if (parameters == null)
                 throw new ArgumentNullException(nameof(parameters));

@@ -7,7 +7,9 @@ using System.Threading.Tasks;
 
 namespace MSBuildProjectTools.LanguageServer.Handlers
 {
+    using System.Threading;
     using CustomProtocol;
+    using OmniSharp.Extensions.Embedded.MediatR;
 
     /// <summary>
     ///     Language Server message handler that tracks configuration.
@@ -73,10 +75,13 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         /// <param name="parameters">
         ///     The notification parameters.
         /// </param>
+        /// <param name="cancellationToken">
+        ///     A cancellation token that can be used to cancel the operation.
+        /// </param>
         /// <returns>
         ///     A <see cref="Task"/> representing the operation.
         /// </returns>
-        async Task INotificationHandler<DidChangeConfigurationObjectParams>.Handle(DidChangeConfigurationObjectParams parameters)
+        async Task INotificationHandler<DidChangeConfigurationObjectParams>.Handle(DidChangeConfigurationObjectParams parameters, CancellationToken cancellationToken)
         {
             if (parameters == null)
                 throw new ArgumentNullException(nameof(parameters));

@@ -59,14 +59,12 @@ namespace MSBuildProjectTools.LanguageServer
 
                     log.Debug("Waiting for client to initialize language server...");
 
-                    await server.Initialize();
-
                     log.Debug("Language server initialized by client.");
 
-                    if (server.Client.ProcessId != null)
+                    if (server.ClientSettings.ProcessId != null)
                     {
                         terminator.Initialize(
-                            (int)server.Client.ProcessId.Value
+                            (int)server.ClientSettings.ProcessId.Value
                         );
                     }
 

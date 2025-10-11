@@ -7,6 +7,7 @@ using System;
 using System.IO;
 using System.Text;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
+using OmniSharp.Extensions.LanguageServer.Protocol.Server;
 
 namespace MSBuildProjectTools.LanguageServer.Logging
 {
@@ -21,7 +22,7 @@ namespace MSBuildProjectTools.LanguageServer.Logging
         /// <summary>
         ///     The language server to which events will be logged.
         /// </summary>
-        readonly ILanguageServer _languageServer;
+        readonly OmniSharp.Extensions.LanguageServer.Server.ILanguageServer _languageServer;
 
         /// <summary>
         ///     The <see cref="LoggingLevelSwitch"/> that controls logging.
@@ -42,7 +43,7 @@ namespace MSBuildProjectTools.LanguageServer.Logging
         /// <param name="levelSwitch">
         ///     The <see cref="LoggingLevelSwitch"/> that controls logging.
         /// </param>
-        public LanguageServerLoggingSink(ILanguageServer languageServer, LoggingLevelSwitch levelSwitch)
+        public LanguageServerLoggingSink(OmniSharp.Extensions.LanguageServer.Server.ILanguageServer languageServer, LoggingLevelSwitch levelSwitch)
         {
             if (languageServer == null)
                 throw new ArgumentNullException(nameof(languageServer));
@@ -55,19 +56,19 @@ namespace MSBuildProjectTools.LanguageServer.Logging
 
             if (_languageServer is LanguageServer realLanguageServer)
             {
-                realLanguageServer.Shutdown += shutDownRequested =>
+                realLanguageServer.Shutdown.Subscribe(shutDownRequested =>
                 {
                     Log.CloseAndFlush();
 
                     _hasServerShutDown = true;
-                };
+                });
             }
         }
 
         /// <summary>
         ///     Can log entries be sent to the language server?
         /// </summary>
-        bool CanLog => _languageServer.Server != null && !_hasServerShutDown;
+        bool CanLog => !_hasServerShutDown;
 
         /// <summary>
         ///     Emit a log event.
@@ -129,9 +130,8 @@ namespace MSBuildProjectTools.LanguageServer.Logging
 
                     break;
                 }
-            }
-
-            _languageServer.LogMessage(logParameters);
+            }   
+            _languageServer.Window.LogMessage(logParameters);
         }
     }
 }

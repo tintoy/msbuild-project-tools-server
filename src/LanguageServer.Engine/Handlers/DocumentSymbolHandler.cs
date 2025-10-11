@@ -1,8 +1,6 @@
-using OmniSharp.Extensions.JsonRpc;
 using OmniSharp.Extensions.LanguageServer.Protocol;
 using OmniSharp.Extensions.LanguageServer.Protocol.Client.Capabilities;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
-using OmniSharp.Extensions.LanguageServer.Server;
 using Serilog;
 using System;
 using System.Collections.Generic;
@@ -13,6 +11,8 @@ using System.Threading.Tasks;
 namespace MSBuildProjectTools.LanguageServer.Handlers
 {
     using Documents;
+    using OmniSharp.Extensions.Embedded.MediatR;
+    using OmniSharp.Extensions.LanguageServer.Protocol.Server;
     using SemanticModel;
     using Utilities;
 
@@ -34,7 +34,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         /// <param name="logger">
         ///     The application logger.
         /// </param>
-        public DocumentSymbolHandler(ILanguageServer server, Workspace workspace, ILogger logger)
+        public DocumentSymbolHandler(OmniSharp.Extensions.LanguageServer.Server.ILanguageServer server, Workspace workspace, ILogger logger)
             : base(server, logger)
         {
             if (workspace == null)

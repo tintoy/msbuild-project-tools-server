@@ -8,9 +8,9 @@
     <PackageVersion Include="Autofac" Version="8.4.0" />
     
     <!-- OmniSharp -->
-    <PackageVersion Include="OmniSharp.Extensions.JsonRpc" Version="0.7.9" />
-    <PackageVersion Include="OmniSharp.Extensions.LanguageProtocol" Version="0.7.9" />
-    <PackageVersion Include="OmniSharp.Extensions.LanguageServer" Version="0.7.9" />
+    <PackageVersion Include="OmniSharp.Extensions.JsonRpc" Version="0.10.0" />
+    <PackageVersion Include="OmniSharp.Extensions.LanguageProtocol" Version="0.10.0" />
+    <PackageVersion Include="OmniSharp.Extensions.LanguageServer" Version="0.10.0" />
     
     <!-- Microsoft.Build -->
     <PackageVersion Include="Microsoft.Build" Version="17.11.4" />
@@ -38,7 +38,7 @@
     <PackageVersion Include="Serilog.Sinks.TextWriter" Version="3.0.0" />
     
     <!-- System -->
-    <PackageVersion Include="System.Reactive" Version="3.1.1" />
+    <PackageVersion Include="System.Reactive" Version="4.0.0" />
     <PackageVersion Include="System.Security.Principal" Version="4.3.0" />
     <PackageVersion Include="System.Reflection.MetadataLoadContext" Version="8.0.0" />
     

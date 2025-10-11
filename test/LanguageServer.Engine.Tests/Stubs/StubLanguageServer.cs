@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Reactive.Disposables;
 using System.Threading.Tasks;
+using System.Reactive.Linq;
 
 namespace MSBuildProjectTools.LanguageServer.Tests.Stubs
 {
@@ -34,6 +35,26 @@ namespace MSBuildProjectTools.LanguageServer.Tests.Stubs
         ///     The initialisation result returned by the server.
         /// </summary>
         public virtual InitializeResult Server { get; } = new InitializeResult();
+
+        public InitializeParams ClientSettings { get; } = new InitializeParams();
+
+        public InitializeResult ServerSettings { get; } = new InitializeResult();
+
+        public IObservable<bool> Shutdown { get; } = Observable.Return(false);
+
+        public IObservable<int> Exit { get; } = Observable.Return(0);
+
+        public Task WasShutDown { get; } = Task.Delay(-1);
+
+        public Task WaitForExit => throw new NotImplementedException();
+
+        public OmniSharp.Extensions.LanguageServer.Protocol.Server.ILanguageServerDocument Document => throw new NotImplementedException();
+
+        public OmniSharp.Extensions.LanguageServer.Protocol.Server.ILanguageServerWindow Window => throw new NotImplementedException();
+
+        public OmniSharp.Extensions.LanguageServer.Protocol.Server.ILanguageServerWorkspace Workspace => throw new NotImplementedException();
+
+        OmniSharp.Extensions.LanguageServer.Protocol.Server.ILanguageServerClient OmniSharp.Extensions.LanguageServer.Protocol.Server.ILanguageServer.Client => throw new NotImplementedException();
 
         /// <summary>
         ///     Add a handler to the server's collection of JSON RPC handlers.
@@ -75,6 +96,16 @@ namespace MSBuildProjectTools.LanguageServer.Tests.Stubs
             return Disposable.Empty;
         }
 
+        public IDisposable AddHandler<T>() where T : IJsonRpcHandler
+        {
+            throw new NotImplementedException();
+        }
+
+        public IDisposable AddHandler(string method, Type handlerType)
+        {
+            throw new NotImplementedException();
+        }
+
         /// <summary>
         ///     Add handlers to the server's collection of JSON RPC handlers.
         /// </summary>
@@ -109,6 +140,16 @@ namespace MSBuildProjectTools.LanguageServer.Tests.Stubs
             return Disposable.Empty;
         }
 
+        public IDisposable AddHandlers(params Type[] handlerTypes)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Dispose()
+        {
+            throw new NotImplementedException();
+        }
+
         /// <summary>
         ///     Retrieve the completion source for the request with the specified Id.
         /// </summary>
@@ -139,6 +180,11 @@ namespace MSBuildProjectTools.LanguageServer.Tests.Stubs
         {
             if (string.IsNullOrWhiteSpace(method))
                 throw new ArgumentException("Argument cannot be null, empty, or entirely composed of whitespace: 'method'.", nameof(method));
+        }
+
+        public void SendNotification(string method)
+        {
+            throw new NotImplementedException();
         }
 
         /// <summary>
@@ -184,6 +230,11 @@ namespace MSBuildProjectTools.LanguageServer.Tests.Stubs
         public virtual Task SendRequest<TRequest>(string method, TRequest request)
         {
             return Task.CompletedTask;
+        }
+
+        public Task<TResponse> SendRequest<TResponse>(string method)
+        {
+            throw new NotImplementedException();
         }
     }
 }
