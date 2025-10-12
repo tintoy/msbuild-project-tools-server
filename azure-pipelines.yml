@@ -50,7 +50,7 @@ steps:
   
   inputs:
     command: 'test'
-    projects: './test/LanguageServer.Engine.Tests/LanguageServer.Engine.Tests.csproj'
+    projects: '/MSBuildProjectTools.sln'
     arguments: '--configuration "$(buildConfiguration)" /p:VersionPrefix="$(GitVersion.MajorMinorPatch)" /p:VersionSuffix="$(GitVersion.PreReleaseTag)"'
 
 - task: DotNetCoreCLI@2
