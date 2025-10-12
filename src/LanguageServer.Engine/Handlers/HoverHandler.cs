@@ -12,6 +12,8 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
 {
     using ContentProviders;
     using Documents;
+    using OmniSharp.Extensions.Embedded.MediatR;
+    using OmniSharp.Extensions.LanguageServer.Protocol.Server;
     using SemanticModel;
     using Utilities;
 
@@ -33,7 +35,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         /// <param name="logger">
         ///     The application logger.
         /// </param>
-        public HoverHandler(ILanguageServer server, Workspace workspace, ILogger logger)
+        public HoverHandler(OmniSharp.Extensions.LanguageServer.Server.ILanguageServer server, Workspace workspace, ILogger logger)
             : base(server, logger)
         {
             if (workspace == null)
@@ -309,7 +311,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         /// <returns>
         ///     A <see cref="Task"/> representing the operation whose result is the hover details or <c>null</c> if no hover details are provided.
         /// </returns>
-        async Task<Hover> IRequestHandler<TextDocumentPositionParams, Hover>.Handle(TextDocumentPositionParams parameters, CancellationToken cancellationToken)
+        async Task<Hover> IRequestHandler<HoverParams, Hover>.Handle(HoverParams parameters, CancellationToken cancellationToken)
         {
             if (parameters == null)
                 throw new ArgumentNullException(nameof(parameters));

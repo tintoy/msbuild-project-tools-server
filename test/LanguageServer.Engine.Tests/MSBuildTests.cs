@@ -78,7 +78,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests
         /// <summary>
         ///     Get all referenced package versions from the current test project.
         /// </summary>
-        [InlineData("Autofac", "4.6.1")]
+        [InlineData("Autofac", "8.4.0")]
         [Theory(DisplayName = "Get referenced package version from the current test project ")]
         public void GetReferencedPackageVersion(string packageId, string expectedPackageVersion)
         {

@@ -13,7 +13,7 @@ namespace MSBuildProjectTools.LanguageServer
     using CustomProtocol;
     using Diagnostics;
     using Handlers;
-
+    using OmniSharp.Extensions.JsonRpc;
     using LanguageServer = OmniSharp.Extensions.LanguageServer.Server.LanguageServer;
 
     /// <summary>
@@ -43,43 +43,50 @@ namespace MSBuildProjectTools.LanguageServer
             builder.RegisterInstance(Configuration).AsSelf();
 
             builder
-                .Register(componentContext => new LanguageServer(
-                    input: Console.OpenStandardInput(),
-                    output: Console.OpenStandardOutput(),
-                    loggerFactory: componentContext.Resolve<MSLogging.ILoggerFactory>()
-                ))
+                .Register(componentContext =>
+                {
+                    ILanguageServer languageServer = LanguageServer.From(options =>
+                    {
+                        options.Input = Console.OpenStandardInput();
+                        options.Output = Console.OpenStandardOutput();
+                        options.LoggerFactory = componentContext.Resolve<MSLogging.ILoggerFactory>();
+
+                        var configurationHandler = componentContext.Resolve<ConfigurationHandler>();
+
+                        options.OnInitialize(initializationParameters =>
+                        {
+                            configurationHandler.Configuration.UpdateFrom(initializationParameters);
+                            if (configurationHandler.Configuration.Logging.Level < LogEventLevel.Verbose)
+                                options.MinimumLogLevel = MSLogging.LogLevel.Warning;
+
+                            // Handle subsequent logging configuration changes.
+                            configurationHandler.ConfigurationChanged += (sender, args) =>
+                            {
+                                if (configurationHandler.Configuration.Logging.Level < LogEventLevel.Verbose)
+                                    componentContext.Resolve<LanguageServer>().MinimumLogLevel = MSLogging.LogLevel.Warning;
+                            };
+
+                            return Task.CompletedTask;
+                        });
+                    }).GetAwaiter().GetResult();
+
+                    return (LanguageServer)languageServer;
+                })
                 .AsSelf()
                 .As<ILanguageServer>()
                 .SingleInstance()
                 .OnActivated(activated =>
                 {
-                    LanguageServer languageServer = activated.Instance;
+                    ILanguageServer languageServer = activated.Instance;
 
                     // Register configuration handler (which is not a Handler).
                     var configurationHandler = activated.Context.Resolve<ConfigurationHandler>();
-                    languageServer.AddHandler(configurationHandler);
-
-                    void configureServerLogLevel()
-                    {
-                        if (configurationHandler.Configuration.Logging.Level < LogEventLevel.Verbose)
-                            languageServer.MinimumLogLevel = MSLogging.LogLevel.Warning;
-                    }
-
-                    languageServer.OnInitialize(initializationParameters =>
-                    {
-                        configurationHandler.Configuration.UpdateFrom(initializationParameters);
-                        configureServerLogLevel();
-
-                        // Handle subsequent logging configuration changes.
-                        configurationHandler.ConfigurationChanged += (sender, args) => configureServerLogLevel();
-
-                        return Task.CompletedTask;
-                    });
+                    languageServer.AddHandlers(configurationHandler);
 
                     // Register all other handlers.
                     var handlers = activated.Context.Resolve<IEnumerable<Handler>>();
                     foreach (Handler handler in handlers)
-                        languageServer.AddHandler(handler);
+                        languageServer.AddHandlers(handler);
                 });
 
             builder.RegisterType<LspDiagnosticsPublisher>()

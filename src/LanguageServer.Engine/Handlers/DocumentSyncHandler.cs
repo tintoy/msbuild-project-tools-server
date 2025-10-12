@@ -1,10 +1,8 @@
 using NuGet.Configuration;
-using OmniSharp.Extensions.JsonRpc;
 using OmniSharp.Extensions.LanguageServer.Protocol;
 using OmniSharp.Extensions.LanguageServer.Protocol.Client.Capabilities;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using OmniSharp.Extensions.LanguageServer.Protocol.Server.Capabilities;
-using OmniSharp.Extensions.LanguageServer.Server;
 using Serilog;
 using Serilog.Events;
 using System;
@@ -15,8 +13,11 @@ using System.Threading.Tasks;
 
 namespace MSBuildProjectTools.LanguageServer.Handlers
 {
+    using System.Threading;
     using CustomProtocol;
     using Documents;
+    using OmniSharp.Extensions.Embedded.MediatR;
+    using OmniSharp.Extensions.LanguageServer.Protocol.Server;
     using SemanticModel;
     using Utilities;
 
@@ -38,7 +39,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         /// <param name="logger">
         ///     The application logger.
         /// </param>
-        public DocumentSyncHandler(ILanguageServer server, Workspace workspace, ILogger logger)
+        public DocumentSyncHandler(OmniSharp.Extensions.LanguageServer.Server.ILanguageServer server, Workspace workspace, ILogger logger)
             : base(server, logger)
         {
             if (workspace == null)
@@ -131,6 +132,11 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
                 IncludeText = Options.Save.IncludeText
             };
         }
+
+        /// <summary>
+        ///    The kind of document synchronization supported.
+        /// </summary>
+        public TextDocumentSyncKind Change => TextDocumentSyncKind.Full;
 
         /// <summary>
         ///     Called when a text document is opened.
@@ -371,10 +377,13 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         /// <param name="parameters">
         ///     The notification parameters.
         /// </param>
+        /// <param name="cancellationToken">
+        ///     A cancellation token that can be used to cancel the operation.
+        /// </param>
         /// <returns>
         ///     A <see cref="Task"/> representing the operation.
         /// </returns>
-        async Task INotificationHandler<DidOpenTextDocumentParams>.Handle(DidOpenTextDocumentParams parameters)
+        async Task<Unit> IRequestHandler<DidOpenTextDocumentParams, Unit>.Handle(DidOpenTextDocumentParams parameters, CancellationToken cancellationToken)
         {
             if (parameters == null)
                 throw new ArgumentNullException(nameof(parameters));
@@ -390,6 +399,8 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
                     Log.Error(unexpectedError, "Unhandled exception in {Method:l}.", "OnDidOpenTextDocument");
                 }
             }
+
+            return Unit.Value;
         }
 
         /// <summary>
@@ -398,10 +409,13 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         /// <param name="parameters">
         ///     The notification parameters.
         /// </param>
+        /// <param name="cancellationToken">
+        ///     A cancellation token that can be used to cancel the operation.
+        /// </param>
         /// <returns>
         ///     A <see cref="Task"/> representing the operation.
         /// </returns>
-        async Task INotificationHandler<DidCloseTextDocumentParams>.Handle(DidCloseTextDocumentParams parameters)
+        async Task<Unit> IRequestHandler<DidCloseTextDocumentParams, Unit>.Handle(DidCloseTextDocumentParams parameters, CancellationToken cancellationToken)
         {
             if (parameters == null)
                 throw new ArgumentNullException(nameof(parameters));
@@ -417,6 +431,8 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
                     Log.Error(unexpectedError, "Unhandled exception in {Method:l}.", "OnDidCloseTextDocument");
                 }
             }
+
+            return Unit.Value;
         }
 
         /// <summary>
@@ -425,10 +441,13 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         /// <param name="parameters">
         ///     The notification parameters.
         /// </param>
+        /// <param name="cancellationToken">
+        ///     A cancellation token that can be used to cancel the operation.
+        /// </param>
         /// <returns>
         ///     A <see cref="Task"/> representing the operation.
         /// </returns>
-        async Task INotificationHandler<DidChangeTextDocumentParams>.Handle(DidChangeTextDocumentParams parameters)
+        async Task<Unit> IRequestHandler<DidChangeTextDocumentParams, Unit>.Handle(DidChangeTextDocumentParams parameters, CancellationToken cancellationToken)
         {
             if (parameters == null)
                 throw new ArgumentNullException(nameof(parameters));
@@ -444,7 +463,11 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
                     Log.Error(unexpectedError, "Unhandled exception in {Method:l}.", "OnDidChangeTextDocument");
                 }
             }
+
+            return Unit.Value;
         }
+
+        
 
         /// <summary>
         ///     Handle a document being saved.
@@ -452,10 +475,13 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         /// <param name="parameters">
         ///     The notification parameters.
         /// </param>
+        /// <param name="cancellationToken">
+        ///     A cancellation token that can be used to cancel the operation.
+        /// </param>
         /// <returns>
         ///     A <see cref="Task"/> representing the operation.
         /// </returns>
-        async Task INotificationHandler<DidSaveTextDocumentParams>.Handle(DidSaveTextDocumentParams parameters)
+        async Task<Unit> IRequestHandler<DidSaveTextDocumentParams, Unit>.Handle(DidSaveTextDocumentParams parameters, CancellationToken cancellationToken)
         {
             if (parameters == null)
                 throw new ArgumentNullException(nameof(parameters));
@@ -471,6 +497,8 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
                     Log.Error(unexpectedError, "Unhandled exception in {Method:l}.", "OnDidSaveTextDocument");
                 }
             }
+
+            return Unit.Value;
         }
 
         /// <summary>
@@ -516,7 +544,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         /// <returns>
         ///     The document attributes.
         /// </returns>
-        TextDocumentAttributes ITextDocumentSyncHandler.GetTextDocumentAttributes(Uri documentUri)
+        TextDocumentAttributes ITextDocumentIdentifier.GetTextDocumentAttributes(Uri documentUri)
         {
             if (documentUri == null)
                 throw new ArgumentNullException(nameof(documentUri));

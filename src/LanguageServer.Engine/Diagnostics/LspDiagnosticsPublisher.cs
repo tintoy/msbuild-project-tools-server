@@ -1,6 +1,5 @@
-using OmniSharp.Extensions.LanguageServer.Protocol;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
-using OmniSharp.Extensions.LanguageServer.Server;
+using OmniSharp.Extensions.LanguageServer.Protocol.Server;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,17 +13,17 @@ namespace MSBuildProjectTools.LanguageServer.Diagnostics
         : IPublishDiagnostics
     {
         /// <summary>
-        ///     The LSP <see cref="ILanguageServer"/>.
+        ///     The LSP <see cref="OmniSharp.Extensions.LanguageServer.Server.ILanguageServer"/>.
         /// </summary>
-        readonly ILanguageServer _languageServer;
+        readonly OmniSharp.Extensions.LanguageServer.Server.ILanguageServer _languageServer;
 
         /// <summary>
         ///     Create a new <see cref="LspDiagnosticsPublisher"/>.
         /// </summary>
         /// <param name="languageServer">
-        ///     The LSP <see cref="ILanguageServer"/>.
+        ///     The LSP <see cref="OmniSharp.Extensions.LanguageServer.Server.ILanguageServer"/>.
         /// </param>
-        public LspDiagnosticsPublisher(ILanguageServer languageServer)
+        public LspDiagnosticsPublisher(OmniSharp.Extensions.LanguageServer.Server.ILanguageServer languageServer)
         {
             if (languageServer == null)
                 throw new ArgumentNullException(nameof(languageServer));
@@ -48,7 +47,7 @@ namespace MSBuildProjectTools.LanguageServer.Diagnostics
 
             diagnostics ??= Enumerable.Empty<Diagnostic>();
 
-            _languageServer.PublishDiagnostics(new PublishDiagnosticsParams
+            _languageServer.Document.PublishDiagnostics(new PublishDiagnosticsParams
             {
                 Uri = documentUri,
                 Diagnostics = diagnostics.ToArray()

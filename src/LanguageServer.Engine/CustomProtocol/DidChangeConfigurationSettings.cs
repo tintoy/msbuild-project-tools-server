@@ -3,6 +3,7 @@ using OmniSharp.Extensions.LanguageServer.Protocol;
 using OmniSharp.Extensions.LanguageServer.Protocol.Client.Capabilities;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using OmniSharp.Extensions.Embedded.MediatR;
 
 namespace MSBuildProjectTools.LanguageServer.CustomProtocol
 {
@@ -11,14 +12,14 @@ namespace MSBuildProjectTools.LanguageServer.CustomProtocol
     /// </summary>
     [Method("workspace/didChangeConfiguration")]
     public interface IDidChangeConfigurationSettingsHandler
-        : INotificationHandler<DidChangeConfigurationObjectParams>, IJsonRpcHandler, IRegistration<object>, ICapability<DidChangeConfigurationCapability>
+        : IJsonRpcNotificationHandler<DidChangeConfigurationObjectParams>, INotificationHandler<DidChangeConfigurationObjectParams>, IJsonRpcHandler, IRegistration<object>, ICapability<DidChangeConfigurationCapability>
     {
     }
 
     /// <summary>
     ///     Notification parameters for "workspace/didChangeConfiguration".
     /// </summary>
-    public class DidChangeConfigurationObjectParams
+    public class DidChangeConfigurationObjectParams : IRequest, INotification
     {
         /// <summary>
         ///     The current settings.

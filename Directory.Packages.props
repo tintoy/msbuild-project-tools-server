@@ -5,16 +5,16 @@
   
   <ItemGroup>
     <!-- Autofac -->
-    <PackageVersion Include="Autofac" Version="4.6.1" />
+    <PackageVersion Include="Autofac" Version="8.4.0" />
     
     <!-- OmniSharp -->
-    <PackageVersion Include="OmniSharp.Extensions.JsonRpc" Version="0.7.9" />
-    <PackageVersion Include="OmniSharp.Extensions.LanguageProtocol" Version="0.7.9" />
-    <PackageVersion Include="OmniSharp.Extensions.LanguageServer" Version="0.7.9" />
+    <PackageVersion Include="OmniSharp.Extensions.JsonRpc" Version="0.10.0" />
+    <PackageVersion Include="OmniSharp.Extensions.LanguageProtocol" Version="0.10.0" />
+    <PackageVersion Include="OmniSharp.Extensions.LanguageServer" Version="0.10.0" />
     
     <!-- Microsoft.Build -->
-    <PackageVersion Include="Microsoft.Build" Version="16.7.0" />
-    <PackageVersion Include="Microsoft.Build.Locator" Version="1.7.1" />
+    <PackageVersion Include="Microsoft.Build" Version="17.11.4" />
+    <PackageVersion Include="Microsoft.Build.Locator" Version="1.10.2" />
     
     <!-- Microsoft.Extensions -->
     <PackageVersion Include="Microsoft.Extensions.Logging" Version="8.0.0" />
@@ -27,26 +27,26 @@
     <PackageVersion Include="Nito.AsyncEx.Coordination" Version="1.0.1" />
     
     <!-- NuGet -->
-    <PackageVersion Include="NuGet.PackageManagement" Version="6.0.6" />
-    <PackageVersion Include="NuGet.Protocol" Version="6.0.6" />
+    <PackageVersion Include="NuGet.PackageManagement" Version="6.14.0" />
+    <PackageVersion Include="NuGet.Protocol" Version="6.14.0" />
     
     <!-- Serilog -->
-    <PackageVersion Include="Serilog" Version="4.0.1" />
-    <PackageVersion Include="Serilog.Enrichers.Demystifier" Version="1.0.2" />
+    <PackageVersion Include="Serilog" Version="4.3.0" />
+    <PackageVersion Include="Serilog.Enrichers.Demystifier" Version="1.0.3" />
     <PackageVersion Include="Serilog.Extensions.Logging" Version="8.0.0" />
-    <PackageVersion Include="Serilog.Sinks.Seq" Version="8.0.0" />
+    <PackageVersion Include="Serilog.Sinks.Seq" Version="9.0.0" />
     <PackageVersion Include="Serilog.Sinks.TextWriter" Version="3.0.0" />
     
     <!-- System -->
-    <PackageVersion Include="System.Reactive" Version="3.1.1" />
+    <PackageVersion Include="System.Reactive" Version="4.0.0" />
     <PackageVersion Include="System.Security.Principal" Version="4.3.0" />
-    <PackageVersion Include="System.Reflection.MetadataLoadContext" Version="7.0.0" />
+    <PackageVersion Include="System.Reflection.MetadataLoadContext" Version="8.0.0" />
     
     <!-- Other -->
     <PackageVersion Include="Sprache" Version="2.1.0" />
     
     <!-- Test packages -->
-    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="15.5.0-preview-20170810-02" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.0.0" />
     <PackageVersion Include="xunit" Version="2.3.0" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="2.3.0" />
   </ItemGroup>
