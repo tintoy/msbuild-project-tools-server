@@ -63,7 +63,7 @@ namespace MSBuildProjectTools.LanguageServer
                             configurationHandler.ConfigurationChanged += (sender, args) =>
                             {
                                 if (configurationHandler.Configuration.Logging.Level < LogEventLevel.Verbose)
-                                    ((LanguageServer)componentContext.Resolve<ILanguageServer>()).MinimumLogLevel = MSLogging.LogLevel.Warning;
+                                    componentContext.Resolve<LanguageServer>().MinimumLogLevel = MSLogging.LogLevel.Warning;
                             };
 
                             return Task.CompletedTask;
