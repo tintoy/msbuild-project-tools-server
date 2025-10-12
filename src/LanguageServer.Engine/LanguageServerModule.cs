@@ -43,36 +43,41 @@ namespace MSBuildProjectTools.LanguageServer
             builder.RegisterInstance(Configuration).AsSelf();
 
             builder
-                .Register(componentContext => LanguageServer.From(options =>
+                .Register(componentContext =>
                 {
-                    options.Input = Console.OpenStandardInput();
-                    options.Output = Console.OpenStandardOutput();
-                    options.LoggerFactory = componentContext.Resolve<MSLogging.ILoggerFactory>();
-
-                    var configurationHandler = componentContext.Resolve<ConfigurationHandler>();
-
-                    options.OnInitialize(initializationParameters =>
+                    ILanguageServer languageServer = LanguageServer.From(options =>
                     {
-                        configurationHandler.Configuration.UpdateFrom(initializationParameters);
-                        if (configurationHandler.Configuration.Logging.Level < LogEventLevel.Verbose)
-                            options.MinimumLogLevel = MSLogging.LogLevel.Warning;
+                        options.Input = Console.OpenStandardInput();
+                        options.Output = Console.OpenStandardOutput();
+                        options.LoggerFactory = componentContext.Resolve<MSLogging.ILoggerFactory>();
 
-                        // Handle subsequent logging configuration changes.
-                        configurationHandler.ConfigurationChanged += (sender, args) =>
+                        var configurationHandler = componentContext.Resolve<ConfigurationHandler>();
+
+                        options.OnInitialize(initializationParameters =>
                         {
+                            configurationHandler.Configuration.UpdateFrom(initializationParameters);
                             if (configurationHandler.Configuration.Logging.Level < LogEventLevel.Verbose)
-                                ((LanguageServer)componentContext.Resolve<ILanguageServer>()).MinimumLogLevel = MSLogging.LogLevel.Warning;
-                        };
+                                options.MinimumLogLevel = MSLogging.LogLevel.Warning;
 
-                        return Task.CompletedTask;
-                    });
-                }).GetAwaiter().GetResult())
+                            // Handle subsequent logging configuration changes.
+                            configurationHandler.ConfigurationChanged += (sender, args) =>
+                            {
+                                if (configurationHandler.Configuration.Logging.Level < LogEventLevel.Verbose)
+                                    ((LanguageServer)componentContext.Resolve<ILanguageServer>()).MinimumLogLevel = MSLogging.LogLevel.Warning;
+                            };
+
+                            return Task.CompletedTask;
+                        });
+                    }).GetAwaiter().GetResult();
+
+                    return (LanguageServer)languageServer;
+                })
                 .AsSelf()
                 .As<ILanguageServer>()
                 .SingleInstance()
                 .OnActivated(activated =>
                 {
-                    var languageServer = (LanguageServer)activated.Instance;
+                    ILanguageServer languageServer = activated.Instance;
 
                     // Register configuration handler (which is not a Handler).
                     var configurationHandler = activated.Context.Resolve<ConfigurationHandler>();

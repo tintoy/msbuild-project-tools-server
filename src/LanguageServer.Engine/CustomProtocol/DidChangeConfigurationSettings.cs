@@ -12,14 +12,14 @@ namespace MSBuildProjectTools.LanguageServer.CustomProtocol
     /// </summary>
     [Method("workspace/didChangeConfiguration")]
     public interface IDidChangeConfigurationSettingsHandler
-        : INotificationHandler<DidChangeConfigurationObjectParams>, IJsonRpcHandler, IRegistration<object>, ICapability<DidChangeConfigurationCapability>
+        : IJsonRpcNotificationHandler<DidChangeConfigurationObjectParams>, INotificationHandler<DidChangeConfigurationObjectParams>, IJsonRpcHandler, IRegistration<object>, ICapability<DidChangeConfigurationCapability>
     {
     }
 
     /// <summary>
     ///     Notification parameters for "workspace/didChangeConfiguration".
     /// </summary>
-    public class DidChangeConfigurationObjectParams : INotification
+    public class DidChangeConfigurationObjectParams : IRequest, INotification
     {
         /// <summary>
         ///     The current settings.

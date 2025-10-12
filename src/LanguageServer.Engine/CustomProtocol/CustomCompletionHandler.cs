@@ -11,7 +11,7 @@ namespace MSBuildProjectTools.LanguageServer.CustomProtocol
     /// </summary>
     [Method("textDocument/completion")]
     public interface ICustomCompletionHandler
-        : IRequestHandler<CompletionParams, CompletionList>, IJsonRpcHandler, IRegistration<CompletionRegistrationOptions>, ICapability<CompletionCapability>
+        : IRequestHandler<CompletionParams, CompletionList>, IJsonRpcHandler, IJsonRpcRequestHandler<CompletionParams, CompletionList>, IRegistration<CompletionRegistrationOptions>, ICapability<CompletionCapability>
     {
     }
 }
