@@ -50,7 +50,15 @@ steps:
   
   inputs:
     command: 'test'
-    projects: '/MSBuildProjectTools.sln'
+    projects: './test/LanguageServer.Engine.Tests/LanguageServer.Engine.Tests.csproj'
+    arguments: '--configuration "$(buildConfiguration)" /p:VersionPrefix="$(GitVersion.MajorMinorPatch)" /p:VersionSuffix="$(GitVersion.PreReleaseTag)"'
+
+- task: DotNetCoreCLI@2
+  displayName: 'Run integration tests'
+  
+  inputs:
+    command: 'test'
+    projects: './test/LanguageServer.IntegrationTests/LanguageServer.IntegrationTests.csproj'
     arguments: '--configuration "$(buildConfiguration)" /p:VersionPrefix="$(GitVersion.MajorMinorPatch)" /p:VersionSuffix="$(GitVersion.PreReleaseTag)"'
 
 - task: DotNetCoreCLI@2
