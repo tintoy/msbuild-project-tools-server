@@ -12,8 +12,17 @@ pr:
     include:
       - master
 
+strategy:
+  matrix:
+    linux:
+      vmImage: 'ubuntu-latest'
+      osName: 'Linux'
+    windows:
+      vmImage: 'windows-latest'
+      osName: 'Windows'
+
 pool:
-  vmImage: ubuntu-latest
+  vmImage: $(vmImage)
 
 variables:
   buildConfiguration: 'Release'
