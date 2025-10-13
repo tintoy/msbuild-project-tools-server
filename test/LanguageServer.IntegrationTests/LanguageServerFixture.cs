@@ -147,9 +147,22 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
             }
 
             string serverProjectDir = Path.Combine(gitRoot, "src", "LanguageServer");
-            var dlls = Directory.GetFiles(Path.Combine(serverProjectDir, "bin"), ServerDllName, SearchOption.AllDirectories);
+            string binDir = Path.Combine(serverProjectDir, "bin");
+            
+            // Check if bin directory exists to avoid hangs or exceptions on Linux
+            if (!Directory.Exists(binDir))
+            {
+                throw new FileNotFoundException($"Language server bin directory not found: {binDir}");
+            }
 
-            return Array.Find(dlls, File.Exists) ?? throw new FileNotFoundException("Language server executable not found.");
+            var dlls = Directory.GetFiles(binDir, ServerDllName, SearchOption.AllDirectories);
+
+            if (dlls.Length == 0)
+            {
+                throw new FileNotFoundException($"Language server executable '{ServerDllName}' not found in: {binDir}");
+            }
+
+            return dlls[0];
         }
 
         /// <summary>
@@ -162,6 +175,7 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
         {
             string currentDir = Path.GetDirectoryName(typeof(LanguageServerFixture).Assembly.Location);
 
+            var counter = 0;
             while (currentDir != null)
             {
                 if (Directory.Exists(Path.Combine(currentDir, ".git")))
@@ -170,6 +184,10 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
                 }
 
                 currentDir = Path.GetDirectoryName(currentDir);
+                counter++;
+
+                if (counter > 10) // Prevent infinite loop
+                    break;
             }
 
             return null;
