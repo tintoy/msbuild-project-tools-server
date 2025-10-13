@@ -59,7 +59,7 @@ steps:
   inputs:
     command: 'test'
     projects: './test/LanguageServer.IntegrationTests/LanguageServer.IntegrationTests.csproj'
-    arguments: '--configuration "$(buildConfiguration)" /p:VersionPrefix="$(GitVersion.MajorMinorPatch)" /p:VersionSuffix="$(GitVersion.PreReleaseTag)"'
+    arguments: '--logger "console;verbosity=detailed" --configuration "$(buildConfiguration)" /p:VersionPrefix="$(GitVersion.MajorMinorPatch)" /p:VersionSuffix="$(GitVersion.PreReleaseTag)"'
 
 - task: DotNetCoreCLI@2
   displayName: 'Publish language server'
