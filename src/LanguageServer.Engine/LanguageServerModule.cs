@@ -83,9 +83,6 @@ namespace MSBuildProjectTools.LanguageServer
                             services.AddTransient(sp => currentScope.Resolve<IPublishDiagnostics>(sp.ToAutofacParameter()));
                             services.AddSingleton(sp => currentScope.Resolve<Documents.Workspace>(sp.ToAutofacParameter()));
 
-                            // Register configuration handler (which is not a Handler).
-                            services.AddSingleton(sp => currentScope.Resolve<ConfigurationHandler>(sp.ToAutofacParameter()));
-
                             static void addRegistrations(IServiceCollection services, IComponentContext componentContext, bool addOnlyConcreteType, Type baseType, params Type[] additionalServiceTypes)
                             {
                                 var registrations = componentContext.ComponentRegistry
@@ -112,7 +109,7 @@ namespace MSBuildProjectTools.LanguageServer
                                 }
                             }
 
-                            // Register all other handlers.
+                            // Register all handlers.
                             addRegistrations(services, currentScope, true, typeof(Handler));
 
                             // Register all completion providers.
@@ -227,10 +224,6 @@ namespace MSBuildProjectTools.LanguageServer
                 .As<IPublishDiagnostics>()
                 .InstancePerDependency();
 
-            builder.RegisterType<ConfigurationHandler>()
-                .AsSelf()
-                .SingleInstance();
-
             builder.RegisterType<Documents.Workspace>()
                 .AsSelf()
                 .SingleInstance()
@@ -246,14 +239,11 @@ namespace MSBuildProjectTools.LanguageServer
                     typeof(DocumentSyncHandler),
                     typeof(DocumentSymbolHandler),
                     typeof(DefinitionHandler),
-                    typeof(HoverHandler)
+                    typeof(HoverHandler),
+                    typeof(CompletionHandler)
                 )
                 .AsSelf()
                 .As<Handler>()
-                .SingleInstance();
-
-            builder.RegisterType<CompletionHandler>()
-                .AsSelf().As<Handler>()
                 .SingleInstance();
 
             Type completionProviderType = typeof(CompletionProvider);
