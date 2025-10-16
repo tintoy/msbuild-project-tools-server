@@ -52,6 +52,7 @@ namespace MSBuildProjectTools.LanguageServer
                 {
                     // Force initialization of logging.
                     ILogger log = container.Resolve<ILogger>().ForContext(typeof(Program));
+                    terminator.Log = log.ForContext<Terminator>();
 
                     log.Debug("Creating language server...");
 
