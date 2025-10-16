@@ -1,8 +1,12 @@
 using Autofac;
+using Autofac.Core;
+using Microsoft.Extensions.DependencyInjection;
 using OmniSharp.Extensions.LanguageServer.Server;
+using Serilog;
 using Serilog.Events;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 using MSLogging = Microsoft.Extensions.Logging;
@@ -13,7 +17,9 @@ namespace MSBuildProjectTools.LanguageServer
     using CustomProtocol;
     using Diagnostics;
     using Handlers;
+    using Utilities;
     using OmniSharp.Extensions.JsonRpc;
+
     using LanguageServer = OmniSharp.Extensions.LanguageServer.Server.LanguageServer;
 
     /// <summary>
@@ -45,49 +51,177 @@ namespace MSBuildProjectTools.LanguageServer
             builder
                 .Register(componentContext =>
                 {
-                    ILanguageServer languageServer = LanguageServer.From(options =>
-                    {
-                        options.Input = Console.OpenStandardInput();
-                        options.Output = Console.OpenStandardOutput();
-                        options.LoggerFactory = componentContext.Resolve<MSLogging.ILoggerFactory>();
-
-                        var configurationHandler = componentContext.Resolve<ConfigurationHandler>();
-
-                        options.OnInitialize(initializationParameters =>
+                    // Can't use current context to resolve services from another lambda, when
+                    // this lambda is invoked at a later time. So re-resolve this context again
+                    // and use that in the other lambda.
+                    // see: https://stackoverflow.com/questions/52084803/system-objectdisposedexception-this-resolve-operation-has-already-ended
+                    // Using this new context also breaks circular dependency detection, but by
+                    // passing ServiceProviderParameter around, dependencies on ILanguageServer
+                    // or LanguageServer will be resolved directly from the service provider
+                    // instead of Autofac, so it can also break out of the endless loop.
+                    var currentScope = componentContext.Resolve<IComponentContext>();
+                    return new LanguageServerOptions()
+                        .WithInput(Console.OpenStandardInput())
+                        .WithOutput(Console.OpenStandardOutput())
+                        .WithLoggerFactory(componentContext.Resolve<MSLogging.ILoggerFactory>())
+                        .AddDefaultLoggingProvider()
+                        // New LSP C# implementation uses its own DI container, so configure it here with
+                        // the same registrations from Autofac.
+                        .WithServices(services =>
                         {
-                            configurationHandler.Configuration.UpdateFrom(initializationParameters);
-                            if (configurationHandler.Configuration.Logging.Level < LogEventLevel.Verbose)
-                                options.MinimumLogLevel = MSLogging.LogLevel.Warning;
+                            // Can't directly resolve some component instances here when registering
+                            // services for the other DI container, as it would result in an endless dependency loop, e.g.:
+                            // ILanguageServer -> Task<ILanguageServer> -> LanguageServerOptions -> CompletionHandler -> ILanguageServer -> ...
+                            // ILogger -> ILanguageServer -> Task<ILanguageServer> -> LanguageServerOptions -> ILogger -> ...
+                            // So do the registrations with factory delegates using the current lifetime scope as
+                            // component context and ServiceProviderParameter to shortcut some resolve operations.
+                            // At the time when this factory delegate is executed, the current ILanguageServer
+                            // instance already exists in the service provider as singleton instance and doesn't
+                            // need to be resolved from Autofac.
+                            services.AddSingleton(_ => currentScope.Resolve<Configuration>());
+                            services.AddSingleton(sp => currentScope.Resolve<ILogger>(sp.ToAutofacParameter()));
+                            services.AddTransient(sp => currentScope.Resolve<IPublishDiagnostics>(sp.ToAutofacParameter()));
+                            services.AddSingleton(sp => currentScope.Resolve<Documents.Workspace>(sp.ToAutofacParameter()));
 
-                            // Handle subsequent logging configuration changes.
-                            configurationHandler.ConfigurationChanged += (sender, args) =>
+                            // Register configuration handler (which is not a Handler).
+                            services.AddSingleton(sp => currentScope.Resolve<ConfigurationHandler>(sp.ToAutofacParameter()));
+
+                            static void addRegistrations(IServiceCollection services, IComponentContext componentContext, bool addOnlyConcreteType, Type baseType, params Type[] additionalServiceTypes)
+                            {
+                                var registrations = componentContext.ComponentRegistry
+                                    .ServiceRegistrationsFor(new TypedService(baseType));
+                                var filterTypes = baseType.Yield().Concat(additionalServiceTypes);
+                                foreach (var reg in registrations)
+                                {
+                                    var serviceTypes = reg.Registration.Services.OfType<IServiceWithType>()
+                                                                                .Select(s => s.ServiceType);
+                                    var concreteType = serviceTypes.Except(filterTypes)
+                                                                .FirstOrDefault() ?? baseType;
+
+                                    services.AddSingleton(concreteType, sp =>
+                                        componentContext.ResolveComponent(
+                                            new ResolveRequest(new TypedService(concreteType), reg,
+                                                new[] { sp.ToAutofacParameter() })
+                                            ));
+                                    if (!addOnlyConcreteType)
+                                    {
+                                        foreach (var serviceType in serviceTypes.Except(concreteType.Yield()))
+                                            services.AddSingleton(serviceType,
+                                                sp => sp.GetService(concreteType));
+                                    }
+                                }
+                            }
+
+                            // Register all other handlers.
+                            addRegistrations(services, currentScope, true, typeof(Handler));
+
+                            // Register all completion providers.
+                            addRegistrations(services, currentScope, false, typeof(ICompletionProvider), typeof(CompletionProvider));
+                        })
+                        .OnInitialize(initializationParameters =>
+                        {
+                            // Don't resolve LanguageServer instance without ServiceProviderParameter before
+                            // this line, there is no other callback except OnInitialize, which will be
+                            // invoked immediately after constructor was called.
+                            // The task returned from LanguageServer.From() will not complete before the
+                            // actual client/server initialization logic also has completely finished.
+                            var languageServer = currentScope.Resolve<LanguageServer>();
+                            var configurationHandler = currentScope.Resolve<ConfigurationHandler>();
+
+                            void configureServerLogLevel()
                             {
                                 if (configurationHandler.Configuration.Logging.Level < LogEventLevel.Verbose)
-                                    componentContext.Resolve<LanguageServer>().MinimumLogLevel = MSLogging.LogLevel.Warning;
-                            };
+                                    languageServer.MinimumLogLevel = MSLogging.LogLevel.Warning;
+                            }
+
+                            configurationHandler.Configuration.UpdateFrom(initializationParameters);
+                            configureServerLogLevel();
+
+                            // Handle subsequent logging configuration changes.
+                            configurationHandler.ConfigurationChanged += (sender, args) => configureServerLogLevel();
 
                             return Task.CompletedTask;
                         });
-                    }).GetAwaiter().GetResult();
-
-                    return (LanguageServer)languageServer;
                 })
                 .AsSelf()
-                .As<ILanguageServer>()
-                .SingleInstance()
-                .OnActivated(activated =>
+                .SingleInstance();
+
+            builder
+                .Register(componentContext => LanguageServer.From(
+                    componentContext.Resolve<LanguageServerOptions>()
+                ))
+                .AsSelf()
+                .SingleInstance();
+
+            builder
+                .RegisterAdapter<Task<ILanguageServer>, Task<LanguageServer>>(
+                    async task => (LanguageServer)await task)
+                .SingleInstance();
+
+            // Can't use adapter here, because the "parameters" parameter of this lambda
+            // will always be empty and the component in the "from" parameter is already
+            // unconditionally resolved, which can lead to an endless loop in this specific
+            // case.
+            /*builder
+                .RegisterAdapter<Task<ILanguageServer>, LanguageServer>(
+                (componentContext, parameters, from) =>
                 {
-                    ILanguageServer languageServer = activated.Instance;
+                    var options = componentContext.Resolve<LanguageServerOptions>();
+                    using var sp = options.Services.BuildServiceProvider();
+                    return (LanguageServer)sp.GetRequiredService<ILanguageServer>();
+                })
+                .As<LanguageServer>()   // AsSelf() not available on adapter registration,
+                                        // but it needs to register itself as service type,
+                                        // so do it manually.
+                .As<ILanguageServer>()
+                .SingleInstance();*/
 
-                    // Register configuration handler (which is not a Handler).
-                    var configurationHandler = activated.Context.Resolve<ConfigurationHandler>();
-                    languageServer.AddHandlers(configurationHandler);
-
-                    // Register all other handlers.
-                    var handlers = activated.Context.Resolve<IEnumerable<Handler>>();
-                    foreach (Handler handler in handlers)
-                        languageServer.AddHandlers(handler);
-                });
+            var rb = builder
+                .Register((componentContext, parameters) =>
+                {
+                    var sp = parameters.OfType<IServiceProvider>().FirstOrDefault();
+                    if (sp == null)
+                    {
+                        // At this point, there is no service provider in parameters,
+                        // which LanguageServer had created, so this may be the first
+                        // resolution and a new LanguageServer instance should be created
+                        // by resolving Task<ILanguageServer>.
+                        // If it wasn't the first resolution, then this should return the
+                        // cached singleton instance of Task<ILanguageServer> and the task
+                        // could already be completed, in this case the Result of the Task can
+                        // directly be returned without blocking.
+                        var from = componentContext.Resolve<Task<ILanguageServer>>(parameters);
+                        if (from.IsCompletedSuccessfully)
+                            return (LanguageServer)from.Result;
+                        // If the task isn't completed yet, return LanguageServer instance from
+                        // services collection of LanguageServerOptions which was created by
+                        // resolving Task<ILanguageServer>. Use a new temporary service provider
+                        // for retrieving the instance.
+                        var options = componentContext.Resolve<LanguageServerOptions>(parameters);
+                        sp = options.Services.BuildServiceProvider();
+                    }
+                    try
+                    {
+                        return (LanguageServer)sp.GetRequiredService<ILanguageServer>();
+                    }
+                    finally
+                    {
+                        (sp as IDisposable)?.Dispose();
+                    }
+                })
+                // Mimic the behavior of an adapter registration with the following,
+                // so keep similar semantics.
+                .AsAdapter(builder).For<Task<ILanguageServer>>()
+                .AsSelf()
+                .As<ILanguageServer>()
+                // This component is actually a singleton, but it could be resolved recursively,
+                // which this IoC implementation sees as an error. So every dependency should
+                // create a new scope before resolving this component and the registration
+                // needs to be configured as per LifetimeScope.
+                .InstancePerLifetimeScope()
+                // Every instance returned of this registration is the same singleton instance and it is disposable,
+                // so register disposing of the instance only in the root LifetimeScope.
+                .OwnedByRootLifetimeScope();
 
             builder.RegisterType<LspDiagnosticsPublisher>()
                 .As<IPublishDiagnostics>()

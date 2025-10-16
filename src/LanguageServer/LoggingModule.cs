@@ -1,14 +1,17 @@
 using Autofac;
+using Autofac.Core;
 using OmniSharp.Extensions.LanguageServer.Server;
 using Serilog;
 using Serilog.Events;
 using System;
+using System.Collections.Generic;
 
 using MSLogging = Microsoft.Extensions.Logging;
 
 namespace MSBuildProjectTools.LanguageServer
 {
     using Logging;
+    using Utilities;
     using Serilog.Core;
     using LanguageServer = OmniSharp.Extensions.LanguageServer.Server.LanguageServer;
 
@@ -37,8 +40,18 @@ namespace MSBuildProjectTools.LanguageServer
                 throw new ArgumentNullException(nameof(builder));
 
             builder.Register(CreateLogger)
-                .SingleInstance()
-                .As<ILogger>();
+                // Create a new LifetimeScope for every new resolve operation,
+                // when other resolve operation(s) for this type has already been
+                // started but are not completed yet,
+                // otherwise use the most nested LifetimeScope in which this resolve
+                // operation completed and use its shared instance for the parent
+                // resolve operation.
+                // In combination with the new behavior of CreateLogger(...) this
+                // will behave like a singleton, but can be used in circular dependency
+                // situations.
+                .LifetimeScopePerInstance(builder)
+                .As<ILogger>()
+                .OwnedByRootLifetimeScope();
 
             builder.RegisterType<MSLogging.LoggerFactory>()
                 .As<MSLogging.ILoggerFactory>()
@@ -57,17 +70,28 @@ namespace MSBuildProjectTools.LanguageServer
         /// <param name="componentContext">
         ///     The current component context.
         /// </param>
+        /// <param name="parameters">
+        ///     Parameters for the current component context.
+        /// </param>
         /// <returns>
         ///     The logger.
         /// </returns>
-        static ILogger CreateLogger(IComponentContext componentContext)
+        static ILogger CreateLogger(IComponentContext componentContext, IEnumerable<Parameter> parameters)
         {
             if (componentContext == null)
                 throw new ArgumentNullException(nameof(componentContext));
 
-            ILanguageServer languageServer = componentContext.Resolve<ILanguageServer>();
+            if (Log.Logger != Logger.None)
+                return Log.Logger;
 
-            Configuration languageServerConfiguration = componentContext.Resolve<Configuration>();
+            ILanguageServer languageServer = componentContext.Resolve<ILanguageServer>(parameters);
+
+            Configuration languageServerConfiguration = componentContext.Resolve<Configuration>(parameters);
+
+            // If Logger instance is already set at this point, it was set by resolving ILogger from above dependencies,
+            // so return same instance instead of creating new.
+            if (Log.Logger != Logger.None)
+                return Log.Logger;
 
             LoggerConfiguration loggerConfiguration = CreateDefaultLoggerConfiguration(languageServerConfiguration)
                 .WriteTo.LanguageServer(languageServer, languageServerConfiguration.Logging.LevelSwitch);

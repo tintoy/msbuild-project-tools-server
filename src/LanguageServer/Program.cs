@@ -55,9 +55,11 @@ namespace MSBuildProjectTools.LanguageServer
 
                     log.Debug("Creating language server...");
 
-                    var server = container.Resolve<LSP.Server.LanguageServer>();
+                    var serverInitTask = container.Resolve<Task<LSP.Server.LanguageServer>>();
 
                     log.Debug("Waiting for client to initialize language server...");
+
+                    var server = await serverInitTask;
 
                     log.Debug("Language server initialized by client.");
 
