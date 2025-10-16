@@ -4,6 +4,7 @@
     <RootNamespace>MSBuildProjectTools.LanguageServer.Tests</RootNamespace>
     <AssemblyName>MSBuildProjectTools.LanguageServer.Engine.Tests</AssemblyName>
     <Platforms>x64</Platforms>
+    <RollForward>LatestMajor</RollForward>
   </PropertyGroup>
   
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
