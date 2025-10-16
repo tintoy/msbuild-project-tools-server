@@ -1,6 +1,9 @@
 <Project>
   <PropertyGroup>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <!-- Suppress NU1507: There are 2 package sources defined in your configuration. When using central package management, please map your package sources with package source mapping or specify a single package source. -->
+    <!-- see: https://github.com/NuGet/Home/issues/11822 -->
+    <NoWarn>$(NoWarn);NU1507</NoWarn>
   </PropertyGroup>
   
   <ItemGroup>
