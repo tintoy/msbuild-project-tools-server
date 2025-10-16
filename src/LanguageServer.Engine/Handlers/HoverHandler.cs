@@ -17,6 +17,8 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
     using SemanticModel;
     using Utilities;
 
+    using ILanguageServer = OmniSharp.Extensions.LanguageServer.Server.ILanguageServer;
+
     /// <summary>
     ///     Handler for document hover requests.
     /// </summary>
@@ -35,7 +37,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         /// <param name="logger">
         ///     The application logger.
         /// </param>
-        public HoverHandler(OmniSharp.Extensions.LanguageServer.Server.ILanguageServer server, Workspace workspace, ILogger logger)
+        public HoverHandler(ILanguageServer server, Workspace workspace, ILogger logger)
             : base(server, logger)
         {
             if (workspace == null)
@@ -107,7 +109,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
             if (Workspace.Configuration.Language.DisableFeature.Hover)
                 return null;
 
-            ProjectDocument projectDocument = await Workspace.GetProjectDocument(parameters.TextDocument.Uri);
+            ProjectDocument projectDocument = await Workspace.GetProjectDocument(parameters.TextDocument.Uri, cancellationToken: cancellationToken);
 
             using (await projectDocument.Lock.ReaderLockAsync(cancellationToken))
             {

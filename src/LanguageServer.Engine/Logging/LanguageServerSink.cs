@@ -12,6 +12,7 @@ using OmniSharp.Extensions.LanguageServer.Protocol.Server;
 namespace MSBuildProjectTools.LanguageServer.Logging
 {
     using LanguageServer = OmniSharp.Extensions.LanguageServer.Server.LanguageServer;
+    using ILanguageServer = OmniSharp.Extensions.LanguageServer.Server.ILanguageServer;
 
     /// <summary>
     ///     A Serilog logging sink that sends log events to the language server logging facility.
@@ -22,7 +23,7 @@ namespace MSBuildProjectTools.LanguageServer.Logging
         /// <summary>
         ///     The language server to which events will be logged.
         /// </summary>
-        readonly OmniSharp.Extensions.LanguageServer.Server.ILanguageServer _languageServer;
+        readonly ILanguageServer _languageServer;
 
         /// <summary>
         ///     The <see cref="LoggingLevelSwitch"/> that controls logging.
@@ -43,7 +44,7 @@ namespace MSBuildProjectTools.LanguageServer.Logging
         /// <param name="levelSwitch">
         ///     The <see cref="LoggingLevelSwitch"/> that controls logging.
         /// </param>
-        public LanguageServerLoggingSink(OmniSharp.Extensions.LanguageServer.Server.ILanguageServer languageServer, LoggingLevelSwitch levelSwitch)
+        public LanguageServerLoggingSink(ILanguageServer languageServer, LoggingLevelSwitch levelSwitch)
         {
             if (languageServer == null)
                 throw new ArgumentNullException(nameof(languageServer));
@@ -56,8 +57,10 @@ namespace MSBuildProjectTools.LanguageServer.Logging
 
             if (_languageServer is LanguageServer realLanguageServer)
             {
-                realLanguageServer.Shutdown.Subscribe(shutDownRequested =>
+                IDisposable subscription = null;
+                subscription = realLanguageServer.Shutdown.Subscribe(shutDownRequested =>
                 {
+                    subscription?.Dispose();
                     Log.CloseAndFlush();
 
                     _hasServerShutDown = true;
@@ -68,7 +71,7 @@ namespace MSBuildProjectTools.LanguageServer.Logging
         /// <summary>
         ///     Can log entries be sent to the language server?
         /// </summary>
-        bool CanLog => !_hasServerShutDown;
+        bool CanLog => _languageServer.ServerSettings != null && !_hasServerShutDown;
 
         /// <summary>
         ///     Emit a log event.
@@ -130,7 +133,7 @@ namespace MSBuildProjectTools.LanguageServer.Logging
 
                     break;
                 }
-            }   
+            }
             _languageServer.Window.LogMessage(logParameters);
         }
     }

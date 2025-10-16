@@ -56,7 +56,7 @@ namespace MSBuildProjectTools.LanguageServer
         /// <summary>
         ///     The terminator's logger.
         /// </summary>
-        ILogger Log { get; }
+        internal ILogger Log { private get; set; }
 
         /// <summary>
         /// Initialize the process terminator.

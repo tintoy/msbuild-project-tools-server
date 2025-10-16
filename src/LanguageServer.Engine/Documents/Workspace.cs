@@ -5,6 +5,7 @@ using System.Collections.Concurrent;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
 
@@ -159,10 +160,13 @@ namespace MSBuildProjectTools.LanguageServer.Documents
         /// <param name="reload">
         ///     Reload the project if it is already loaded?
         /// </param>
+        /// <param name="cancellationToken">
+        ///     A <see cref="CancellationToken"/> that can be used to cancel the async operation.
+        /// </param>
         /// <returns>
         ///     The project document.
         /// </returns>
-        public async Task<ProjectDocument> GetProjectDocument(Uri documentUri, bool reload = false)
+        public async Task<ProjectDocument> GetProjectDocument(Uri documentUri, bool reload = false, CancellationToken cancellationToken = default)
         {
             string projectFilePath = VSCodeDocumentUri.GetFileSystemPath(documentUri);
 
@@ -205,9 +209,9 @@ namespace MSBuildProjectTools.LanguageServer.Documents
             {
                 if (isNewProject || reload)
                 {
-                    using (await projectDocument.Lock.WriterLockAsync())
+                    using (await projectDocument.Lock.WriterLockAsync(cancellationToken))
                     {
-                        await projectDocument.Load();
+                        await projectDocument.Load(cancellationToken);
                     }
                 }
             }
@@ -235,10 +239,13 @@ namespace MSBuildProjectTools.LanguageServer.Documents
         /// <param name="documentText">
         ///     The new document text.
         /// </param>
+        /// <param name="cancellationToken">
+        ///     A <see cref="CancellationToken"/> that can be used to cancel the async operation.
+        /// </param>
         /// <returns>
         ///     The project document.
         /// </returns>
-        public async Task<ProjectDocument> TryUpdateProjectDocument(Uri documentUri, string documentText)
+        public async Task<ProjectDocument> TryUpdateProjectDocument(Uri documentUri, string documentText, CancellationToken cancellationToken = default)
         {
             if (!_projectDocuments.TryGetValue(documentUri, out ProjectDocument projectDocument))
             {
@@ -249,7 +256,7 @@ namespace MSBuildProjectTools.LanguageServer.Documents
 
             try
             {
-                using (await projectDocument.Lock.WriterLockAsync())
+                using (await projectDocument.Lock.WriterLockAsync(cancellationToken))
                 {
                     projectDocument.Update(documentText);
                 }
@@ -305,10 +312,13 @@ namespace MSBuildProjectTools.LanguageServer.Documents
         /// <param name="documentUri">
         ///     The document URI.
         /// </param>
+        /// <param name="cancellationToken">
+        ///     A <see cref="CancellationToken"/> that can be used to cancel the async operation.
+        /// </param>
         /// <returns>
         ///     A <see cref="Task{TResult}"/> that resolves to <c>true</c> if the document was removed to the workspace; otherwise, <c>false</c>.
         /// </returns>
-        public async Task<bool> RemoveProjectDocument(Uri documentUri)
+        public async Task<bool> RemoveProjectDocument(Uri documentUri, CancellationToken cancellationToken = default)
         {
             if (documentUri == null)
                 throw new ArgumentNullException(nameof(documentUri));
@@ -319,7 +329,7 @@ namespace MSBuildProjectTools.LanguageServer.Documents
             if (MasterProject == projectDocument)
                 MasterProject = null;
 
-            using (await projectDocument.Lock.WriterLockAsync())
+            using (await projectDocument.Lock.WriterLockAsync(cancellationToken))
             {
                 ClearDiagnostics(projectDocument);
 

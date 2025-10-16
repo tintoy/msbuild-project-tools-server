@@ -59,7 +59,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests
         /// </param>
         [InlineData("NuGet.Build.Tasks.dll")]
         [InlineData("Microsoft.Build.Tasks.Core.dll")]
-        [InlineData("Sdks/Microsoft.NET.Sdk/tools/net8.0/Microsoft.NET.Build.Tasks.dll")]
+        [InlineData("Sdks/Microsoft.NET.Sdk/tools/net{0}.{1}/Microsoft.NET.Build.Tasks.dll")]
         [Theory(DisplayName = "TaskScanner can get tasks from framework task assembly ")]
         public void Scan_FrameworkTaskAssembly_Success(string fileName)
         {
@@ -92,7 +92,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests
                 throw new ArgumentException($"Argument cannot be null, empty, or entirely composed of whitespace: {nameof(assemblyFileName)}.", nameof(assemblyFileName));
 
             return Path.Combine(CurrentDotnetInfo.BaseDirectory,
-                assemblyFileName.Replace('/', Path.DirectorySeparatorChar)
+                string.Format(assemblyFileName.Replace('/', Path.DirectorySeparatorChar), CurrentDotnetInfo.Sdk.Version.Major, CurrentDotnetInfo.Sdk.Version.Minor)
             );
         }
     }

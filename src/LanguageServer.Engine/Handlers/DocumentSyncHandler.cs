@@ -21,6 +21,8 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
     using SemanticModel;
     using Utilities;
 
+    using ILanguageServer = OmniSharp.Extensions.LanguageServer.Server.ILanguageServer;
+
     /// <summary>
     ///     The handler for language server document synchronization.
     /// </summary>
@@ -39,7 +41,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         /// <param name="logger">
         ///     The application logger.
         /// </param>
-        public DocumentSyncHandler(OmniSharp.Extensions.LanguageServer.Server.ILanguageServer server, Workspace workspace, ILogger logger)
+        public DocumentSyncHandler(ILanguageServer server, Workspace workspace, ILogger logger)
             : base(server, logger)
         {
             if (workspace == null)
@@ -144,14 +146,17 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         /// <param name="parameters">
         ///     The notification parameters.
         /// </param>
+        /// <param name="cancellationToken">
+        ///     A <see cref="CancellationToken"/> that can be used to cancel the operation.
+        /// </param>
         /// <returns>
         ///     A <see cref="Task"/> representing the operation.
         /// </returns>
-        async Task OnDidOpenTextDocument(DidOpenTextDocumentParams parameters)
+        async Task OnDidOpenTextDocument(DidOpenTextDocumentParams parameters, CancellationToken cancellationToken)
         {
             Server.NotifyBusy("Loading project...");
 
-            ProjectDocument projectDocument = await Workspace.GetProjectDocument(parameters.TextDocument.Uri);
+            ProjectDocument projectDocument = await Workspace.GetProjectDocument(parameters.TextDocument.Uri, cancellationToken: cancellationToken);
             Workspace.PublishDiagnostics(projectDocument);
 
             // Only enable expression-related language service facilities if they're using our custom "MSBuild" language type (rather than "XML").
@@ -238,10 +243,13 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         /// <param name="parameters">
         ///     The notification parameters.
         /// </param>
+        /// <param name="cancellationToken">
+        ///     A <see cref="CancellationToken"/> that can be used to cancel the operation.
+        /// </param>
         /// <returns>
         ///     A <see cref="Task"/> representing the operation.
         /// </returns>
-        async Task OnDidChangeTextDocument(DidChangeTextDocumentParams parameters)
+        async Task OnDidChangeTextDocument(DidChangeTextDocumentParams parameters, CancellationToken cancellationToken)
         {
             Log.Verbose("Reloading project {ProjectFile}...",
                 VSCodeDocumentUri.GetFileSystemPath(parameters.TextDocument.Uri)
@@ -252,7 +260,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
                 return;
 
             string updatedDocumentText = mostRecentChange.Text;
-            ProjectDocument projectDocument = await Workspace.TryUpdateProjectDocument(parameters.TextDocument.Uri, updatedDocumentText);
+            ProjectDocument projectDocument = await Workspace.TryUpdateProjectDocument(parameters.TextDocument.Uri, updatedDocumentText, cancellationToken);
             Workspace.PublishDiagnostics(projectDocument);
 
             if (Log.IsEnabled(LogEventLevel.Verbose))
@@ -289,16 +297,19 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         /// <param name="parameters">
         ///     The notification parameters.
         /// </param>
+        /// <param name="cancellationToken">
+        ///     A <see cref="CancellationToken"/> that can be used to cancel the operation.
+        /// </param>
         /// <returns>
         ///     A <see cref="Task"/> representing the operation.
         /// </returns>
-        async Task OnDidSaveTextDocument(DidSaveTextDocumentParams parameters)
+        async Task OnDidSaveTextDocument(DidSaveTextDocumentParams parameters, CancellationToken cancellationToken)
         {
             Log.Information("Reloading project {ProjectFile}...",
                 VSCodeDocumentUri.GetFileSystemPath(parameters.TextDocument.Uri)
             );
 
-            ProjectDocument projectDocument = await Workspace.GetProjectDocument(parameters.TextDocument.Uri, reload: true);
+            ProjectDocument projectDocument = await Workspace.GetProjectDocument(parameters.TextDocument.Uri, reload: true, cancellationToken: cancellationToken);
             Workspace.PublishDiagnostics(projectDocument);
 
             if (!projectDocument.HasXml)
@@ -324,12 +335,15 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         /// <param name="parameters">
         ///     The notification parameters.
         /// </param>
+        /// <param name="cancellationToken">
+        ///     A <see cref="CancellationToken"/> that can be used to cancel the operation.
+        /// </param>
         /// <returns>
         ///     A <see cref="Task"/> representing the operation.
         /// </returns>
-        async Task OnDidCloseTextDocument(DidCloseTextDocumentParams parameters)
+        async Task OnDidCloseTextDocument(DidCloseTextDocumentParams parameters, CancellationToken cancellationToken)
         {
-            await Workspace.RemoveProjectDocument(parameters.TextDocument.Uri);
+            await Workspace.RemoveProjectDocument(parameters.TextDocument.Uri, cancellationToken);
 
             Log.Information("Unloaded project {ProjectFile}.",
                 VSCodeDocumentUri.GetFileSystemPath(parameters.TextDocument.Uri)
@@ -378,7 +392,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         ///     The notification parameters.
         /// </param>
         /// <param name="cancellationToken">
-        ///     A cancellation token that can be used to cancel the operation.
+        ///     A <see cref="CancellationToken"/> that can be used to cancel the operation.
         /// </param>
         /// <returns>
         ///     A <see cref="Task"/> representing the operation.
@@ -392,7 +406,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
             {
                 try
                 {
-                    await OnDidOpenTextDocument(parameters);
+                    await OnDidOpenTextDocument(parameters, cancellationToken);
                 }
                 catch (Exception unexpectedError)
                 {
@@ -410,7 +424,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         ///     The notification parameters.
         /// </param>
         /// <param name="cancellationToken">
-        ///     A cancellation token that can be used to cancel the operation.
+        ///     A <see cref="CancellationToken"/> that can be used to cancel the operation.
         /// </param>
         /// <returns>
         ///     A <see cref="Task"/> representing the operation.
@@ -424,7 +438,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
             {
                 try
                 {
-                    await OnDidCloseTextDocument(parameters);
+                    await OnDidCloseTextDocument(parameters, cancellationToken);
                 }
                 catch (Exception unexpectedError)
                 {
@@ -442,7 +456,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         ///     The notification parameters.
         /// </param>
         /// <param name="cancellationToken">
-        ///     A cancellation token that can be used to cancel the operation.
+        ///     A <see cref="CancellationToken"/> that can be used to cancel the operation.
         /// </param>
         /// <returns>
         ///     A <see cref="Task"/> representing the operation.
@@ -456,7 +470,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
             {
                 try
                 {
-                    await OnDidChangeTextDocument(parameters);
+                    await OnDidChangeTextDocument(parameters, cancellationToken);
                 }
                 catch (Exception unexpectedError)
                 {
@@ -467,8 +481,6 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
             return Unit.Value;
         }
 
-        
-
         /// <summary>
         ///     Handle a document being saved.
         /// </summary>
@@ -476,7 +488,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         ///     The notification parameters.
         /// </param>
         /// <param name="cancellationToken">
-        ///     A cancellation token that can be used to cancel the operation.
+        ///     A <see cref="CancellationToken"/> that can be used to cancel the operation.
         /// </param>
         /// <returns>
         ///     A <see cref="Task"/> representing the operation.
@@ -490,7 +502,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
             {
                 try
                 {
-                    await OnDidSaveTextDocument(parameters);
+                    await OnDidSaveTextDocument(parameters, cancellationToken);
                 }
                 catch (Exception unexpectedError)
                 {

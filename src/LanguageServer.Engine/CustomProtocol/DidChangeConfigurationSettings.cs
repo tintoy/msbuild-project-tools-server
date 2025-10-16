@@ -10,7 +10,7 @@ namespace MSBuildProjectTools.LanguageServer.CustomProtocol
     /// <summary>
     ///     Custom handler for "workspace/didChangeConfiguration" with the configuration as a <see cref="JObject"/>.
     /// </summary>
-    [Method("workspace/didChangeConfiguration")]
+    [Serial, Method("workspace/didChangeConfiguration")]
     public interface IDidChangeConfigurationSettingsHandler
         : IJsonRpcNotificationHandler<DidChangeConfigurationObjectParams>, INotificationHandler<DidChangeConfigurationObjectParams>, IJsonRpcHandler, IRegistration<object>, ICapability<DidChangeConfigurationCapability>
     {
