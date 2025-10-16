@@ -22,6 +22,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		MSBuildProjectTools.ruleset = MSBuildProjectTools.ruleset
 		OSSREADME.json = OSSREADME.json
 		README.md = README.md
+		Directory.Packages.props = Directory.Packages.props
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LanguageServer.SemanticModel.MSBuild", "src\LanguageServer.SemanticModel.MSBuild\LanguageServer.SemanticModel.MSBuild.csproj", "{15BE4E0D-3EBC-40ED-94EA-212A96A81DA3}"

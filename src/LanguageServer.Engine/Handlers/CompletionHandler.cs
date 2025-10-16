@@ -128,7 +128,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         /// </returns>
         async Task<CompletionList> OnCompletion(CompletionParams parameters, CancellationToken cancellationToken)
         {
-            ProjectDocument projectDocument = await Workspace.GetProjectDocument(parameters.TextDocument.Uri);
+            ProjectDocument projectDocument = await Workspace.GetProjectDocument(parameters.TextDocument.Uri, cancellationToken: cancellationToken);
 
             XmlLocation location;
 

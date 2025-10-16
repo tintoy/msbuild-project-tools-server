@@ -1,6 +1,7 @@
 using OmniSharp.Extensions.JsonRpc;
 using OmniSharp.Extensions.LanguageServer.Protocol;
 using OmniSharp.Extensions.LanguageServer.Protocol.Client.Capabilities;
+using OmniSharp.Extensions.LanguageServer.Server;
 using Serilog;
 using System;
 using System.Threading.Tasks;
@@ -15,15 +16,22 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
     ///     Language Server message handler that tracks configuration.
     /// </summary>
     public sealed class ConfigurationHandler
-        : IDidChangeConfigurationSettingsHandler
+        : Handler, IDidChangeConfigurationSettingsHandler
     {
         /// <summary>
         ///     Create a new <see cref="ConfigurationHandler"/>.
         /// </summary>
+        /// <param name="server">
+        ///     The language server.
+        /// </param>
         /// <param name="configuration">
         ///     The language server configuration.
         /// </param>
-        public ConfigurationHandler(Configuration configuration)
+        /// <param name="logger">
+        ///     The application logger.
+        /// </param>
+        public ConfigurationHandler(ILanguageServer server, Configuration configuration, ILogger logger)
+            : base(server, logger)
         {
             if (configuration == null)
                 throw new ArgumentNullException(nameof(configuration));
@@ -47,10 +55,13 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         /// <param name="parameters">
         ///     The notification parameters.
         /// </param>
+        /// <param name="cancellationToken">
+        ///     A <see cref="CancellationToken"/> that can be used to cancel the async operation.
+        /// </param>
         /// <returns>
         ///     A <see cref="Task"/> representing the operation.
         /// </returns>
-        Task OnDidChangeConfiguration(DidChangeConfigurationObjectParams parameters)
+        Task OnDidChangeConfiguration(DidChangeConfigurationObjectParams parameters, CancellationToken cancellationToken)
         {
             Configuration.UpdateFrom(parameters);
 
@@ -76,7 +87,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         ///     The notification parameters.
         /// </param>
         /// <param name="cancellationToken">
-        ///     A cancellation token that can be used to cancel the operation.
+        ///     A <see cref="CancellationToken"/> that can be used to cancel the operation.
         /// </param>
         /// <returns>
         ///     A <see cref="Task"/> representing the operation.
@@ -90,7 +101,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
             {
                 try
                 {
-                    await OnDidChangeConfiguration(request);
+                    await OnDidChangeConfiguration(request, cancellationToken);
                 }
                 catch (Exception unexpectedError)
                 {
@@ -108,27 +119,14 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         ///     The notification parameters.
         /// </param>
         /// <param name="cancellationToken">
-        ///     A cancellation token that can be used to cancel the operation.
+        ///     A <see cref="CancellationToken"/> that can be used to cancel the operation.
         /// </param>
         /// <returns>
         ///     A <see cref="Task"/> representing the operation.
         /// </returns>
-        async Task INotificationHandler<DidChangeConfigurationObjectParams>.Handle(DidChangeConfigurationObjectParams parameters, CancellationToken cancellationToken)
+        Task INotificationHandler<DidChangeConfigurationObjectParams>.Handle(DidChangeConfigurationObjectParams parameters, CancellationToken cancellationToken)
         {
-            if (parameters == null)
-                throw new ArgumentNullException(nameof(parameters));
-
-            using (BeginOperation("OnDidChangeConfiguration"))
-            {
-                try
-                {
-                    await OnDidChangeConfiguration(parameters);
-                }
-                catch (Exception unexpectedError)
-                {
-                    Log.Error(unexpectedError, "Unhandled exception in {Method:l}.", "OnDidChangeConfiguration");
-                }
-            }
+            return ((IRequestHandler<DidChangeConfigurationObjectParams, Unit>)this).Handle(parameters, cancellationToken);
         }
 
         /// <summary>
@@ -140,23 +138,6 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         object IRegistration<object>.GetRegistrationOptions()
         {
             return null;
-        }
-
-        /// <summary>
-        ///     Add log context for an operation.
-        /// </summary>
-        /// <param name="operationName">
-        ///     The operation name.
-        /// </param>
-        /// <returns>
-        ///     An <see cref="IDisposable"/> representing the log-context scope.
-        /// </returns>
-        static IDisposable BeginOperation(string operationName)
-        {
-            if (string.IsNullOrWhiteSpace(operationName))
-                throw new ArgumentException("Argument cannot be null, empty, or entirely composed of whitespace: 'operationName'.", nameof(operationName));
-
-            return Serilog.Context.LogContext.PushProperty("Operation", operationName);
         }
     }
 }

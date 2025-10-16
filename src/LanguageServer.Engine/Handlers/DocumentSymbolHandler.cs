@@ -16,6 +16,8 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
     using SemanticModel;
     using Utilities;
 
+    using ILanguageServer = OmniSharp.Extensions.LanguageServer.Server.ILanguageServer;
+
     /// <summary>
     ///     Handler for document symbol requests.
     /// </summary>
@@ -34,7 +36,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         /// <param name="logger">
         ///     The application logger.
         /// </param>
-        public DocumentSymbolHandler(OmniSharp.Extensions.LanguageServer.Server.ILanguageServer server, Workspace workspace, ILogger logger)
+        public DocumentSymbolHandler(ILanguageServer server, Workspace workspace, ILogger logger)
             : base(server, logger)
         {
             if (workspace == null)
@@ -103,7 +105,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         /// </returns>
         async Task<DocumentSymbolInformationContainer> OnDocumentSymbols(DocumentSymbolParams parameters, CancellationToken cancellationToken)
         {
-            ProjectDocument projectDocument = await Workspace.GetProjectDocument(parameters.TextDocument.Uri);
+            ProjectDocument projectDocument = await Workspace.GetProjectDocument(parameters.TextDocument.Uri, cancellationToken: cancellationToken);
 
             var symbols = new List<DocumentSymbolInformation>();
             using (await projectDocument.Lock.ReaderLockAsync(cancellationToken))
