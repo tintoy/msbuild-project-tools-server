@@ -6,6 +6,8 @@ using System.Linq;
 
 namespace MSBuildProjectTools.LanguageServer.Diagnostics
 {
+    using ILanguageServer = OmniSharp.Extensions.LanguageServer.Server.ILanguageServer;
+
     /// <summary>
     ///     An implementation of <see cref="IPublishDiagnostics"/> that publishes diagnostics via LSP.
     /// </summary>
@@ -13,17 +15,17 @@ namespace MSBuildProjectTools.LanguageServer.Diagnostics
         : IPublishDiagnostics
     {
         /// <summary>
-        ///     The LSP <see cref="OmniSharp.Extensions.LanguageServer.Server.ILanguageServer"/>.
+        ///     The LSP <see cref="ILanguageServer"/>.
         /// </summary>
-        readonly OmniSharp.Extensions.LanguageServer.Server.ILanguageServer _languageServer;
+        readonly ILanguageServer _languageServer;
 
         /// <summary>
         ///     Create a new <see cref="LspDiagnosticsPublisher"/>.
         /// </summary>
         /// <param name="languageServer">
-        ///     The LSP <see cref="OmniSharp.Extensions.LanguageServer.Server.ILanguageServer"/>.
+        ///     The LSP <see cref="ILanguageServer"/>.
         /// </param>
-        public LspDiagnosticsPublisher(OmniSharp.Extensions.LanguageServer.Server.ILanguageServer languageServer)
+        public LspDiagnosticsPublisher(ILanguageServer languageServer)
         {
             if (languageServer == null)
                 throw new ArgumentNullException(nameof(languageServer));
