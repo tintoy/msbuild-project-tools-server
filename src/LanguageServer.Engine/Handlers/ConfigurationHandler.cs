@@ -55,10 +55,13 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         /// <param name="parameters">
         ///     The notification parameters.
         /// </param>
+        /// <param name="cancellationToken">
+        ///     A <see cref="CancellationToken"/> that can be used to cancel the async operation.
+        /// </param>
         /// <returns>
         ///     A <see cref="Task"/> representing the operation.
         /// </returns>
-        Task OnDidChangeConfiguration(DidChangeConfigurationObjectParams parameters)
+        Task OnDidChangeConfiguration(DidChangeConfigurationObjectParams parameters, CancellationToken cancellationToken)
         {
             Configuration.UpdateFrom(parameters);
 
@@ -98,7 +101,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
             {
                 try
                 {
-                    await OnDidChangeConfiguration(request);
+                    await OnDidChangeConfiguration(request, cancellationToken);
                 }
                 catch (Exception unexpectedError)
                 {
