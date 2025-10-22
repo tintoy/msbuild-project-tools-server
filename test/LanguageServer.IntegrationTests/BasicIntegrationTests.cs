@@ -46,7 +46,7 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
             Assert.NotNull(_fixture.Client?.ServerCapabilities?.CompletionProvider);
         }
 
-        [Fact(Skip = "the SendRequest method hangs indefinitely")]
+        [Fact]
         public async Task AutoCompleteCsproj()
         {
             var testFilePath = Path.Combine(_workspaceRoot, "Test.csproj");
