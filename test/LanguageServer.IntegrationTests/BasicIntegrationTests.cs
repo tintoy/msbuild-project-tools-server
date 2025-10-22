@@ -37,6 +37,15 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
             Assert.NotNull(_fixture.Client.ServerCapabilities);
         }
 
+        /// <summary>
+        ///     Test that a specific server capability (CompletionProvider) is available.
+        /// </summary>
+        [Fact]
+        public void ServerProvidesStaticCompletionHandler()
+        {
+            Assert.NotNull(_fixture.Client?.ServerCapabilities?.CompletionProvider);
+        }
+
         [Fact(Skip = "the SendRequest method hangs indefinitely")]
         public async Task AutoCompleteCsproj()
         {
