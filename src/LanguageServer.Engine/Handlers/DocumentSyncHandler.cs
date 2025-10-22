@@ -27,7 +27,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
     ///     The handler for language server document synchronization.
     /// </summary>
     public sealed class DocumentSyncHandler
-        : Handler, ITextDocumentSyncHandler
+        : Handler, ITextDocumentSyncHandler, IStaticDocumentSyncHandler
     {
         /// <summary>
         ///     Create a new <see cref="DocumentSyncHandler"/>.
@@ -105,10 +105,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         /// </summary>
         TextDocumentRegistrationOptions DocumentRegistrationOptions
         {
-            get => new TextDocumentRegistrationOptions
-            {
-                DocumentSelector = DocumentSelector
-            };
+            get => DocumentSaveRegistrationOptions;
         }
 
         /// <summary>
@@ -351,6 +348,58 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         }
 
         /// <summary>
+        ///     Called when a text document is about to be saved.
+        /// </summary>
+        /// <param name="parameters">
+        ///     The notification parameters.
+        /// </param>
+        /// <param name="cancellationToken">
+        ///     A <see cref="CancellationToken"/> that can be used to cancel the operation.
+        /// </param>
+        /// <returns>
+        ///     A <see cref="Task"/> representing the operation.
+        /// </returns>
+        Task OnWillSaveTextDocument(WillSaveTextDocumentParams parameters, CancellationToken cancellationToken)
+        {
+            ProjectDocument projectDocument = Workspace.GetLoadedProjectDocument(parameters.TextDocument.Uri);
+            Workspace.PublishDiagnostics(projectDocument);
+
+            Log.Information("Project {ProjectFile} will be saved, because it was triggered by {Reason}.",
+                VSCodeDocumentUri.GetFileSystemPath(parameters.TextDocument.Uri),
+                parameters.Reason
+            );
+
+            return Task.CompletedTask;
+        }
+
+        /// <summary>
+        ///     Called when the client requests for a text document to be saved.
+        /// </summary>
+        /// <param name="parameters">
+        ///     The request parameters.
+        /// </param>
+        /// <param name="cancellationToken">
+        ///     A <see cref="CancellationToken"/> that can be used to cancel the request.
+        /// </param>
+        /// <returns>
+        ///     A <see cref="Task"/> representing the operation whose result is the list of text edits or <c>null</c> if no text edits are provided.
+        /// </returns>
+        Task<TextEditContainer> OnWillSaveWaitUntilTextDocument(WillSaveWaitUntilTextDocumentParams parameters, CancellationToken cancellationToken)
+        {
+            ProjectDocument projectDocument = Workspace.GetLoadedProjectDocument(parameters.TextDocument.Uri);
+            Workspace.PublishDiagnostics(projectDocument);
+
+            Log.Information("Project {ProjectFile} will be saved, because it was triggered by {Reason}.",
+                VSCodeDocumentUri.GetFileSystemPath(parameters.TextDocument.Uri),
+                parameters.Reason
+            );
+            //TODO: retrieve text edits async.
+            //var textEdits = new List<TextEdit>();
+            //return new TextEditContainer(textEdits);
+            return Task.FromResult<TextEditContainer>(null);
+        }
+
+        /// <summary>
         ///     Get attributes for the specified text document.
         /// </summary>
         /// <param name="documentUri">
@@ -514,6 +563,70 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         }
 
         /// <summary>
+        /// Handle a notification for a document to be saved.
+        /// </summary>
+        /// <param name="parameters">
+        ///     The notification parameters.
+        /// </param>
+        /// <param name="cancellationToken">
+        ///     A <see cref="CancellationToken"/> that can be used to cancel the operation.
+        /// </param>
+        /// <returns>
+        ///     A <see cref="Task"/> representing the operation.
+        /// </returns>
+        async Task<Unit> IRequestHandler<WillSaveTextDocumentParams, Unit>.Handle(WillSaveTextDocumentParams parameters, CancellationToken cancellationToken)
+        {
+            if (parameters == null)
+                throw new ArgumentNullException(nameof(parameters));
+
+            using (BeginOperation("OnWillSaveTextDocument"))
+            {
+                try
+                {
+                    await OnWillSaveTextDocument(parameters, cancellationToken);
+                }
+                catch (Exception unexpectedError)
+                {
+                    Log.Error(unexpectedError, "Unhandled exception in {Method:l}.", "OnWillSaveTextDocument");
+                }
+            }
+
+            return Unit.Value;
+        }
+
+        /// <summary>
+        ///     Handle a request for a document that is about to be saved.
+        /// </summary>
+        /// <param name="parameters">
+        ///     The request parameters.
+        /// </param>
+        /// <param name="cancellationToken">
+        ///     A <see cref="CancellationToken"/> that can be used to cancel the request.
+        /// </param>
+        /// <returns>
+        ///     A <see cref="Task"/> representing the operation whose result is the list of text edits or <c>null</c> if no text edits are provided.
+        /// </returns>
+        async Task<TextEditContainer> IRequestHandler<WillSaveWaitUntilTextDocumentParams, TextEditContainer>.Handle(WillSaveWaitUntilTextDocumentParams parameters, CancellationToken cancellationToken)
+        {
+            if (parameters == null)
+                throw new ArgumentNullException(nameof(parameters));
+
+            using (BeginOperation("OnWillSaveWaitUntilTextDocument"))
+            {
+                try
+                {
+                    return await OnWillSaveWaitUntilTextDocument(parameters, cancellationToken);
+                }
+                catch (Exception unexpectedError)
+                {
+                    Log.Error(unexpectedError, "Unhandled exception in {Method:l}.", "OnWillSaveWaitUntilTextDocument");
+
+                    return null;
+                }
+            }
+        }
+
+        /// <summary>
         ///     Get registration options for handling document events.
         /// </summary>
         /// <returns>
@@ -536,6 +649,14 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         ///     The registration options.
         /// </returns>
         TextDocumentSaveRegistrationOptions IRegistration<TextDocumentSaveRegistrationOptions>.GetRegistrationOptions() => DocumentSaveRegistrationOptions;
+
+        /// <summary>
+        ///     Get registration options that control synchronization.
+        /// </summary>
+        /// <returns>
+        ///     The registration options.
+        /// </returns>
+        TextDocumentSyncOptions IRegistration<TextDocumentSyncOptions>.GetRegistrationOptions() => Options;
 
         /// <summary>
         ///     Called to inform the handler of the language server's document-synchronization capabilities.
