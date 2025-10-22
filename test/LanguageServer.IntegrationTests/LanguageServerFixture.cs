@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Logging;
 using OmniSharp.Extensions.LanguageServer.Client;
 using OmniSharp.Extensions.LanguageServer.Protocol.Client;
+using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using Serilog;
 using System;
 using System.Diagnostics;
@@ -75,6 +76,20 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
             {
                 // Create and initialize the language client
                 _client = new LanguageClient(loggerFactory, serverInfo);
+                _client.Window.OnLogMessage((message, messageType) =>
+                {
+                    switch (messageType)
+                    {
+                        case MessageType.Error:
+                            logger?.LogError("[SRV] {Msg}", message); break;
+                        case MessageType.Warning:
+                            logger?.LogWarning("[SRV] {Msg}", message); break;
+                        case MessageType.Info:
+                            logger?.LogInformation("[SRV] {Msg}", message); break;
+                        case MessageType.Log:
+                            logger?.LogDebug("[SRV] {Msg}", message); break;
+                    }
+                });
 
                 logger?.LogInformation("Initializing language client...");
 
