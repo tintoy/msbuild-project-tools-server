@@ -8,6 +8,8 @@ using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 
+[assembly: CollectionBehavior(DisableTestParallelization = true)]
+
 namespace MSBuildProjectTools.LanguageServer.IntegrationTests
 {
     public class BasicIntegrationTests(ITestOutputHelper testOutput) : IntegrationTestBase(testOutput), IAsyncLifetime
