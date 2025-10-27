@@ -21,6 +21,7 @@ namespace MSBuildProjectTools.LanguageServer
     using OmniSharp.Extensions.JsonRpc;
 
     using LanguageServer = OmniSharp.Extensions.LanguageServer.Server.LanguageServer;
+    using Microsoft.Extensions.Logging;
 
     /// <summary>
     ///     Registration logic for language server components.
@@ -63,12 +64,13 @@ namespace MSBuildProjectTools.LanguageServer
                     return new LanguageServerOptions()
                         .WithInput(Console.OpenStandardInput())
                         .WithOutput(Console.OpenStandardOutput())
-                        .WithLoggerFactory(componentContext.Resolve<MSLogging.ILoggerFactory>())
-                        .AddDefaultLoggingProvider()
+                        .ConfigureLogging(logging => logging.AddSerilog())
                         // New LSP C# implementation uses its own DI container, so configure it here with
                         // the same registrations from Autofac.
                         .WithServices(services =>
                         {
+                            
+
                             // Can't directly resolve some component instances here when registering
                             // services for the other DI container, as it would result in an endless dependency loop, e.g.:
                             // ILanguageServer -> Task<ILanguageServer> -> LanguageServerOptions -> CompletionHandler -> ILanguageServer -> ...

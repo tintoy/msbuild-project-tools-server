@@ -10,7 +10,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
 {
     using System.Threading;
     using CustomProtocol;
-    using OmniSharp.Extensions.Embedded.MediatR;
+    using MediatR;
 
     /// <summary>
     ///     Language Server message handler that tracks configuration.

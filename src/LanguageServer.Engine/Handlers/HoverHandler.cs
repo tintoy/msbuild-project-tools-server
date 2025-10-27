@@ -12,7 +12,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
 {
     using ContentProviders;
     using Documents;
-    using OmniSharp.Extensions.Embedded.MediatR;
+    using MediatR;
     using OmniSharp.Extensions.LanguageServer.Protocol.Server;
     using SemanticModel;
     using Utilities;

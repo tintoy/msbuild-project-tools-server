@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 namespace MSBuildProjectTools.LanguageServer.Handlers
 {
     using Documents;
-    using OmniSharp.Extensions.Embedded.MediatR;
+    using MediatR;
     using OmniSharp.Extensions.LanguageServer.Protocol.Server;
     using SemanticModel;
     using Utilities;
