@@ -102,7 +102,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         /// <returns>
         ///     A <see cref="Task"/> representing the operation whose result is the definition location or <c>null</c> if no definition is provided.
         /// </returns>
-        async Task<LocationOrLocations> OnDefinition(TextDocumentPositionParams parameters, CancellationToken cancellationToken)
+        async Task<LocationOrLocationLinks> OnDefinition(TextDocumentPositionParams parameters, CancellationToken cancellationToken)
         {
             ProjectDocument projectDocument = await Workspace.GetProjectDocument(parameters.TextDocument.Uri, cancellationToken: cancellationToken);
 
@@ -119,28 +119,30 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
                 if (msbuildObjectAtPosition is MSBuildSdkImport sdkImportAtPosition)
                 {
                     // TODO: Parse imported project and determine location of root element (use that range instead).
-                    Location[] locations =
+                    LocationOrLocationLink[] locations =
                         sdkImportAtPosition.ImportedProjectRoots.Select(
-                            importedProjectRoot => new Location
-                            {
-                                Range = Range.Empty.ToLsp(),
-                                Uri = VSCodeDocumentUri.FromFileSystemPath(importedProjectRoot.Location.File)
-                            }
+                            importedProjectRoot => new LocationOrLocationLink(
+                                new Location
+                                {
+                                    Range = Range.Empty.ToLsp(),
+                                    Uri = VSCodeDocumentUri.FromFileSystemPath(importedProjectRoot.Location.File)
+                                })
                         )
                         .ToArray();
 
-                    return new LocationOrLocations(locations);
+                    return new LocationOrLocationLinks(locations);
                 }
                 else if (msbuildObjectAtPosition is MSBuildImport importAtPosition)
                 {
                     // TODO: Parse imported project and determine location of root element (use that range instead).
-                    return new LocationOrLocations(
+                    return new LocationOrLocationLinks(
                         importAtPosition.ImportedProjectRoots.Select(
-                            importedProjectRoot => new Location
-                            {
-                                Range = Range.Empty.ToLsp(),
-                                Uri = VSCodeDocumentUri.FromFileSystemPath(importedProjectRoot.Location.File)
-                            }
+                            importedProjectRoot => new LocationOrLocationLink(
+                                new Location
+                                {
+                                    Range = Range.Empty.ToLsp(),
+                                    Uri = VSCodeDocumentUri.FromFileSystemPath(importedProjectRoot.Location.File)
+                                })
                     ));
                 }
             }
@@ -160,7 +162,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         /// <returns>
         ///     A <see cref="Task"/> representing the operation whose result is definition location or <c>null</c> if no definition is provided.
         /// </returns>
-        async Task<LocationOrLocations> IRequestHandler<DefinitionParams, LocationOrLocations>.Handle(DefinitionParams parameters, CancellationToken cancellationToken)
+        async Task<LocationOrLocationLinks> IRequestHandler<DefinitionParams, LocationOrLocationLinks>.Handle(DefinitionParams parameters, CancellationToken cancellationToken)
         {
             if (parameters == null)
                 throw new ArgumentNullException(nameof(parameters));

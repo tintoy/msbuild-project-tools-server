@@ -12,8 +12,17 @@ pr:
     include:
       - master
 
+strategy:
+  matrix:
+    linux:
+      vmImage: 'ubuntu-latest'
+      osName: 'Linux'
+    windows:
+      vmImage: 'windows-latest'
+      osName: 'Windows'
+
 pool:
-  vmImage: ubuntu-latest
+  vmImage: $(vmImage)
 
 variables:
   buildConfiguration: 'Release'
@@ -52,6 +61,14 @@ steps:
     command: 'test'
     projects: './test/LanguageServer.Engine.Tests/LanguageServer.Engine.Tests.csproj'
     arguments: '--configuration "$(buildConfiguration)" /p:VersionPrefix="$(GitVersion.MajorMinorPatch)" /p:VersionSuffix="$(GitVersion.PreReleaseTag)"'
+
+- task: DotNetCoreCLI@2
+  displayName: 'Run integration tests'
+  
+  inputs:
+    command: 'test'
+    projects: './test/LanguageServer.IntegrationTests/LanguageServer.IntegrationTests.csproj'
+    arguments: '--logger "console;verbosity=detailed" --configuration "$(buildConfiguration)" /p:VersionPrefix="$(GitVersion.MajorMinorPatch)" /p:VersionSuffix="$(GitVersion.PreReleaseTag)"'
 
 - task: DotNetCoreCLI@2
   displayName: 'Publish language server'

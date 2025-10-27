@@ -109,26 +109,20 @@ namespace MSBuildProjectTools.LanguageServer
                                 }
                             }
 
-                            // Register all handlers.
-                            addRegistrations(services, currentScope, true, typeof(Handler));
+                            // Register all handlers. Not needed any more since v0.11.1 of OmniSharp LSP libs.
+                            //addRegistrations(services, currentScope, true, typeof(Handler));
 
                             // Register all completion providers.
                             addRegistrations(services, currentScope, false, typeof(ICompletionProvider), typeof(CompletionProvider));
                         })
-                        .OnInitialize(initializationParameters =>
+                        .OnInitialize((languageServer, initializationParameters) =>
                         {
-                            // Don't resolve LanguageServer instance without ServiceProviderParameter before
-                            // this line, there is no other callback except OnInitialize, which will be
-                            // invoked immediately after constructor was called.
-                            // The task returned from LanguageServer.From() will not complete before the
-                            // actual client/server initialization logic also has completely finished.
-                            var languageServer = currentScope.Resolve<LanguageServer>();
                             var configurationHandler = currentScope.Resolve<ConfigurationHandler>();
 
                             void configureServerLogLevel()
                             {
                                 if (configurationHandler.Configuration.Logging.Level < LogEventLevel.Verbose)
-                                    languageServer.MinimumLogLevel = MSLogging.LogLevel.Warning;
+                                    ((LanguageServer)languageServer).MinimumLogLevel = MSLogging.LogLevel.Warning;
                             }
 
                             configurationHandler.Configuration.UpdateFrom(initializationParameters);
@@ -136,6 +130,9 @@ namespace MSBuildProjectTools.LanguageServer
 
                             // Handle subsequent logging configuration changes.
                             configurationHandler.ConfigurationChanged += (sender, args) => configureServerLogLevel();
+
+                            // Register all handlers. Now possible inside OnInitialize since v0.11.1 of OmniSharp LSP libs.
+                            languageServer.AddHandlers(currentScope.Resolve<IEnumerable<Handler>>().ToArray());
 
                             return Task.CompletedTask;
                         });

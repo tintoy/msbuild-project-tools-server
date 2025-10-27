@@ -231,6 +231,28 @@ namespace MSBuildProjectTools.LanguageServer.Documents
         }
 
         /// <summary>
+        ///     Try to retrieve a loaded project document.
+        /// </summary>
+        /// <param name="documentUri">
+        ///     The project document URI.
+        /// </param>
+        /// <returns>
+        ///     The project document.
+        /// </returns>
+        /// <exception cref="InvalidOperationException"></exception>
+        public ProjectDocument GetLoadedProjectDocument(Uri documentUri)
+        {
+            if (!_projectDocuments.TryGetValue(documentUri, out ProjectDocument projectDocument))
+            {
+                Log.Error("Tried to use non-existent project with document URI {DocumentUri}.", documentUri);
+
+                throw new InvalidOperationException($"Project with document URI '{documentUri}' is not loaded.");
+            }
+
+            return projectDocument;
+        }
+
+        /// <summary>
         ///     Try to retrieve the current state for the specified project document.
         /// </summary>
         /// <param name="documentUri">
