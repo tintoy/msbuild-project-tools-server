@@ -3,18 +3,14 @@ using Autofac.Core;
 using Microsoft.Extensions.DependencyInjection;
 using OmniSharp.Extensions.LanguageServer.Server;
 using Serilog;
-using Serilog.Events;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-using MSLogging = Microsoft.Extensions.Logging;
-
 namespace MSBuildProjectTools.LanguageServer
 {
     using CompletionProviders;
-    using CustomProtocol;
     using Diagnostics;
     using Handlers;
     using Utilities;
@@ -119,20 +115,6 @@ namespace MSBuildProjectTools.LanguageServer
                         })
                         .OnInitialize((languageServer, initializationParameters) =>
                         {
-                            var configurationHandler = currentScope.Resolve<ConfigurationHandler>();
-
-                            void configureServerLogLevel()
-                            {
-                                if (configurationHandler.Configuration.Logging.Level < LogEventLevel.Verbose)
-                                    ((LanguageServer)languageServer).MinimumLogLevel = MSLogging.LogLevel.Warning;
-                            }
-
-                            configurationHandler.Configuration.UpdateFrom(initializationParameters);
-                            configureServerLogLevel();
-
-                            // Handle subsequent logging configuration changes.
-                            configurationHandler.ConfigurationChanged += (sender, args) => configureServerLogLevel();
-
                             // Register all handlers. Now possible inside OnInitialize since v0.11.1 of OmniSharp LSP libs.
                             languageServer.AddHandlers(currentScope.Resolve<IEnumerable<Handler>>().ToArray());
 
