@@ -83,9 +83,9 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         /// <summary>
         ///     Get registration options for handling document events.
         /// </summary>
-        TextDocumentRegistrationOptions DocumentRegistrationOptions
+        DocumentSymbolRegistrationOptions DocumentRegistrationOptions
         {
-            get => new TextDocumentRegistrationOptions
+            get => new DocumentSymbolRegistrationOptions
             {
                 DocumentSelector = DocumentSelector
             };
@@ -196,7 +196,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         /// <returns>
         ///     The registration options.
         /// </returns>
-        TextDocumentRegistrationOptions IRegistration<TextDocumentRegistrationOptions>.GetRegistrationOptions() => DocumentRegistrationOptions;
+        DocumentSymbolRegistrationOptions IRegistration<DocumentSymbolRegistrationOptions>.GetRegistrationOptions() => DocumentRegistrationOptions;
 
         /// <summary>
         ///     Handle a request for document symbols.

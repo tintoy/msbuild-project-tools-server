@@ -11,10 +11,10 @@
     <PackageVersion Include="Autofac" Version="8.4.0" />
     
     <!-- OmniSharp -->
-    <PackageVersion Include="OmniSharp.Extensions.JsonRpc" Version="0.15.0" />
-    <PackageVersion Include="OmniSharp.Extensions.LanguageProtocol" Version="0.15.0" />
-    <PackageVersion Include="OmniSharp.Extensions.LanguageServer" Version="0.15.0" />
-    <PackageVersion Include="OmniSharp.Extensions.LanguageClient" Version="0.15.0" />
+    <PackageVersion Include="OmniSharp.Extensions.JsonRpc" Version="0.16.0" />
+    <PackageVersion Include="OmniSharp.Extensions.LanguageProtocol" Version="0.16.0" />
+    <PackageVersion Include="OmniSharp.Extensions.LanguageServer" Version="0.16.0" />
+    <PackageVersion Include="OmniSharp.Extensions.LanguageClient" Version="0.16.0" />
 
     <!-- Microsoft.Build -->
     <PackageVersion Include="Microsoft.Build" Version="17.11.4" />

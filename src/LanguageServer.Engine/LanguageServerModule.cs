@@ -62,6 +62,7 @@ namespace MSBuildProjectTools.LanguageServer
                         .WithInput(Console.OpenStandardInput())
                         .WithOutput(Console.OpenStandardOutput())
                         .ConfigureLogging(logging => logging.AddSerilog())
+                        .AddDefaultLoggingProvider()
                         // New LSP C# implementation uses its own DI container, so configure it here with
                         // the same registrations from Autofac.
                         .WithServices(services =>
@@ -125,7 +126,7 @@ namespace MSBuildProjectTools.LanguageServer
                             return Task.CompletedTask;
                         })
                         // TODO: remove this workaround once we upgrade to omniSharp LSP libs v0.17.0 or newer
-                        .OnStarted(initializationResult =>
+                        .OnStarted((server, initializationResult) =>
                         {
                             return Task.CompletedTask;
                         });
