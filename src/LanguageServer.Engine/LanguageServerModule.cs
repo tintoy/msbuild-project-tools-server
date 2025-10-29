@@ -123,6 +123,11 @@ namespace MSBuildProjectTools.LanguageServer
                             configurationHandler.Configuration.UpdateFrom(initializationParameters);
 
                             return Task.CompletedTask;
+                        })
+                        // TODO: remove this workaround once we upgrade to omniSharp LSP libs v0.17.0 or newer
+                        .OnStarted(initializationResult =>
+                        {
+                            return Task.CompletedTask;
                         });
                 })
                 .AsSelf()
