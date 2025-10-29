@@ -3,24 +3,22 @@ using Autofac.Core;
 using Microsoft.Extensions.DependencyInjection;
 using OmniSharp.Extensions.LanguageServer.Server;
 using Serilog;
-using Serilog.Events;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-using MSLogging = Microsoft.Extensions.Logging;
-
 namespace MSBuildProjectTools.LanguageServer
 {
     using CompletionProviders;
-    using CustomProtocol;
     using Diagnostics;
     using Handlers;
     using Utilities;
     using OmniSharp.Extensions.JsonRpc;
 
     using LanguageServer = OmniSharp.Extensions.LanguageServer.Server.LanguageServer;
+    using Microsoft.Extensions.Logging;
+    using MSBuildProjectTools.LanguageServer.CustomProtocol;
 
     /// <summary>
     ///     Registration logic for language server components.
@@ -63,12 +61,14 @@ namespace MSBuildProjectTools.LanguageServer
                     return new LanguageServerOptions()
                         .WithInput(Console.OpenStandardInput())
                         .WithOutput(Console.OpenStandardOutput())
-                        .WithLoggerFactory(componentContext.Resolve<MSLogging.ILoggerFactory>())
+                        .ConfigureLogging(logging => logging.AddSerilog())
                         .AddDefaultLoggingProvider()
                         // New LSP C# implementation uses its own DI container, so configure it here with
                         // the same registrations from Autofac.
                         .WithServices(services =>
                         {
+                            
+
                             // Can't directly resolve some component instances here when registering
                             // services for the other DI container, as it would result in an endless dependency loop, e.g.:
                             // ILanguageServer -> Task<ILanguageServer> -> LanguageServerOptions -> CompletionHandler -> ILanguageServer -> ...
@@ -117,23 +117,17 @@ namespace MSBuildProjectTools.LanguageServer
                         })
                         .OnInitialize((languageServer, initializationParameters) =>
                         {
-                            var configurationHandler = currentScope.Resolve<ConfigurationHandler>();
-
-                            void configureServerLogLevel()
-                            {
-                                if (configurationHandler.Configuration.Logging.Level < LogEventLevel.Verbose)
-                                    ((LanguageServer)languageServer).MinimumLogLevel = MSLogging.LogLevel.Warning;
-                            }
-
-                            configurationHandler.Configuration.UpdateFrom(initializationParameters);
-                            configureServerLogLevel();
-
-                            // Handle subsequent logging configuration changes.
-                            configurationHandler.ConfigurationChanged += (sender, args) => configureServerLogLevel();
-
                             // Register all handlers. Now possible inside OnInitialize since v0.11.1 of OmniSharp LSP libs.
                             languageServer.AddHandlers(currentScope.Resolve<IEnumerable<Handler>>().ToArray());
 
+                            var configurationHandler = currentScope.Resolve<ConfigurationHandler>();
+                            configurationHandler.Configuration.UpdateFrom(initializationParameters);
+
+                            return Task.CompletedTask;
+                        })
+                        // TODO: remove this workaround once we upgrade to omniSharp LSP libs v0.17.0 or newer
+                        .OnStarted((server, initializationResult) =>
+                        {
                             return Task.CompletedTask;
                         });
                 })

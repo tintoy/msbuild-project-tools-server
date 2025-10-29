@@ -51,7 +51,7 @@ namespace MSBuildProjectTools.LanguageServer.ContentProviders
         /// <returns>
         ///     The content, or <c>null</c> if no content is provided.
         /// </returns>
-        public static MarkedStringContainer Property(MSBuildProperty property)
+        public static Container<MarkedString> Property(MSBuildProperty property)
         {
             if (property == null)
                 throw new ArgumentNullException(nameof(property));
@@ -106,7 +106,7 @@ namespace MSBuildProjectTools.LanguageServer.ContentProviders
                 );
             }
 
-            return new MarkedStringContainer(content);
+            return new Container<MarkedString>(content);
         }
 
         /// <summary>
@@ -118,7 +118,7 @@ namespace MSBuildProjectTools.LanguageServer.ContentProviders
         /// <returns>
         ///     The content, or <c>null</c> if no content is provided.
         /// </returns>
-        public static MarkedStringContainer UnusedProperty(MSBuildUnusedProperty unusedProperty)
+        public static Container<MarkedString> UnusedProperty(MSBuildUnusedProperty unusedProperty)
         {
             if (unusedProperty == null)
                 throw new ArgumentNullException(nameof(unusedProperty));
@@ -156,7 +156,7 @@ namespace MSBuildProjectTools.LanguageServer.ContentProviders
                 );
             }
 
-            return new MarkedStringContainer(content);
+            return new Container<MarkedString>(content);
         }
 
         /// <summary>
@@ -168,7 +168,7 @@ namespace MSBuildProjectTools.LanguageServer.ContentProviders
         /// <returns>
         ///     The content, or <c>null</c> if no content is provided.
         /// </returns>
-        public MarkedStringContainer ItemGroup(MSBuildItemGroup itemGroup)
+        public Container<MarkedString> ItemGroup(MSBuildItemGroup itemGroup)
         {
             if (itemGroup == null)
             {
@@ -181,7 +181,7 @@ namespace MSBuildProjectTools.LanguageServer.ContentProviders
                 string packageRequestedVersion = itemGroup.GetFirstMetadataValue("Version");
                 if (!_projectDocument.ReferencedPackageVersions.TryGetValue(packageId, out SemanticVersion packageActualVersion))
                 {
-                    return new MarkedStringContainer(
+                    return new Container<MarkedString>(
                         $"NuGet Package: {itemGroup.FirstInclude}",
                         $"Requested Version: {packageRequestedVersion}`",
                         "State: Not restored"
@@ -190,7 +190,7 @@ namespace MSBuildProjectTools.LanguageServer.ContentProviders
 
                 // TODO: Verify package is from NuGet (later, we can also recognize MyGet)
 
-                return new MarkedStringContainer(
+                return new Container<MarkedString>(
                     $"NuGet Package: [{itemGroup.FirstInclude}](https://nuget.org/packages/{itemGroup.FirstInclude}/{packageActualVersion})",
                     $"Requested Version: `{packageRequestedVersion}`\nActual Version: `{packageActualVersion}`",
                     "State: Restored"
@@ -241,7 +241,7 @@ namespace MSBuildProjectTools.LanguageServer.ContentProviders
                 );
             }
 
-            return new MarkedStringContainer(content);
+            return new Container<MarkedString>(content);
         }
 
         /// <summary>
@@ -253,7 +253,7 @@ namespace MSBuildProjectTools.LanguageServer.ContentProviders
         /// <returns>
         ///     The content, or <c>null</c> if no content is provided.
         /// </returns>
-        public static MarkedStringContainer UnusedItemGroup(MSBuildUnusedItemGroup unusedItemGroup)
+        public static Container<MarkedString> UnusedItemGroup(MSBuildUnusedItemGroup unusedItemGroup)
         {
             if (unusedItemGroup == null)
                 throw new ArgumentNullException(nameof(unusedItemGroup));
@@ -303,7 +303,7 @@ namespace MSBuildProjectTools.LanguageServer.ContentProviders
                 );
             }
 
-            return new MarkedStringContainer(content);
+            return new Container<MarkedString>(content);
         }
 
         /// <summary>
@@ -318,7 +318,7 @@ namespace MSBuildProjectTools.LanguageServer.ContentProviders
         /// <returns>
         ///     The content, or <c>null</c> if no content is provided.
         /// </returns>
-        public MarkedStringContainer Condition(string elementName, string condition)
+        public Container<MarkedString> Condition(string elementName, string condition)
         {
             if (string.IsNullOrWhiteSpace(elementName))
                 throw new ArgumentException("Argument cannot be null, empty, or entirely composed of whitespace: 'elementName'.", nameof(elementName));
@@ -342,7 +342,7 @@ namespace MSBuildProjectTools.LanguageServer.ContentProviders
                 );
             }
 
-            return new MarkedStringContainer(content);
+            return new Container<MarkedString>(content);
         }
 
         /// <summary>
@@ -357,7 +357,7 @@ namespace MSBuildProjectTools.LanguageServer.ContentProviders
         /// <returns>
         ///     The content, or <c>null</c> if no content is provided.
         /// </returns>
-        public MarkedStringContainer ItemGroupMetadata(MSBuildItemGroup itemGroup, string metadataName)
+        public Container<MarkedString> ItemGroupMetadata(MSBuildItemGroup itemGroup, string metadataName)
         {
             if (itemGroup == null)
                 throw new ArgumentNullException(nameof(itemGroup));
@@ -416,7 +416,7 @@ namespace MSBuildProjectTools.LanguageServer.ContentProviders
                 );
             }
 
-            return new MarkedStringContainer(content);
+            return new Container<MarkedString>(content);
         }
 
         /// <summary>
@@ -431,7 +431,7 @@ namespace MSBuildProjectTools.LanguageServer.ContentProviders
         /// <returns>
         ///     The content, or <c>null</c> if no content is provided.
         /// </returns>
-        public MarkedStringContainer UnusedItemGroupMetadata(MSBuildUnusedItemGroup itemGroup, string metadataName)
+        public Container<MarkedString> UnusedItemGroupMetadata(MSBuildUnusedItemGroup itemGroup, string metadataName)
         {
             if (itemGroup == null)
                 throw new ArgumentNullException(nameof(itemGroup));
@@ -482,7 +482,7 @@ namespace MSBuildProjectTools.LanguageServer.ContentProviders
                 metadataContent.ToString()
             );
 
-            return new MarkedStringContainer(content);
+            return new Container<MarkedString>(content);
         }
 
         /// <summary>
@@ -494,7 +494,7 @@ namespace MSBuildProjectTools.LanguageServer.ContentProviders
         /// <returns>
         ///     The content, or <c>null</c> if no content is provided.
         /// </returns>
-        public static MarkedStringContainer Target(MSBuildTarget target)
+        public static Container<MarkedString> Target(MSBuildTarget target)
         {
             if (target == null)
                 throw new ArgumentNullException(nameof(target));
@@ -512,7 +512,7 @@ namespace MSBuildProjectTools.LanguageServer.ContentProviders
                 );
             }
 
-            return new MarkedStringContainer(content);
+            return new Container<MarkedString>(content);
         }
 
         /// <summary>
@@ -524,7 +524,7 @@ namespace MSBuildProjectTools.LanguageServer.ContentProviders
         /// <returns>
         ///     The content, or <c>null</c> if no content is provided.
         /// </returns>
-        public static MarkedStringContainer Import(MSBuildImport import)
+        public static Container<MarkedString> Import(MSBuildImport import)
         {
             if (import == null)
                 throw new ArgumentNullException(nameof(import));
@@ -551,7 +551,7 @@ namespace MSBuildProjectTools.LanguageServer.ContentProviders
                 );
             }
 
-            return new MarkedStringContainer(content);
+            return new Container<MarkedString>(content);
         }
 
         /// <summary>
@@ -563,7 +563,7 @@ namespace MSBuildProjectTools.LanguageServer.ContentProviders
         /// <returns>
         ///     The content, or <c>null</c> if no content is provided.
         /// </returns>
-        public MarkedStringContainer UnresolvedImport(MSBuildUnresolvedImport unresolvedImport)
+        public Container<MarkedString> UnresolvedImport(MSBuildUnresolvedImport unresolvedImport)
         {
             if (unresolvedImport == null)
                 throw new ArgumentNullException(nameof(unresolvedImport));
@@ -605,7 +605,7 @@ namespace MSBuildProjectTools.LanguageServer.ContentProviders
                 );
             }
 
-            return new MarkedStringContainer(content);
+            return new Container<MarkedString>(content);
         }
 
         /// <summary>
@@ -617,7 +617,7 @@ namespace MSBuildProjectTools.LanguageServer.ContentProviders
         /// <returns>
         ///     The content, or <c>null</c> if no content is provided.
         /// </returns>
-        public static MarkedStringContainer SdkImport(MSBuildSdkImport sdkImport)
+        public static Container<MarkedString> SdkImport(MSBuildSdkImport sdkImport)
         {
             if (sdkImport == null)
                 throw new ArgumentNullException(nameof(sdkImport));
@@ -627,7 +627,7 @@ namespace MSBuildProjectTools.LanguageServer.ContentProviders
             foreach (string projectFile in sdkImport.ImportedProjectFiles)
                 imports.AppendLine($"* `{projectFile}`");
 
-            return new MarkedStringContainer(
+            return new Container<MarkedString>(
                 $"SDK Import: {sdkImport.Name}",
                 imports.ToString()
             );
@@ -642,7 +642,7 @@ namespace MSBuildProjectTools.LanguageServer.ContentProviders
         /// <returns>
         ///     The content, or <c>null</c> if no content is provided.
         /// </returns>
-        public MarkedStringContainer UnresolvedSdkImport(MSBuildUnresolvedSdkImport unresolvedSdkImport)
+        public Container<MarkedString> UnresolvedSdkImport(MSBuildUnresolvedSdkImport unresolvedSdkImport)
         {
             if (unresolvedSdkImport == null)
                 throw new ArgumentNullException(nameof(unresolvedSdkImport));
@@ -659,7 +659,7 @@ namespace MSBuildProjectTools.LanguageServer.ContentProviders
                 $"Evaluated Condition: `{evaluatedCondition}`"
             );
 
-            return new MarkedStringContainer(
+            return new Container<MarkedString>(
                 $"Unresolved Import `{unresolvedSdkImport.Sdk}` (condition is false)",
                 descriptionContent.ToString()
             );
@@ -674,7 +674,7 @@ namespace MSBuildProjectTools.LanguageServer.ContentProviders
         /// <returns>
         ///     The content, or <c>null</c> if no content is provided.
         /// </returns>
-        public static MarkedStringContainer Element(XSElement element)
+        public static Container<MarkedString> Element(XSElement element)
         {
             if (element == null)
                 throw new ArgumentNullException(nameof(element));
@@ -696,7 +696,7 @@ namespace MSBuildProjectTools.LanguageServer.ContentProviders
                 );
             }
 
-            return new MarkedStringContainer(content);
+            return new Container<MarkedString>(content);
         }
     }
 }

@@ -16,7 +16,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
     using System.Threading;
     using CustomProtocol;
     using Documents;
-    using OmniSharp.Extensions.Embedded.MediatR;
+    using MediatR;
     using OmniSharp.Extensions.LanguageServer.Protocol.Server;
     using SemanticModel;
     using Utilities;

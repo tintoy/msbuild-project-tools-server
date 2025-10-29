@@ -3,7 +3,7 @@ using OmniSharp.Extensions.LanguageServer.Protocol;
 using OmniSharp.Extensions.LanguageServer.Protocol.Client.Capabilities;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using OmniSharp.Extensions.Embedded.MediatR;
+using MediatR;
 
 namespace MSBuildProjectTools.LanguageServer.CustomProtocol
 {

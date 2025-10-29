@@ -12,7 +12,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
 {
     using ContentProviders;
     using Documents;
-    using OmniSharp.Extensions.Embedded.MediatR;
+    using MediatR;
     using OmniSharp.Extensions.LanguageServer.Protocol.Server;
     using SemanticModel;
     using Utilities;
@@ -84,9 +84,9 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         /// <summary>
         ///     Get registration options for handling document events.
         /// </summary>
-        TextDocumentRegistrationOptions DocumentRegistrationOptions
+        HoverRegistrationOptions HoverRegistrationOptions
         {
-            get => new TextDocumentRegistrationOptions
+            get => new HoverRegistrationOptions
             {
                 DocumentSelector = DocumentSelector
             };
@@ -151,7 +151,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
                 // Match up the MSBuild item / property with its corresponding XML element / attribute.
                 MSBuildObject msbuildObject;
 
-                MarkedStringContainer hoverContent = null;
+                Container<MarkedString> hoverContent = null;
                 var contentProvider = new HoverContentProvider(projectDocument);
                 if (location.IsElement(out XSElement element))
                 {
@@ -299,7 +299,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         /// <returns>
         ///     The registration options.
         /// </returns>
-        TextDocumentRegistrationOptions IRegistration<TextDocumentRegistrationOptions>.GetRegistrationOptions() => DocumentRegistrationOptions;
+        HoverRegistrationOptions IRegistration<HoverRegistrationOptions>.GetRegistrationOptions() => HoverRegistrationOptions;
 
         /// <summary>
         ///     Handle a request for hover information.
