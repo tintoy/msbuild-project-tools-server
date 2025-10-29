@@ -12,11 +12,10 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
 {
     using Documents;
     using MediatR;
+    using OmniSharp.Extensions.LanguageServer.Protocol.Document;
     using OmniSharp.Extensions.LanguageServer.Protocol.Server;
     using SemanticModel;
     using Utilities;
-
-    using ILanguageServer = OmniSharp.Extensions.LanguageServer.Server.ILanguageServer;
 
     /// <summary>
     ///     Handler for document symbol requests.
@@ -39,8 +38,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         public DocumentSymbolHandler(ILanguageServer server, Workspace workspace, ILogger logger)
             : base(server, logger)
         {
-            if (workspace == null)
-                throw new ArgumentNullException(nameof(workspace));
+            ArgumentNullException.ThrowIfNull(workspace);
 
             Workspace = workspace;
         }
@@ -212,8 +210,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         /// </returns>
         async Task<SymbolInformationOrDocumentSymbolContainer> IRequestHandler<DocumentSymbolParams, SymbolInformationOrDocumentSymbolContainer>.Handle(DocumentSymbolParams parameters, CancellationToken cancellationToken)
         {
-            if (parameters == null)
-                throw new ArgumentNullException(nameof(parameters));
+            ArgumentNullException.ThrowIfNull(parameters);
 
             using (BeginOperation("OnDocumentSymbols"))
             {

@@ -1,6 +1,7 @@
 using Microsoft.Build.Exceptions;
 using MSBuildProjectTools.LanguageServer.SemanticModel;
 using MSBuildProjectTools.LanguageServer.Utilities;
+using OmniSharp.Extensions.LanguageServer.Protocol;
 using Serilog;
 using System;
 using System.Collections.Concurrent;
@@ -22,7 +23,7 @@ namespace MSBuildProjectTools.LanguageServer.Documents
         /// <summary>
         ///     Sub-projects (if any).
         /// </summary>
-        readonly ConcurrentDictionary<Uri, SubProjectDocument> _subProjects = new();
+        readonly ConcurrentDictionary<DocumentUri, SubProjectDocument> _subProjects = new();
 
         /// <summary>
         ///     Create a new <see cref="MasterProjectDocument"/>.
@@ -36,7 +37,7 @@ namespace MSBuildProjectTools.LanguageServer.Documents
         /// <param name="logger">
         ///     The application logger.
         /// </param>
-        public MasterProjectDocument(Workspace workspace, Uri documentUri, ILogger logger)
+        public MasterProjectDocument(Workspace workspace, DocumentUri documentUri, ILogger logger)
             : base(workspace, documentUri, logger)
         {
         }
@@ -62,7 +63,7 @@ namespace MSBuildProjectTools.LanguageServer.Documents
         /// <summary>
         ///     Sub-projects (if any).
         /// </summary>
-        public IReadOnlyDictionary<Uri, SubProjectDocument> SubProjects => _subProjects;
+        public IReadOnlyDictionary<DocumentUri, SubProjectDocument> SubProjects => _subProjects;
 
         /// <summary>
         ///     Add a sub-project.
@@ -73,13 +74,11 @@ namespace MSBuildProjectTools.LanguageServer.Documents
         /// <param name="createSubProjectDocument">
         ///     A factory delegate to create the <see cref="SubProjectDocument"/> if it does not already exist.
         /// </param>
-        public SubProjectDocument GetOrAddSubProject(Uri documentUri, Func<SubProjectDocument> createSubProjectDocument)
+        public SubProjectDocument GetOrAddSubProject(DocumentUri documentUri, Func<SubProjectDocument> createSubProjectDocument)
         {
-            if (documentUri == null)
-                throw new ArgumentNullException(nameof(documentUri));
+            ArgumentNullException.ThrowIfNull(documentUri);
 
-            if (createSubProjectDocument == null)
-                throw new ArgumentNullException(nameof(createSubProjectDocument));
+            ArgumentNullException.ThrowIfNull(createSubProjectDocument);
 
             return _subProjects.GetOrAdd(documentUri, _ => createSubProjectDocument());
         }
@@ -90,10 +89,9 @@ namespace MSBuildProjectTools.LanguageServer.Documents
         /// <param name="documentUri">
         ///     The sub-project document URI.
         /// </param>
-        public void RemoveSubProject(Uri documentUri)
+        public void RemoveSubProject(DocumentUri documentUri)
         {
-            if (documentUri == null)
-                throw new ArgumentNullException(nameof(documentUri));
+            ArgumentNullException.ThrowIfNull(documentUri);
 
             if (_subProjects.TryRemove(documentUri, out SubProjectDocument subProjectDocument))
                 subProjectDocument.Unload();
@@ -105,8 +103,8 @@ namespace MSBuildProjectTools.LanguageServer.Documents
         public override void Unload()
         {
             // Unload sub-projects, if necessary.
-            Uri[] subProjectDocumentUris = SubProjects.Keys.ToArray();
-            foreach (Uri subProjectDocumentUri in subProjectDocumentUris)
+            DocumentUri[] subProjectDocumentUris = SubProjects.Keys.ToArray();
+            foreach (DocumentUri subProjectDocumentUri in subProjectDocumentUris)
                 RemoveSubProject(subProjectDocumentUri);
 
             base.Unload();

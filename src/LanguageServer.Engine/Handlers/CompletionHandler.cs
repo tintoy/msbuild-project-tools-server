@@ -16,6 +16,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
     using Documents;
     using LanguageServer.CustomProtocol;
     using MediatR;
+    using OmniSharp.Extensions.LanguageServer.Protocol.Server;
     using SemanticModel;
     using Utilities;
 
@@ -47,8 +48,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         public CompletionHandler(ILanguageServer server, IEnumerable<ICompletionProvider> completionProviders, Workspace workspace, ILogger logger)
             : base(server, logger)
         {
-            if (workspace == null)
-                throw new ArgumentNullException(nameof(workspace));
+            ArgumentNullException.ThrowIfNull(workspace);
 
             _completionProviders = completionProviders;
             Workspace = workspace;
@@ -221,8 +221,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         /// </returns>
         async Task<CompletionList> IRequestHandler<CompletionParams, CompletionList>.Handle(CompletionParams parameters, CancellationToken cancellationToken)
         {
-            if (parameters == null)
-                throw new ArgumentNullException(nameof(parameters));
+            ArgumentNullException.ThrowIfNull(parameters);
 
             using (BeginOperation("OnCompletion"))
             {

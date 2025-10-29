@@ -19,6 +19,7 @@ namespace MSBuildProjectTools.LanguageServer
     using LanguageServer = OmniSharp.Extensions.LanguageServer.Server.LanguageServer;
     using Microsoft.Extensions.Logging;
     using MSBuildProjectTools.LanguageServer.CustomProtocol;
+    using OmniSharp.Extensions.LanguageServer.Protocol.Server;
 
     /// <summary>
     ///     Registration logic for language server components.
@@ -41,8 +42,7 @@ namespace MSBuildProjectTools.LanguageServer
         /// </param>
         protected override void Load(ContainerBuilder builder)
         {
-            if (builder == null)
-                throw new ArgumentNullException(nameof(builder));
+            ArgumentNullException.ThrowIfNull(builder);
 
             builder.RegisterInstance(Configuration).AsSelf();
 
@@ -67,8 +67,6 @@ namespace MSBuildProjectTools.LanguageServer
                         // the same registrations from Autofac.
                         .WithServices(services =>
                         {
-                            
-
                             // Can't directly resolve some component instances here when registering
                             // services for the other DI container, as it would result in an endless dependency loop, e.g.:
                             // ILanguageServer -> Task<ILanguageServer> -> LanguageServerOptions -> CompletionHandler -> ILanguageServer -> ...
@@ -115,18 +113,21 @@ namespace MSBuildProjectTools.LanguageServer
                             // Register all completion providers.
                             addRegistrations(services, currentScope, false, typeof(ICompletionProvider), typeof(CompletionProvider));
                         })
-                        .OnInitialize((languageServer, initializationParameters) =>
+                        .WithHandler<DocumentSyncHandler>()
+                        .WithHandler<ConfigurationHandler>()
+                        .WithHandler<DocumentSymbolHandler>()
+                        .WithHandler<DefinitionHandler>()
+                        .WithHandler<HoverHandler>()
+                        .WithHandler<CompletionHandler>()
+                        .OnInitialize((languageServer, initializationParameters, ctx) =>
                         {
-                            // Register all handlers. Now possible inside OnInitialize since v0.11.1 of OmniSharp LSP libs.
-                            languageServer.AddHandlers(currentScope.Resolve<IEnumerable<Handler>>().ToArray());
-
                             var configurationHandler = currentScope.Resolve<ConfigurationHandler>();
                             configurationHandler.Configuration.UpdateFrom(initializationParameters);
 
                             return Task.CompletedTask;
                         })
                         // TODO: remove this workaround once we upgrade to omniSharp LSP libs v0.17.0 or newer
-                        .OnStarted((server, initializationResult) =>
+                        .OnStarted((server, initializationResult, ctx) =>
                         {
                             return Task.CompletedTask;
                         });
@@ -223,19 +224,6 @@ namespace MSBuildProjectTools.LanguageServer
                     Documents.Workspace workspace = activated.Instance;
                     workspace.RestoreTaskMetadataCache();
                 });
-
-            builder
-                .RegisterTypes(
-                    typeof(ConfigurationHandler),
-                    typeof(DocumentSyncHandler),
-                    typeof(DocumentSymbolHandler),
-                    typeof(DefinitionHandler),
-                    typeof(HoverHandler),
-                    typeof(CompletionHandler)
-                )
-                .AsSelf()
-                .As<Handler>()
-                .SingleInstance();
 
             Type completionProviderType = typeof(CompletionProvider);
             builder.RegisterAssemblyTypes(ThisAssembly)

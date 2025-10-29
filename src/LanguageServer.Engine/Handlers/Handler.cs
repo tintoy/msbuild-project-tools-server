@@ -2,12 +2,11 @@ using OmniSharp.Extensions.JsonRpc;
 using Serilog;
 using System;
 using System.Reactive.Disposables;
+using OmniSharp.Extensions.LanguageServer.Protocol.Server;
+using MSBuildProjectTools.LanguageServer.Utilities;
 
 namespace MSBuildProjectTools.LanguageServer.Handlers
 {
-    using OmniSharp.Extensions.LanguageServer.Server;
-    using Utilities;
-
     /// <summary>
     ///     The base class for language server event handlers.
     /// </summary>
@@ -25,8 +24,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         /// </param>
         protected Handler(ILanguageServer server, ILogger logger)
         {
-            if (server == null)
-                throw new ArgumentNullException(nameof(server));
+            ArgumentNullException.ThrowIfNull(server);
 
             Server = server;
             Log = logger.ForContext(GetType());
