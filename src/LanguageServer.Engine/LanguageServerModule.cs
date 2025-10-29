@@ -18,6 +18,7 @@ namespace MSBuildProjectTools.LanguageServer
 
     using LanguageServer = OmniSharp.Extensions.LanguageServer.Server.LanguageServer;
     using Microsoft.Extensions.Logging;
+    using MSBuildProjectTools.LanguageServer.CustomProtocol;
 
     /// <summary>
     ///     Registration logic for language server components.
@@ -117,6 +118,9 @@ namespace MSBuildProjectTools.LanguageServer
                         {
                             // Register all handlers. Now possible inside OnInitialize since v0.11.1 of OmniSharp LSP libs.
                             languageServer.AddHandlers(currentScope.Resolve<IEnumerable<Handler>>().ToArray());
+
+                            var configurationHandler = currentScope.Resolve<ConfigurationHandler>();
+                            configurationHandler.Configuration.UpdateFrom(initializationParameters);
 
                             return Task.CompletedTask;
                         });
