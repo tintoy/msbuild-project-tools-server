@@ -6,6 +6,7 @@ using System.Xml;
 
 namespace MSBuildProjectTools.LanguageServer.Documents
 {
+    using OmniSharp.Extensions.LanguageServer.Protocol;
     using SemanticModel;
 
     /// <summary>
@@ -29,11 +30,10 @@ namespace MSBuildProjectTools.LanguageServer.Documents
         /// <param name="masterProjectDocument">
         ///     The master project document that owns the sub-project.
         /// </param>
-        public SubProjectDocument(Workspace workspace, Uri documentUri, ILogger logger, MasterProjectDocument masterProjectDocument)
+        public SubProjectDocument(Workspace workspace, DocumentUri documentUri, ILogger logger, MasterProjectDocument masterProjectDocument)
             : base(workspace, documentUri, logger)
         {
-            if (masterProjectDocument == null)
-                throw new ArgumentNullException(nameof(masterProjectDocument));
+            ArgumentNullException.ThrowIfNull(masterProjectDocument);
 
             MasterProjectDocument = masterProjectDocument;
         }

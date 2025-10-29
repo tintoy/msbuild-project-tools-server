@@ -8,12 +8,10 @@ using System.IO;
 using System.Text;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using OmniSharp.Extensions.LanguageServer.Protocol.Server;
+using OmniSharp.Extensions.LanguageServer.Protocol.Window;
 
 namespace MSBuildProjectTools.LanguageServer.Logging
 {
-    using LanguageServer = OmniSharp.Extensions.LanguageServer.Server.LanguageServer;
-    using ILanguageServer = OmniSharp.Extensions.LanguageServer.Server.ILanguageServer;
-
     /// <summary>
     ///     A Serilog logging sink that sends log events to the language server logging facility.
     /// </summary>
@@ -46,26 +44,21 @@ namespace MSBuildProjectTools.LanguageServer.Logging
         /// </param>
         public LanguageServerLoggingSink(ILanguageServer languageServer, LoggingLevelSwitch levelSwitch)
         {
-            if (languageServer == null)
-                throw new ArgumentNullException(nameof(languageServer));
+            ArgumentNullException.ThrowIfNull(languageServer);
 
-            if (levelSwitch == null)
-                throw new ArgumentNullException(nameof(levelSwitch));
+            ArgumentNullException.ThrowIfNull(levelSwitch);
 
             _languageServer = languageServer;
             _levelSwitch = levelSwitch;
 
-            if (_languageServer is LanguageServer realLanguageServer)
+            IDisposable subscription = null;
+            subscription = _languageServer.Shutdown.Subscribe(shutDownRequested =>
             {
-                IDisposable subscription = null;
-                subscription = realLanguageServer.Shutdown.Subscribe(shutDownRequested =>
-                {
-                    subscription?.Dispose();
-                    Log.CloseAndFlush();
+                subscription?.Dispose();
+                Log.CloseAndFlush();
 
-                    _hasServerShutDown = true;
-                });
-            }
+                _hasServerShutDown = true;
+            });
         }
 
         /// <summary>

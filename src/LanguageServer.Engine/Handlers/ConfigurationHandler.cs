@@ -11,6 +11,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
     using System.Threading;
     using CustomProtocol;
     using MediatR;
+    using OmniSharp.Extensions.LanguageServer.Protocol.Server;
 
     /// <summary>
     ///     Language Server message handler that tracks configuration.
@@ -33,8 +34,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         public ConfigurationHandler(ILanguageServer server, Configuration configuration, ILogger logger)
             : base(server, logger)
         {
-            if (configuration == null)
-                throw new ArgumentNullException(nameof(configuration));
+            ArgumentNullException.ThrowIfNull(configuration);
 
             Configuration = configuration;
         }
@@ -94,8 +94,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         /// </returns>
         async Task<Unit> IRequestHandler<DidChangeConfigurationObjectParams, Unit>.Handle(DidChangeConfigurationObjectParams request, CancellationToken cancellationToken)
         {
-            if (request == null)
-                throw new ArgumentNullException(nameof(request));
+            ArgumentNullException.ThrowIfNull(request);
 
             using (BeginOperation("OnDidChangeConfiguration"))
             {

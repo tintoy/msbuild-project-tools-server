@@ -36,8 +36,7 @@ namespace MSBuildProjectTools.LanguageServer.ContentProviders
         /// </remarks>
         public HoverContentProvider(ProjectDocument projectDocument)
         {
-            if (projectDocument == null)
-                throw new ArgumentNullException(nameof(projectDocument));
+            ArgumentNullException.ThrowIfNull(projectDocument);
 
             _projectDocument = projectDocument;
         }
@@ -53,8 +52,7 @@ namespace MSBuildProjectTools.LanguageServer.ContentProviders
         /// </returns>
         public static Container<MarkedString> Property(MSBuildProperty property)
         {
-            if (property == null)
-                throw new ArgumentNullException(nameof(property));
+            ArgumentNullException.ThrowIfNull(property);
 
             var content = new List<MarkedString>
             {
@@ -120,8 +118,7 @@ namespace MSBuildProjectTools.LanguageServer.ContentProviders
         /// </returns>
         public static Container<MarkedString> UnusedProperty(MSBuildUnusedProperty unusedProperty)
         {
-            if (unusedProperty == null)
-                throw new ArgumentNullException(nameof(unusedProperty));
+            ArgumentNullException.ThrowIfNull(unusedProperty);
 
             var content = new List<MarkedString>();
             if (unusedProperty.Element.HasParentPath(WellKnownElementPaths.DynamicPropertyGroup))
@@ -170,10 +167,7 @@ namespace MSBuildProjectTools.LanguageServer.ContentProviders
         /// </returns>
         public Container<MarkedString> ItemGroup(MSBuildItemGroup itemGroup)
         {
-            if (itemGroup == null)
-            {
-                throw new ArgumentNullException(nameof(itemGroup));
-            }
+            ArgumentNullException.ThrowIfNull(itemGroup);
 
             if (itemGroup.Name is "PackageReference" || itemGroup.Name is "PackageVersion")
             {
@@ -255,8 +249,7 @@ namespace MSBuildProjectTools.LanguageServer.ContentProviders
         /// </returns>
         public static Container<MarkedString> UnusedItemGroup(MSBuildUnusedItemGroup unusedItemGroup)
         {
-            if (unusedItemGroup == null)
-                throw new ArgumentNullException(nameof(unusedItemGroup));
+            ArgumentNullException.ThrowIfNull(unusedItemGroup);
 
             var content = new List<MarkedString>
             {
@@ -359,8 +352,7 @@ namespace MSBuildProjectTools.LanguageServer.ContentProviders
         /// </returns>
         public Container<MarkedString> ItemGroupMetadata(MSBuildItemGroup itemGroup, string metadataName)
         {
-            if (itemGroup == null)
-                throw new ArgumentNullException(nameof(itemGroup));
+            ArgumentNullException.ThrowIfNull(itemGroup);
 
             if (string.IsNullOrWhiteSpace(metadataName))
                 throw new ArgumentException("Argument cannot be null, empty, or entirely composed of whitespace: 'metadataName'.", nameof(metadataName));
@@ -433,8 +425,7 @@ namespace MSBuildProjectTools.LanguageServer.ContentProviders
         /// </returns>
         public Container<MarkedString> UnusedItemGroupMetadata(MSBuildUnusedItemGroup itemGroup, string metadataName)
         {
-            if (itemGroup == null)
-                throw new ArgumentNullException(nameof(itemGroup));
+            ArgumentNullException.ThrowIfNull(itemGroup);
 
             if (string.IsNullOrWhiteSpace(metadataName))
                 throw new ArgumentException("Argument cannot be null, empty, or entirely composed of whitespace: 'metadataName'.", nameof(metadataName));
@@ -496,8 +487,7 @@ namespace MSBuildProjectTools.LanguageServer.ContentProviders
         /// </returns>
         public static Container<MarkedString> Target(MSBuildTarget target)
         {
-            if (target == null)
-                throw new ArgumentNullException(nameof(target));
+            ArgumentNullException.ThrowIfNull(target);
 
             var content = new List<MarkedString>
             {
@@ -526,8 +516,7 @@ namespace MSBuildProjectTools.LanguageServer.ContentProviders
         /// </returns>
         public static Container<MarkedString> Import(MSBuildImport import)
         {
-            if (import == null)
-                throw new ArgumentNullException(nameof(import));
+            ArgumentNullException.ThrowIfNull(import);
 
             var content = new List<MarkedString>
             {
@@ -565,8 +554,7 @@ namespace MSBuildProjectTools.LanguageServer.ContentProviders
         /// </returns>
         public Container<MarkedString> UnresolvedImport(MSBuildUnresolvedImport unresolvedImport)
         {
-            if (unresolvedImport == null)
-                throw new ArgumentNullException(nameof(unresolvedImport));
+            ArgumentNullException.ThrowIfNull(unresolvedImport);
 
             string condition = unresolvedImport.Condition;
             string evaluatedCondition = _projectDocument.MSBuildProject.ExpandString(condition);
@@ -619,8 +607,7 @@ namespace MSBuildProjectTools.LanguageServer.ContentProviders
         /// </returns>
         public static Container<MarkedString> SdkImport(MSBuildSdkImport sdkImport)
         {
-            if (sdkImport == null)
-                throw new ArgumentNullException(nameof(sdkImport));
+            ArgumentNullException.ThrowIfNull(sdkImport);
 
             var imports = new StringBuilder("Imports:");
             imports.AppendLine();
@@ -644,8 +631,7 @@ namespace MSBuildProjectTools.LanguageServer.ContentProviders
         /// </returns>
         public Container<MarkedString> UnresolvedSdkImport(MSBuildUnresolvedSdkImport unresolvedSdkImport)
         {
-            if (unresolvedSdkImport == null)
-                throw new ArgumentNullException(nameof(unresolvedSdkImport));
+            ArgumentNullException.ThrowIfNull(unresolvedSdkImport);
 
             string condition = unresolvedSdkImport.Condition;
             string evaluatedCondition = _projectDocument.MSBuildProject.ExpandString(condition);
@@ -676,8 +662,7 @@ namespace MSBuildProjectTools.LanguageServer.ContentProviders
         /// </returns>
         public static Container<MarkedString> Element(XSElement element)
         {
-            if (element == null)
-                throw new ArgumentNullException(nameof(element));
+            ArgumentNullException.ThrowIfNull(element);
 
             string elementDescription = MSBuildSchemaHelp.ForElement(element.Name);
             if (string.IsNullOrWhiteSpace(elementDescription))

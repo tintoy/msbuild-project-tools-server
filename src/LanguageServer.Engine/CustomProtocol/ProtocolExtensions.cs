@@ -1,7 +1,7 @@
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
-using OmniSharp.Extensions.LanguageServer.Server;
+using OmniSharp.Extensions.LanguageServer.Protocol.Server;
 using System;
 
 namespace MSBuildProjectTools.LanguageServer.CustomProtocol
@@ -22,8 +22,7 @@ namespace MSBuildProjectTools.LanguageServer.CustomProtocol
         /// </param>
         public static void NotifyBusy(this ILanguageServer router, string message)
         {
-            if (router == null)
-                throw new ArgumentNullException(nameof(router));
+            ArgumentNullException.ThrowIfNull(router);
 
             if (string.IsNullOrWhiteSpace(message))
                 throw new ArgumentException("Argument cannot be null, empty, or entirely composed of whitespace: 'message'.", nameof(message));
@@ -46,8 +45,7 @@ namespace MSBuildProjectTools.LanguageServer.CustomProtocol
         /// </param>
         public static void ClearBusy(this ILanguageServer router, string message = null)
         {
-            if (router == null)
-                throw new ArgumentNullException(nameof(router));
+            ArgumentNullException.ThrowIfNull(router);
 
             router.SendNotification("msbuild/busy", new BusyNotificationParams
             {
@@ -67,11 +65,9 @@ namespace MSBuildProjectTools.LanguageServer.CustomProtocol
         /// </param>
         public static void UpdateFrom(this Configuration configuration, DidChangeConfigurationObjectParams request)
         {
-            if (configuration == null)
-                throw new ArgumentNullException(nameof(configuration));
+            ArgumentNullException.ThrowIfNull(configuration);
 
-            if (request == null)
-                throw new ArgumentNullException(nameof(request));
+            ArgumentNullException.ThrowIfNull(request);
 
             if (request.Settings?.SelectToken(Configuration.SectionName) is not JObject json)
                 return;
@@ -90,11 +86,9 @@ namespace MSBuildProjectTools.LanguageServer.CustomProtocol
         /// </param>
         public static void UpdateFrom(this Configuration configuration, InitializeParams request)
         {
-            if (configuration == null)
-                throw new ArgumentNullException(nameof(configuration));
+            ArgumentNullException.ThrowIfNull(configuration);
 
-            if (request == null)
-                throw new ArgumentNullException(nameof(request));
+            ArgumentNullException.ThrowIfNull(request);
 
             if (request.InitializationOptions is not JToken initializationParameters)
                 return;
@@ -116,11 +110,9 @@ namespace MSBuildProjectTools.LanguageServer.CustomProtocol
         /// </param>
         public static void UpdateFrom(this Configuration configuration, JObject settingsJson)
         {
-            if (configuration == null)
-                throw new ArgumentNullException(nameof(configuration));
+            ArgumentNullException.ThrowIfNull(configuration);
 
-            if (settingsJson == null)
-                throw new ArgumentNullException(nameof(settingsJson));
+            ArgumentNullException.ThrowIfNull(settingsJson);
 
             // Temporary workaround - JsonSerializer.Populate reuses existing HashSet.
             configuration.EnableExperimentalFeatures.Clear();

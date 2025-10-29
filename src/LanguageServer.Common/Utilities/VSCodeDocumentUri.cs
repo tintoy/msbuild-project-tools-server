@@ -8,35 +8,6 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
     /// </summary>
     public static class VSCodeDocumentUri
     {
-        /// <summary>
-        ///     Get the local file-system path for the specified document URI.
-        /// </summary>
-        /// <param name="documentUri">
-        ///     The document URI.
-        /// </param>
-        /// <returns>
-        ///     The file-system path, or <c>null</c> if the URI does not represent a file-system path.
-        /// </returns>
-        public static string GetFileSystemPath(Uri documentUri)
-        {
-            if (documentUri == null)
-                throw new ArgumentNullException(nameof(documentUri));
-
-            if (documentUri.Scheme != Uri.UriSchemeFile)
-                return null;
-
-            // The language server protocol represents "C:\Foo\Bar" as "file:///c:/foo/bar".
-            string fileSystemPath = Uri.UnescapeDataString(documentUri.AbsolutePath);
-            if (Path.DirectorySeparatorChar == '\\')
-            {
-                if (fileSystemPath.StartsWith("/"))
-                    fileSystemPath = fileSystemPath[1..];
-
-                fileSystemPath = fileSystemPath.Replace('/', '\\');
-            }
-
-            return fileSystemPath;
-        }
 
         /// <summary>
         ///     Convert a file-system path to a VSCode document URI.

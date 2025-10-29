@@ -23,11 +23,9 @@ namespace MSBuildProjectTools.LanguageServer.Logging
         /// </param>
         public void Enrich(LogEvent logEvent, ILogEventPropertyFactory propertyFactory)
         {
-            if (logEvent == null)
-                throw new ArgumentNullException(nameof(logEvent));
+            ArgumentNullException.ThrowIfNull(logEvent);
 
-            if (propertyFactory == null)
-                throw new ArgumentNullException(nameof(propertyFactory));
+            ArgumentNullException.ThrowIfNull(propertyFactory);
 
             Guid? activityId = ActivityCorrelationManager.CurrentActivityId;
             LogEventProperty activityIdProperty = propertyFactory.CreateProperty("ActivityId", activityId);

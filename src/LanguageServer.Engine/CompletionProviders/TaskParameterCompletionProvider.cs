@@ -51,11 +51,9 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
         /// </returns>
         public override async Task<CompletionList> ProvideCompletionsAsync(XmlLocation location, ProjectDocument projectDocument, string triggerCharacters, CancellationToken cancellationToken)
         {
-            if (location == null)
-                throw new ArgumentNullException(nameof(location));
+            ArgumentNullException.ThrowIfNull(location);
 
-            if (projectDocument == null)
-                throw new ArgumentNullException(nameof(projectDocument));
+            ArgumentNullException.ThrowIfNull(projectDocument);
 
             if (!projectDocument.HasMSBuildProject)
             {

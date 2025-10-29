@@ -23,8 +23,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
         /// </param>
         protected CompletionProvider(ILogger logger)
         {
-            if (logger == null)
-                throw new ArgumentNullException(nameof(logger));
+            ArgumentNullException.ThrowIfNull(logger);
 
             Log = logger.ForContext(GetType());
         }
@@ -90,8 +89,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
         /// </returns>
         protected virtual bool HandleTriggerCharacters(string triggerCharacters, ProjectDocument projectDocument, ref Range targetRange)
         {
-            if (projectDocument == null)
-                throw new ArgumentNullException(nameof(projectDocument));
+            ArgumentNullException.ThrowIfNull(projectDocument);
 
             // Replace any characters that were typed to trigger the completion.
             if (!String.IsNullOrEmpty(triggerCharacters))

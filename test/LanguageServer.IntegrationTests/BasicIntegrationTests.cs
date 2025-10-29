@@ -1,4 +1,4 @@
-using OmniSharp.Extensions.LanguageServer.Client.Utilities;
+using OmniSharp.Extensions.LanguageServer.Protocol;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using Serilog.Extensions.Logging;
 using System;
@@ -36,7 +36,8 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
         public void ServerProvidesCapabilities()
         {
             Assert.NotNull(_fixture.Client);
-            Assert.NotNull(_fixture.Client.ServerCapabilities);
+            Assert.NotNull(_fixture.Client.ServerSettings);
+            Assert.NotNull(_fixture.Client.ServerSettings.Capabilities);
         }
 
         /// <summary>
@@ -45,7 +46,7 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
         [Fact]
         public void ServerProvidesStaticCompletionHandler()
         {
-            Assert.NotNull(_fixture.Client?.ServerCapabilities?.CompletionProvider);
+            Assert.NotNull(_fixture.Client?.ServerSettings?.Capabilities?.CompletionProvider);
         }
 
         [Fact]
@@ -63,7 +64,7 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
             """);
 
             var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(5));
-            var response = await _fixture.Client.SendRequest<CompletionList>("textDocument/completion", new CompletionParams
+            var response = await _fixture.Client.SendRequest(new CompletionParams
             {
                 TextDocument = new TextDocumentIdentifier
                 {

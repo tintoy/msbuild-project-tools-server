@@ -66,11 +66,9 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
         /// </returns>
         public override async Task<CompletionList> ProvideCompletionsAsync(XmlLocation location, ProjectDocument projectDocument, string triggerCharacters, CancellationToken cancellationToken)
         {
-            if (location == null)
-                throw new ArgumentNullException(nameof(location));
+            ArgumentNullException.ThrowIfNull(location);
 
-            if (projectDocument == null)
-                throw new ArgumentNullException(nameof(projectDocument));
+            ArgumentNullException.ThrowIfNull(projectDocument);
 
             bool isIncomplete = false;
             var completions = new List<CompletionItem>();
@@ -231,11 +229,9 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
         /// </returns>
         List<CompletionItem> HandlePackageReferenceElementCompletion(XmlLocation location, ProjectDocument projectDocument, Range replaceRange)
         {
-            if (projectDocument == null)
-                throw new ArgumentNullException(nameof(projectDocument));
+            ArgumentNullException.ThrowIfNull(projectDocument);
 
-            if (location == null)
-                throw new ArgumentNullException(nameof(location));
+            ArgumentNullException.ThrowIfNull(location);
 
             return new List<CompletionItem>
             {

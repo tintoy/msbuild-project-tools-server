@@ -1,7 +1,9 @@
 using Microsoft.Extensions.Logging;
 using OmniSharp.Extensions.LanguageServer.Client;
+using OmniSharp.Extensions.LanguageServer.Protocol;
 using OmniSharp.Extensions.LanguageServer.Protocol.Client;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
+using OmniSharp.Extensions.LanguageServer.Protocol.Window;
 using Serilog;
 using System;
 using System.Diagnostics;
@@ -27,12 +29,12 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
         /// <summary>
         /// The language client.
         /// </summary>
-        LanguageClient _client;
+        ILanguageClient _client;
 
         /// <summary>
         /// The language client.
         /// </summary>
-        public LanguageClient Client => _client;
+        public ILanguageClient Client => _client;
 
         /// <summary>
         /// Start the language server and connect the client.
@@ -69,31 +71,43 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
             {
                 FileName = "dotnet",
                 Arguments = ServerDllName,
-                WorkingDirectory = Path.GetDirectoryName(serverExecutable)
+                WorkingDirectory = Path.GetDirectoryName(serverExecutable),
+                RedirectStandardInput = true,
+                RedirectStandardOutput = true,
+                UseShellExecute = false,
+                CreateNoWindow = true
             };
+
+            _serverProcess = Process.Start(serverInfo);
+            logger.LogInformation("Language server process started. PID: {ServerProcessId}", _serverProcess.Id);
 
             try
             {
                 // Create and initialize the language client
-                _client = new LanguageClient(loggerFactory, serverInfo);
-                _client.Window.OnLogMessage((message, messageType) =>
+                var options = new LanguageClientOptions()
+                    .WithLoggerFactory(loggerFactory)
+                    .WithInput(_serverProcess.StandardOutput.BaseStream)
+                    .WithOutput(_serverProcess.StandardInput.BaseStream)
+                    .WithRootUri(DocumentUri.FromFileSystemPath(workspaceRoot));
+                options.OnLogMessage(message =>
                 {
-                    switch (messageType)
+                    switch (message.Type)
                     {
                         case MessageType.Error:
-                            logger?.LogError("[SRV] {Msg}", message); break;
+                            logger?.LogError("[CLT] {Msg}", message); break;
                         case MessageType.Warning:
-                            logger?.LogWarning("[SRV] {Msg}", message); break;
+                            logger?.LogWarning("[CLT] {Msg}", message); break;
                         case MessageType.Info:
-                            logger?.LogInformation("[SRV] {Msg}", message); break;
+                            logger?.LogInformation("[CLT] {Msg}", message); break;
                         case MessageType.Log:
-                            logger?.LogDebug("[SRV] {Msg}", message); break;
+                            logger?.LogDebug("[CLT] {Msg}", message); break;
                     }
                 });
+                _client = await LanguageClient.From(options);
 
                 logger?.LogInformation("Initializing language client...");
 
-                await _client.Initialize(workspaceRoot);
+                await _client.Initialize(default);
                 logger?.LogInformation("Language client initialized.");
             }
             catch (Exception ex)

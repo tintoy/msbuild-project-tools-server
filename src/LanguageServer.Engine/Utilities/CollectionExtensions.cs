@@ -55,11 +55,9 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         /// </exception>
         public static void AddRange<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, IEnumerable<KeyValuePair<TKey, TValue>> keyValuePairs)
         {
-            if (dictionary == null)
-                throw new ArgumentNullException(nameof(dictionary));
+            ArgumentNullException.ThrowIfNull(dictionary);
 
-            if (keyValuePairs == null)
-                throw new ArgumentNullException(nameof(keyValuePairs));
+            ArgumentNullException.ThrowIfNull(keyValuePairs);
 
             foreach (KeyValuePair<TKey, TValue> keyValuePair in keyValuePairs)
                 dictionary.Add(keyValuePair.Key, keyValuePair.Value);
@@ -85,11 +83,9 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         /// </exception>
         public static void SetRange<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, IEnumerable<KeyValuePair<TKey, TValue>> keyValuePairs)
         {
-            if (dictionary == null)
-                throw new ArgumentNullException(nameof(dictionary));
+            ArgumentNullException.ThrowIfNull(dictionary);
 
-            if (keyValuePairs == null)
-                throw new ArgumentNullException(nameof(keyValuePairs));
+            ArgumentNullException.ThrowIfNull(keyValuePairs);
 
             foreach (KeyValuePair<TKey, TValue> keyValuePair in keyValuePairs)
                 dictionary[keyValuePair.Key] = keyValuePair.Value;
