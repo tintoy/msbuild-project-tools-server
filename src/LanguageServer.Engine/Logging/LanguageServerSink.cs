@@ -71,7 +71,7 @@ namespace MSBuildProjectTools.LanguageServer.Logging
         /// <summary>
         ///     Can log entries be sent to the language server?
         /// </summary>
-        bool CanLog => _languageServer.ServerSettings != null && !_hasServerShutDown;
+        bool CanLog => _languageServer.Window != null && !_hasServerShutDown;
 
         /// <summary>
         ///     Emit a log event.
