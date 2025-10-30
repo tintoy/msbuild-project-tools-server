@@ -69,7 +69,10 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
             {
                 FileName = "dotnet",
                 Arguments = ServerDllName,
-                WorkingDirectory = Path.GetDirectoryName(serverExecutable)
+                WorkingDirectory = Path.GetDirectoryName(serverExecutable),
+                Environment = {
+                     { "MSBUILD_PROJECT_TOOLS_VERBOSE_LOGGING", "1" }
+                }
             };
 
             try
