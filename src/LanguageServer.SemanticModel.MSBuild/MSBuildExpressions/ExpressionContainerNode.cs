@@ -1,9 +1,11 @@
-using Sprache;
+using Superpower;
 using System.Collections.Immutable;
 using System;
 
 namespace MSBuildProjectTools.LanguageServer.SemanticModel.MSBuildExpressions
 {
+    using Position = Superpower.Model.Position;
+
     /// <summary>
     ///     A node in an MSBuild expression tree that can have children.
     /// </summary>
@@ -55,7 +57,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel.MSBuildExpressions
         /// <returns>
         ///     The <see cref="ExpressionNode"/>.
         /// </returns>
-        ExpressionContainerNode IPositionAware<ExpressionContainerNode>.SetPos(Sprache.Position startPosition, int length)
+        ExpressionContainerNode IPositionAware<ExpressionContainerNode>.SetPos(Position startPosition, int length)
         {
             SetPosition(startPosition, length);
 

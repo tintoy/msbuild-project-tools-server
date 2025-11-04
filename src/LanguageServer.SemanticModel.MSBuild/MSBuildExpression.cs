@@ -1,4 +1,4 @@
-using Sprache;
+using Superpower;
 using System;
 using System.Linq;
 
@@ -30,10 +30,10 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
                 throw new ArgumentNullException(nameof(expression));
 
             var parseResult = Parsers.Root.TryParse(expression);
-            if (!parseResult.WasSuccessful)
+            if (!parseResult.HasValue)
             {
                 string expectations = string.Empty;
-                if (parseResult.Expectations.Any())
+                if (parseResult.Expectations?.Any() ?? false)
                 {
                     expectations = string.Format(" (expected {0} at {1})",
                         string.Join(", ", parseResult.Expectations.Select(
@@ -71,7 +71,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
                 throw new ArgumentNullException(nameof(expression));
 
             var parseResult = Parsers.Root.TryParse(expression);
-            if (parseResult.WasSuccessful)
+            if (parseResult.HasValue)
             {
                 parsedExpression = parseResult.Value.PostParse(
                     new TextPositions(expression)
@@ -100,10 +100,10 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
                 throw new ArgumentNullException(nameof(expression));
 
             var parseResult = Parsers.SimpleLists.List.TryParse(expression);
-            if (!parseResult.WasSuccessful)
+            if (!parseResult.HasValue)
             {
                 string expectations = string.Empty;
-                if (parseResult.Expectations.Any())
+                if (parseResult.Expectations?.Any() ?? false)
                 {
                     expectations = string.Format(" (expected {0} at {1})",
                         string.Join(", ", parseResult.Expectations.Select(

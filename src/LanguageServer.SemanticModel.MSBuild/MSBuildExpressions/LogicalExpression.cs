@@ -1,7 +1,9 @@
-using Sprache;
+using Superpower;
 
 namespace MSBuildProjectTools.LanguageServer.SemanticModel.MSBuildExpressions
 {
+    using Position = Superpower.Model.Position;
+
     /// <summary>
     ///     Represents an MSBuild logical expression (e.g. AND, OR, NOT).
     /// </summary>
@@ -77,7 +79,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel.MSBuildExpressions
         /// <returns>
         ///     The <see cref="ExpressionNode"/>.
         /// </returns>
-        LogicalExpression IPositionAware<LogicalExpression>.SetPos(Sprache.Position startPosition, int length)
+        LogicalExpression IPositionAware<LogicalExpression>.SetPos(Position startPosition, int length)
         {
             SetPosition(startPosition, length);
 

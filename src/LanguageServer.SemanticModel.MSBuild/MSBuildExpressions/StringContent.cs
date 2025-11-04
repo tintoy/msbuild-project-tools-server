@@ -1,7 +1,9 @@
-using Sprache;
+using Superpower;
 
 namespace MSBuildProjectTools.LanguageServer.SemanticModel.MSBuildExpressions
 {
+    using Position = Superpower.Model.Position;
+
     /// <summary>
     ///     Represents a run of contiguous characters in an MSBuild quoted-string literal expression.
     /// </summary>
@@ -53,7 +55,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel.MSBuildExpressions
         /// <returns>
         ///     The <see cref="ExpressionNode"/>.
         /// </returns>
-        StringContent IPositionAware<StringContent>.SetPos(Sprache.Position startPosition, int length)
+        StringContent IPositionAware<StringContent>.SetPos(Position startPosition, int length)
         {
             SetPosition(startPosition, length);
 

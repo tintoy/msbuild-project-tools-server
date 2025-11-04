@@ -2,6 +2,7 @@
   <PropertyGroup>
     <AssemblyName>MSBuildProjectTools.LanguageServer.SemanticModel.MSBuild</AssemblyName>
     <RootNamespace>MSBuildProjectTools.LanguageServer.SemanticModel</RootNamespace>
+    <DefineConstants>$(DefineConstants);SPRACHE_COMPATIBILITY</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>
@@ -10,8 +11,9 @@
     <PackageReference Include="Nito.AsyncEx.Coordination" />
     <PackageReference Include="NuGet.PackageManagement" />
     <PackageReference Include="Serilog" />
-    <PackageReference Include="Sprache" />
+    <PackageReference Include="Superpower" />
     <PackageReference Include="System.Reflection.MetadataLoadContext" />
+    <PackageReference Include="System.Runtime.CompilerServices.Unsafe" />
   </ItemGroup>
 
   <ItemGroup>

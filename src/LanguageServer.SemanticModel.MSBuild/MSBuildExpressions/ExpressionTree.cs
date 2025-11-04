@@ -1,7 +1,9 @@
-using Sprache;
+using Superpower;
 
 namespace MSBuildProjectTools.LanguageServer.SemanticModel.MSBuildExpressions
 {
+    using Position = Superpower.Model.Position;
+
     /// <summary>
     ///     Represents the root of an MSBuild expression tree.
     /// </summary>
@@ -32,7 +34,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel.MSBuildExpressions
         /// <returns>
         ///     The <see cref="ExpressionNode"/>.
         /// </returns>
-        ExpressionTree IPositionAware<ExpressionTree>.SetPos(Sprache.Position startPosition, int length)
+        ExpressionTree IPositionAware<ExpressionTree>.SetPos(Position startPosition, int length)
         {
             SetPosition(startPosition, length);
 
