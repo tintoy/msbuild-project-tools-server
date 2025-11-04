@@ -1,4 +1,5 @@
-using Sprache;
+using Superpower;
+using Superpower.Model;
 using System.Collections.Generic;
 using Xunit;
 using System;
@@ -20,7 +21,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests
         /// <param name="input">
         ///     The test input.
         /// </param>
-        public static void Succeeds<T>(Parser<T> parser, string input)
+        public static void Succeeds<T>(TextParser<T> parser, string input)
         {
             SucceedsWith(parser, input, successResult => { });
         }
@@ -37,7 +38,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests
         /// <param name="expectedResult">
         ///     The expected result.
         /// </param>
-        public static void SucceedsWithOne<TResult>(Parser<IEnumerable<TResult>> parser, string input, TResult expectedResult)
+        public static void SucceedsWithOne<TResult>(TextParser<IEnumerable<TResult>> parser, string input, TResult expectedResult)
         {
             SucceedsWith(parser, input, actualResults =>
             {
@@ -59,7 +60,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests
         /// <param name="expectedResults">
         ///     The expected results.
         /// </param>
-        public static void SucceedsWithMany<TResult>(Parser<IEnumerable<TResult>> parser, string input, IEnumerable<TResult> expectedResults)
+        public static void SucceedsWithMany<TResult>(TextParser<IEnumerable<TResult>> parser, string input, IEnumerable<TResult> expectedResults)
         {
             SucceedsWith(parser, input, actualResults =>
             {
@@ -76,7 +77,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests
         /// <param name="input">
         ///     The test input.
         /// </param>
-        public static void SucceedsWithAll(Parser<IEnumerable<char>> parser, string input)
+        public static void SucceedsWithAll(TextParser<IEnumerable<char>> parser, string input)
         {
             SucceedsWithMany(parser, input, input.ToCharArray());
         }
@@ -93,15 +94,15 @@ namespace MSBuildProjectTools.LanguageServer.Tests
         /// <param name="resultAssertion">
         ///     An action that makes assertions about the result.
         /// </param>
-        public static void SucceedsWith<TResult>(Parser<TResult> parser, string input, Action<TResult> resultAssertion)
+        public static void SucceedsWith<TResult>(TextParser<TResult> parser, string input, Action<TResult> resultAssertion)
         {
-            IResult<TResult> result = parser.TryParse(input);
+            Result<TResult> result = parser.TryParse(input);
 
-            string expectations = string.Join(", ", result.Expectations.Select(
+            string expectations = result.Expectations != null ? string.Join(", ", result.Expectations.Select(
                 expectation => string.Format("'{0}'", expectation)
-            ));
+            )) : string.Empty;
 
-            Assert.True(result.WasSuccessful, $"Parsing of '{input}' failed unexpectedly (expected [{expectations}] at {result.Remainder}).");
+            Assert.True(result.HasValue, $"Parsing of '{input}' failed unexpectedly (expected [{expectations}] at {result.Remainder}).");
 
             resultAssertion(result.Value);
         }
@@ -115,7 +116,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests
         /// <param name="input">
         ///     The test input.
         /// </param>
-        public static void Fails<T>(Parser<T> parser, string input)
+        public static void Fails<T>(TextParser<T> parser, string input)
         {
             FailsWith(parser, input, failureResult => { });
         }
@@ -132,11 +133,11 @@ namespace MSBuildProjectTools.LanguageServer.Tests
         /// <param name="position">
         ///     The position at which parsing is expected to fail.
         /// </param>
-        public static void FailsAt<T>(Parser<T> parser, string input, int position)
+        public static void FailsAt<T>(TextParser<T> parser, string input, int position)
         {
             FailsWith(parser, input, failureResult =>
             {
-                Assert.Equal(position, failureResult.Remainder.Position);
+                Assert.Equal(position, failureResult.Remainder.Position.Absolute);
             });
         }
 
@@ -152,10 +153,10 @@ namespace MSBuildProjectTools.LanguageServer.Tests
         /// <param name="resultAssertion">
         ///     An action that makes assertions about the result.
         /// </param>
-        public static void FailsWith<T>(Parser<T> parser, string input, Action<IResult<T>> resultAssertion)
+        public static void FailsWith<T>(TextParser<T> parser, string input, Action<Result<T>> resultAssertion)
         {
-            IResult<T> result = parser.TryParse(input);
-            Assert.False(result.WasSuccessful, $"Parsing of '{input}' succeeded unexpectedly.");
+            Result<T> result = parser.TryParse(input);
+            Assert.False(result.HasValue, $"Parsing of '{input}' succeeded unexpectedly.");
 
             resultAssertion(result);
         }

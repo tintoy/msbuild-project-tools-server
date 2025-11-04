@@ -1,7 +1,9 @@
-using Sprache;
+using Superpower;
 
 namespace MSBuildProjectTools.LanguageServer.SemanticModel.MSBuildExpressions
 {
+    using Position = Superpower.Model.Position;
+
     /// <summary>
     ///     Represents an MSBuild quoted-string literal expression.
     /// </summary>
@@ -53,7 +55,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel.MSBuildExpressions
         /// <returns>
         ///     The <see cref="ExpressionNode"/>.
         /// </returns>
-        QuotedStringLiteral IPositionAware<QuotedStringLiteral>.SetPos(Sprache.Position startPosition, int length)
+        QuotedStringLiteral IPositionAware<QuotedStringLiteral>.SetPos(Position startPosition, int length)
         {
             SetPosition(startPosition, length);
 

@@ -1,7 +1,9 @@
-using Sprache;
+using Superpower;
 
 namespace MSBuildProjectTools.LanguageServer.SemanticModel.MSBuildExpressions
 {
+    using Position = Superpower.Model.Position;
+
     /// <summary>
     ///     Represents an MSBuild item metadata expression.
     /// </summary>
@@ -81,7 +83,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel.MSBuildExpressions
         /// <returns>
         ///     The <see cref="ExpressionNode"/>.
         /// </returns>
-        ItemMetadata IPositionAware<ItemMetadata>.SetPos(Sprache.Position startPosition, int length)
+        ItemMetadata IPositionAware<ItemMetadata>.SetPos(Position startPosition, int length)
         {
             SetPosition(startPosition, length);
 

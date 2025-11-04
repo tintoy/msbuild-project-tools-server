@@ -1,9 +1,11 @@
-using Sprache;
+using Superpower;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace MSBuildProjectTools.LanguageServer.SemanticModel.MSBuildExpressions
 {
+    using Position = Superpower.Model.Position;
+
     /// <summary>
     ///     Represents an MSBuild function-call expression.
     /// </summary>
@@ -54,7 +56,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel.MSBuildExpressions
         /// <returns>
         ///     The <see cref="ExpressionNode"/>.
         /// </returns>
-        FunctionCall IPositionAware<FunctionCall>.SetPos(Sprache.Position startPosition, int length)
+        FunctionCall IPositionAware<FunctionCall>.SetPos(Position startPosition, int length)
         {
             SetPosition(startPosition, length);
 

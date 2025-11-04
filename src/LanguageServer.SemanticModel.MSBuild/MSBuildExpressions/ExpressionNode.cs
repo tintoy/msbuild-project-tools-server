@@ -1,8 +1,10 @@
-using Sprache;
+using Superpower;
 using System.Linq;
 
 namespace MSBuildProjectTools.LanguageServer.SemanticModel.MSBuildExpressions
 {
+    using SuperPosition = Superpower.Model.Position;
+
     /// <summary>
     ///     A node in an MSBuild expression tree.
     /// </summary>
@@ -93,9 +95,9 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel.MSBuildExpressions
         /// <param name="length">
         ///     The node length.
         /// </param>
-        protected void SetPosition(Sprache.Position startPosition, int length)
+        protected void SetPosition(SuperPosition startPosition, int length)
         {
-            AbsoluteStart = startPosition.Pos;
+            AbsoluteStart = startPosition.Absolute;
             AbsoluteEnd = AbsoluteStart + length;
         }
 
@@ -111,7 +113,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel.MSBuildExpressions
         /// <returns>
         ///     The <see cref="ExpressionNode"/>.
         /// </returns>
-        ExpressionNode IPositionAware<ExpressionNode>.SetPos(Sprache.Position startPosition, int length)
+        ExpressionNode IPositionAware<ExpressionNode>.SetPos(SuperPosition startPosition, int length)
         {
             SetPosition(startPosition, length);
 
