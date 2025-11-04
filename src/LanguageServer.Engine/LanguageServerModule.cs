@@ -1,25 +1,27 @@
 using Autofac;
 using Autofac.Core;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using OmniSharp.Extensions.JsonRpc;
+using OmniSharp.Extensions.LanguageServer.Protocol.Server;
 using OmniSharp.Extensions.LanguageServer.Server;
 using Serilog;
+using Serilog.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reactive.Linq;
 using System.Threading.Tasks;
 
 namespace MSBuildProjectTools.LanguageServer
 {
     using CompletionProviders;
+    using CustomProtocol;
     using Diagnostics;
     using Handlers;
     using Utilities;
-    using OmniSharp.Extensions.JsonRpc;
 
     using LanguageServer = OmniSharp.Extensions.LanguageServer.Server.LanguageServer;
-    using Microsoft.Extensions.Logging;
-    using MSBuildProjectTools.LanguageServer.CustomProtocol;
-    using OmniSharp.Extensions.LanguageServer.Protocol.Server;
 
     /// <summary>
     ///     Registration logic for language server components.
@@ -61,8 +63,17 @@ namespace MSBuildProjectTools.LanguageServer
                     return new LanguageServerOptions()
                         .WithInput(Console.OpenStandardInput())
                         .WithOutput(Console.OpenStandardOutput())
-                        .ConfigureLogging(logging => logging.AddSerilog())
-                        .AddDefaultLoggingProvider()
+                        // Don't use ILoggingBuilder.AddSerilog() extension, if logging should be enabled
+                        // for the very first dependencies.
+                        // Can be changed back to ILoggingBuilder.AddSerilog() when
+                        // https://github.com/serilog/serilog-extensions-logging/issues/281
+                        // is resolved.
+                        .ConfigureLogging(logging =>
+                        {
+                            logging.Services.AddSingleton<ILoggerProvider, SerilogLoggerProvider>(
+                                sp => new SerilogLoggerProvider(sp.GetService<Serilog.ILogger>(), false));
+                            logging.AddFilter<SerilogLoggerProvider>(null, LogLevel.Trace);
+                        })
                         // New LSP C# implementation uses its own DI container, so configure it here with
                         // the same registrations from Autofac.
                         .WithServices(services =>
@@ -77,7 +88,7 @@ namespace MSBuildProjectTools.LanguageServer
                             // instance already exists in the service provider as singleton instance and doesn't
                             // need to be resolved from Autofac.
                             services.AddSingleton(_ => currentScope.Resolve<Configuration>());
-                            services.AddSingleton(sp => currentScope.Resolve<ILogger>(sp.ToAutofacParameter()));
+                            services.AddSingleton(sp => currentScope.Resolve<Serilog.ILogger>(sp.ToAutofacParameter()));
                             services.AddTransient(sp => currentScope.Resolve<IPublishDiagnostics>(sp.ToAutofacParameter()));
                             services.AddSingleton(sp => currentScope.Resolve<Documents.Workspace>(sp.ToAutofacParameter()));
 

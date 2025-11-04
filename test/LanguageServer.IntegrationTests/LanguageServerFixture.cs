@@ -75,7 +75,10 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
                 RedirectStandardInput = true,
                 RedirectStandardOutput = true,
                 UseShellExecute = false,
-                CreateNoWindow = true
+                CreateNoWindow = true,
+                Environment = {
+                     { "MSBUILD_PROJECT_TOOLS_VERBOSE_LOGGING", "1" }
+                }
             };
 
             _serverProcess = Process.Start(serverInfo);

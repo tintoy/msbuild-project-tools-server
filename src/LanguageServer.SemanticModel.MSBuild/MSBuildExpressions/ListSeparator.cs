@@ -1,7 +1,9 @@
-using Sprache;
+using Superpower;
 
 namespace MSBuildProjectTools.LanguageServer.SemanticModel.MSBuildExpressions
 {
+    using Position = Superpower.Model.Position;
+
     /// <summary>
     ///     Represents a list item separator with leading and trailing whitespace.
     /// </summary>
@@ -37,7 +39,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel.MSBuildExpressions
         /// <returns>
         ///     The <see cref="ExpressionNode"/>.
         /// </returns>
-        ListSeparator IPositionAware<ListSeparator>.SetPos(Sprache.Position startPosition, int length)
+        ListSeparator IPositionAware<ListSeparator>.SetPos(Position startPosition, int length)
         {
             SetPosition(startPosition, length);
 

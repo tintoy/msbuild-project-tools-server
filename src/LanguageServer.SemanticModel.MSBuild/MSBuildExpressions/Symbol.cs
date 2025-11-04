@@ -1,7 +1,9 @@
-using Sprache;
+using Superpower;
 
 namespace MSBuildProjectTools.LanguageServer.SemanticModel.MSBuildExpressions
 {
+    using Position = Superpower.Model.Position;
+
     /// <summary>
     ///     Represents an MSBuild comparison expression.
     /// </summary>
@@ -65,7 +67,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel.MSBuildExpressions
         /// <returns>
         ///     The <see cref="ExpressionNode"/>.
         /// </returns>
-        Symbol IPositionAware<Symbol>.SetPos(Sprache.Position startPosition, int length)
+        Symbol IPositionAware<Symbol>.SetPos(Position startPosition, int length)
         {
             SetPosition(startPosition, length);
 
