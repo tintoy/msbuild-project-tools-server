@@ -80,8 +80,8 @@ namespace MSBuildProjectTools.LanguageServer
                         {
                             // Can't directly resolve some component instances here when registering
                             // services for the other DI container, as it would result in an endless dependency loop, e.g.:
-                            // ILanguageServer -> Task<ILanguageServer> -> LanguageServerOptions -> CompletionHandler -> ILanguageServer -> ...
-                            // ILogger -> ILanguageServer -> Task<ILanguageServer> -> LanguageServerOptions -> ILogger -> ...
+                            // ILanguageServer -> Task<LanguageServer> -> LanguageServerOptions -> CompletionHandler -> ILanguageServer -> ...
+                            // ILogger -> ILanguageServer -> Task<LanguageServer> -> LanguageServerOptions -> ILogger -> ...
                             // So do the registrations with factory delegates using the current lifetime scope as
                             // component context and ServiceProviderParameter to shortcut some resolve operations.
                             // At the time when this factory delegate is executed, the current ILanguageServer
@@ -118,19 +118,13 @@ namespace MSBuildProjectTools.LanguageServer
                                 }
                             }
 
-                            // Register all handlers. Not needed any more since v0.11.1 of OmniSharp LSP libs.
-                            //addRegistrations(services, currentScope, true, typeof(Handler));
+                            // Register all handlers.
+                            addRegistrations(services, currentScope, true, typeof(Handler));
 
                             // Register all completion providers.
                             addRegistrations(services, currentScope, false, typeof(ICompletionProvider), typeof(CompletionProvider));
                         })
-                        .WithHandler<DocumentSyncHandler>()
-                        .WithHandler<ConfigurationHandler>()
-                        .WithHandler<DocumentSymbolHandler>()
-                        .WithHandler<DefinitionHandler>()
-                        .WithHandler<HoverHandler>()
-                        .WithHandler<CompletionHandler>()
-                        .OnInitialize((languageServer, initializationParameters, ctx) =>
+                        .OnInitialize((languageServer, initializationParameters, cancellationToken) =>
                         {
                             var configurationHandler = currentScope.Resolve<ConfigurationHandler>();
                             configurationHandler.Configuration.UpdateFrom(initializationParameters);
@@ -138,7 +132,7 @@ namespace MSBuildProjectTools.LanguageServer
                             return Task.CompletedTask;
                         })
                         // TODO: remove this workaround once we upgrade to omniSharp LSP libs v0.17.0 or newer
-                        .OnStarted((server, initializationResult, ctx) =>
+                        .OnStarted((server, initializationResult, cancellationToken) =>
                         {
                             return Task.CompletedTask;
                         });
@@ -154,8 +148,8 @@ namespace MSBuildProjectTools.LanguageServer
                 .SingleInstance();
 
             builder
-                .RegisterAdapter<Task<ILanguageServer>, Task<LanguageServer>>(
-                    async task => (LanguageServer)await task)
+                .RegisterAdapter<Task<LanguageServer>, Task<ILanguageServer>>(
+                    async task => await task)
                 .SingleInstance();
 
             // Can't use adapter here, because the "parameters" parameter of this lambda
@@ -163,7 +157,7 @@ namespace MSBuildProjectTools.LanguageServer
             // unconditionally resolved, which can lead to an endless loop in this specific
             // case.
             /*builder
-                .RegisterAdapter<Task<ILanguageServer>, LanguageServer>(
+                .RegisterAdapter<Task<LanguageServer>, LanguageServer>(
                 (componentContext, parameters, from) =>
                 {
                     var options = componentContext.Resolve<LanguageServerOptions>();
@@ -185,17 +179,17 @@ namespace MSBuildProjectTools.LanguageServer
                         // At this point, there is no service provider in parameters,
                         // which LanguageServer had created, so this may be the first
                         // resolution and a new LanguageServer instance should be created
-                        // by resolving Task<ILanguageServer>.
+                        // by resolving Task<LanguageServer>.
                         // If it wasn't the first resolution, then this should return the
-                        // cached singleton instance of Task<ILanguageServer> and the task
+                        // cached singleton instance of Task<LanguageServer> and the task
                         // could already be completed, in this case the Result of the Task can
                         // directly be returned without blocking.
-                        var from = componentContext.Resolve<Task<ILanguageServer>>(parameters);
+                        var from = componentContext.Resolve<Task<LanguageServer>>(parameters);
                         if (from.IsCompletedSuccessfully)
-                            return (LanguageServer)from.Result;
+                            return from.Result;
                         // If the task isn't completed yet, return LanguageServer instance from
                         // services collection of LanguageServerOptions which was created by
-                        // resolving Task<ILanguageServer>. Use a new temporary service provider
+                        // resolving Task<LanguageServer>. Use a new temporary service provider
                         // for retrieving the instance.
                         var options = componentContext.Resolve<LanguageServerOptions>(parameters);
                         sp = options.Services.BuildServiceProvider();
@@ -211,7 +205,7 @@ namespace MSBuildProjectTools.LanguageServer
                 })
                 // Mimic the behavior of an adapter registration with the following,
                 // so keep similar semantics.
-                .AsAdapter(builder).For<Task<ILanguageServer>>()
+                .AsAdapter(builder).For<Task<LanguageServer>>()
                 .AsSelf()
                 .As<ILanguageServer>()
                 // This component is actually a singleton, but it could be resolved recursively,
@@ -235,6 +229,19 @@ namespace MSBuildProjectTools.LanguageServer
                     Documents.Workspace workspace = activated.Instance;
                     workspace.RestoreTaskMetadataCache();
                 });
+
+            builder
+                .RegisterTypes(
+                    typeof(ConfigurationHandler),
+                    typeof(DocumentSyncHandler),
+                    typeof(DocumentSymbolHandler),
+                    typeof(DefinitionHandler),
+                    typeof(HoverHandler),
+                    typeof(CompletionHandler)
+                )
+                .AsSelf()
+                .As<Handler>()
+                .SingleInstance();
 
             Type completionProviderType = typeof(CompletionProvider);
             builder.RegisterAssemblyTypes(ThisAssembly)
