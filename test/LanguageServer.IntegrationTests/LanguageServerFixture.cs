@@ -91,6 +91,7 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
                 WorkingDirectory = Path.GetDirectoryName(serverExecutable),
                 RedirectStandardInput = true,
                 RedirectStandardOutput = true,
+                RedirectStandardError = true,
                 UseShellExecute = false,
                 CreateNoWindow = true,
                 Environment = {
@@ -111,11 +112,13 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
                 EnableRaisingEvents = true
             };
             _serverProcess.Exited += ServerProcess_Exit;
+            _serverProcess.ErrorDataReceived += ServerProcess_ErrorDataReceived;
             try
             {
                 if (!_serverProcess.Start())
                     throw new InvalidOperationException("Failed to launch language server.");
                 _logger.LogInformation("Language server process started. PID: {ServerProcessId}", _serverProcess.Id);
+                _serverProcess.BeginErrorReadLine();
 
                 // Create and initialize the language client
                 var options = new LanguageClientOptions()
@@ -151,7 +154,6 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
                     // As long as the bug in OmniSharp libs exists, 
                     // we need to cancel request from ResponseRouter manually
                     var client = _this._client;
-                    bool disposeClient = false;
                     if (client == null)
                     {
                         client = (from x in _options.Services
@@ -159,16 +161,15 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
                                       && x.ImplementationInstance != null
                                   select (ILanguageClient)x.ImplementationInstance)
                                 .FirstOrDefault();
-                        disposeClient = true;
-                    }
-                    if (client != null)
-                    {
-                        // The first request should always be the initialize request
-                        var (method, tcsRequest) = client.GetRequest(1);
-                        if (method == GeneralNames.Initialize)
-                            tcsRequest.TrySetCanceled(token);
-                        if (disposeClient)
+                        if (client != null)
+                        {
+                            // The first request should always be the initialize request
+                            var (method, tcsRequest) = client.GetRequest(1);
+                            if (method == GeneralNames.Initialize)
+                                tcsRequest.TrySetCanceled(token);
+
                             client.Dispose();
+                        }
                     }
                 }, (this, options));
                 try
@@ -190,6 +191,12 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
                 _serverProcess = null;
                 throw;
             }
+        }
+
+        private void ServerProcess_ErrorDataReceived(object sender, DataReceivedEventArgs e)
+        {
+            if (e.Data is not null)
+                _logger.LogError("[SRV] STDERR: {Line}", e.Data);
         }
 
         private void ServerProcess_Exit(object sender, EventArgs e)
