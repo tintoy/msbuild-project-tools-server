@@ -28,6 +28,11 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
         Microsoft.Extensions.Logging.ILogger _logger;
 
         /// <summary>
+        /// The cancellation token source for server initialization.
+        /// </summary>
+        CancellationTokenSource _ctsServerInitialize;
+
+        /// <summary>
         /// The task completion source to wait for the server process to exit.
         /// </summary>
         TaskCompletionSource<object> _serverExitCompletion;
@@ -93,6 +98,13 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
             };
 
             _serverExitCompletion = new TaskCompletionSource<object>();
+            _ctsServerInitialize = new CancellationTokenSource();
+            _ctsServerInitialize.Token.Register(state =>
+                {
+                    var (_this, cts) = ((LanguageServerFixture, CancellationTokenSource))state;
+                    _this._serverExitCompletion.TrySetCanceled(cts.Token);
+                },
+                (this, _ctsServerInitialize));
             _serverProcess = new Process
             {
                 StartInfo = serverInfo,
@@ -129,7 +141,7 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
                             _logger?.LogDebug("[SRV] {Msg}", message.Message); break;
                     }
                 });
-                var initializeTask = LanguageClient.From(options);
+                var initializeTask = LanguageClient.From(options, _ctsServerInitialize.Token);
 
                 _logger?.LogInformation("Initializing language client...");
 
@@ -146,8 +158,14 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
         private void ServerProcess_Exit(object sender, EventArgs e)
         {
             _logger.LogDebug("Server process has exited.");
-            _client?.Dispose();
-            _client = null;
+            var cts = Interlocked.Exchange(ref _ctsServerInitialize, null);
+            if (cts != null)
+            {
+                cts.Cancel();
+                cts.Dispose();
+            }
+            var client = Interlocked.Exchange(ref _client, null);
+            client?.Dispose();
             _serverExitCompletion.TrySetResult(null);
         }
 
@@ -159,38 +177,47 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
         /// </returns>
         public async Task StopAsync()
         {
-            if (_client != null)
+            var client = Interlocked.Exchange(ref _client, null);
+            if (client != null)
             {
                 try
                 {
-                    await _client.Shutdown();
+                    await client.Shutdown();
                 }
                 catch (Exception)
                 {
                     // Ignore errors during shutdown
                 }
 
-                _client = null;
+                client.Dispose();
             }
 
             if (_serverProcess != null)
             {
-                if (!_serverProcess.HasExited)
+                var cts = Interlocked.Exchange(ref _ctsServerInitialize, null);
+                cts?.CancelAfter(5000);
+                try
                 {
-                    try
+                    if (!_serverProcess.HasExited)
                     {
-                        _serverProcess.Kill();
+                        try
+                        {
+                            _serverProcess.Kill();
+                        }
+                        catch (Exception)
+                        {
+                            // Ignore errors during process termination
+                        }
                     }
-                    catch (Exception)
-                    {
-                        // Ignore errors during process termination
-                    }
-                }
-                
-                await _serverExitCompletion.Task.WaitAsync(new TimeSpan(5000));
 
-                _serverProcess?.Dispose();
-                _serverProcess = null;
+                    await _serverExitCompletion.Task;
+                }
+                finally
+                {
+                    _serverProcess?.Dispose();
+                    _serverProcess = null;
+                    cts?.Dispose();
+                }
             }
         }
 
