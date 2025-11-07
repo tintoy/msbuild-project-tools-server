@@ -5,6 +5,7 @@ using OmniSharp.Extensions.LanguageServer.Protocol.Client;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using OmniSharp.Extensions.LanguageServer.Protocol.Window;
 using Serilog;
+using Serilog.Extensions.Logging;
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -42,8 +43,8 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
         /// <param name="workspaceRoot">
         /// The root directory of the workspace to open.
         /// </param>
-        /// <param name="loggerFactory">
-        /// An optional logger factory for the client.
+        /// <param name="loggerProvider">
+        /// An optional logger provider for the client.
         /// </param>
         /// <param name="cancellationToken">
         /// An optional cancellation token.
@@ -51,7 +52,7 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
         /// <returns>
         /// A <see cref="Task"/> representing the asynchronous operation.
         /// </returns>
-        public async Task StartAsync(string workspaceRoot, ILoggerFactory loggerFactory)
+        public async Task StartAsync(string workspaceRoot, ILoggerProvider loggerProvider)
         {
             if (_client != null)
                 throw new InvalidOperationException("Language server is already started.");
@@ -61,7 +62,7 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
             if (string.IsNullOrEmpty(serverExecutable))
                 throw new FileNotFoundException("Cannot find the language server executable.");
 
-            var logger = loggerFactory?.CreateLogger("LanguageServerFixture");
+            var logger = loggerProvider?.CreateLogger("LanguageServerFixture");
 
             logger?.LogInformation("Starting language server from: {ServerExecutable}", serverExecutable);
 
@@ -88,7 +89,11 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
             {
                 // Create and initialize the language client
                 var options = new LanguageClientOptions()
-                    .WithLoggerFactory(loggerFactory)
+                    .ConfigureLogging(builder =>
+                    {
+                        builder.AddProvider(loggerProvider);
+                        builder.AddFilter<SerilogLoggerProvider>(null, LogLevel.Trace);
+                    })
                     .WithInput(_serverProcess.StandardOutput.BaseStream)
                     .WithOutput(_serverProcess.StandardInput.BaseStream)
                     .WithRootUri(DocumentUri.FromFileSystemPath(workspaceRoot));
@@ -97,13 +102,13 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
                     switch (message.Type)
                     {
                         case MessageType.Error:
-                            logger?.LogError("[CLT] {Msg}", message); break;
+                            logger?.LogError("[SRV] {Msg}", message.Message); break;
                         case MessageType.Warning:
-                            logger?.LogWarning("[CLT] {Msg}", message); break;
+                            logger?.LogWarning("[SRV] {Msg}", message.Message); break;
                         case MessageType.Info:
-                            logger?.LogInformation("[CLT] {Msg}", message); break;
+                            logger?.LogInformation("[SRV] {Msg}", message.Message); break;
                         case MessageType.Log:
-                            logger?.LogDebug("[CLT] {Msg}", message); break;
+                            logger?.LogDebug("[SRV] {Msg}", message.Message); break;
                     }
                 });
                 _client = await LanguageClient.From(options);

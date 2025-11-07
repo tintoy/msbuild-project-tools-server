@@ -19,8 +19,8 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
 
         public async Task InitializeAsync()
         {
-            var loggerFactory = new SerilogLoggerFactory(Log);
-            await _fixture.StartAsync(_workspaceRoot, loggerFactory);
+            var loggerProvider = new SerilogLoggerProvider(Log);
+            await _fixture.StartAsync(_workspaceRoot, loggerProvider);
         }
 
         public async Task DisposeAsync()
