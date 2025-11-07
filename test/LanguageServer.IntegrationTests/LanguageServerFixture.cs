@@ -23,6 +23,16 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
         const string ServerDllName = "MSBuildProjectTools.LanguageServer.Host.dll";
 
         /// <summary>
+        /// The logger.
+        /// </summary>
+        Microsoft.Extensions.Logging.ILogger _logger;
+
+        /// <summary>
+        /// The task completion source to wait for the server process to exit.
+        /// </summary>
+        TaskCompletionSource<object> _serverExitCompletion;
+
+        /// <summary>
         /// The language server process.
         /// </summary>
         Process _serverProcess;
@@ -62,9 +72,9 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
             if (string.IsNullOrEmpty(serverExecutable))
                 throw new FileNotFoundException("Cannot find the language server executable.");
 
-            var logger = loggerProvider?.CreateLogger("LanguageServerFixture");
+            _logger = loggerProvider?.CreateLogger("LanguageServerFixture");
 
-            logger?.LogInformation("Starting language server from: {ServerExecutable}", serverExecutable);
+            _logger?.LogInformation("Starting language server from: {ServerExecutable}", serverExecutable);
 
             // Create the server process info, 
             // Important: run from the directory containing the DLL
@@ -82,8 +92,16 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
                 }
             };
 
-            _serverProcess = Process.Start(serverInfo);
-            logger.LogInformation("Language server process started. PID: {ServerProcessId}", _serverProcess.Id);
+            _serverExitCompletion = new TaskCompletionSource<object>();
+            _serverProcess = new Process
+            {
+                StartInfo = serverInfo,
+                EnableRaisingEvents = true
+            };
+            _serverProcess.Exited += ServerProcess_Exit;
+            if (!_serverProcess.Start())
+                throw new InvalidOperationException("Failed to launch language server.");
+            _logger.LogInformation("Language server process started. PID: {ServerProcessId}", _serverProcess.Id);
 
             try
             {
@@ -102,27 +120,35 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
                     switch (message.Type)
                     {
                         case MessageType.Error:
-                            logger?.LogError("[SRV] {Msg}", message.Message); break;
+                            _logger?.LogError("[SRV] {Msg}", message.Message); break;
                         case MessageType.Warning:
-                            logger?.LogWarning("[SRV] {Msg}", message.Message); break;
+                            _logger?.LogWarning("[SRV] {Msg}", message.Message); break;
                         case MessageType.Info:
-                            logger?.LogInformation("[SRV] {Msg}", message.Message); break;
+                            _logger?.LogInformation("[SRV] {Msg}", message.Message); break;
                         case MessageType.Log:
-                            logger?.LogDebug("[SRV] {Msg}", message.Message); break;
+                            _logger?.LogDebug("[SRV] {Msg}", message.Message); break;
                     }
                 });
-                _client = await LanguageClient.From(options);
+                var initializeTask = LanguageClient.From(options);
 
-                logger?.LogInformation("Initializing language client...");
+                _logger?.LogInformation("Initializing language client...");
 
-                await _client.Initialize(default);
-                logger?.LogInformation("Language client initialized.");
+                _client = await initializeTask;
+                _logger?.LogInformation("Language client initialized.");
             }
             catch (Exception ex)
             {
-                logger?.LogError(ex, "Failed to initialize language client");
+                _logger?.LogError(ex, "Failed to initialize language client");
                 throw;
             }
+        }
+
+        private void ServerProcess_Exit(object sender, EventArgs e)
+        {
+            _logger.LogDebug("Server process has exited.");
+            _client?.Dispose();
+            _client = null;
+            _serverExitCompletion.TrySetResult(null);
         }
 
         /// <summary>
@@ -147,17 +173,21 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
                 _client = null;
             }
 
-            if (_serverProcess != null && !_serverProcess.HasExited)
+            if (_serverProcess != null)
             {
-                try
+                if (!_serverProcess.HasExited)
                 {
-                    _serverProcess.Kill();
-                    _serverProcess.WaitForExit(5000);
+                    try
+                    {
+                        _serverProcess.Kill();
+                    }
+                    catch (Exception)
+                    {
+                        // Ignore errors during process termination
+                    }
                 }
-                catch (Exception)
-                {
-                    // Ignore errors during process termination
-                }
+                
+                await _serverExitCompletion.Task.WaitAsync(new TimeSpan(5000));
 
                 _serverProcess?.Dispose();
                 _serverProcess = null;
