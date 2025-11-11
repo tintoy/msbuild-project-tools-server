@@ -1,6 +1,4 @@
 using Microsoft.Build.Exceptions;
-using MSBuildProjectTools.LanguageServer.SemanticModel;
-using MSBuildProjectTools.LanguageServer.Utilities;
 using OmniSharp.Extensions.LanguageServer.Protocol;
 using Serilog;
 using System;
@@ -14,6 +12,9 @@ using System.Xml;
 
 namespace MSBuildProjectTools.LanguageServer.Documents
 {
+    using SemanticModel;
+    using Utilities;
+
     /// <summary>
     ///     Represents the document state for an MSBuild project.
     /// </summary>

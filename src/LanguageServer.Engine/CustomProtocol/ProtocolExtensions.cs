@@ -27,7 +27,7 @@ namespace MSBuildProjectTools.LanguageServer.CustomProtocol
             if (string.IsNullOrWhiteSpace(message))
                 throw new ArgumentException("Argument cannot be null, empty, or entirely composed of whitespace: 'message'.", nameof(message));
 
-            router.SendNotification("msbuild/busy", new BusyNotificationParams
+            router.SendNotification(new BusyNotificationParams
             {
                 IsBusy = true,
                 Message = message
@@ -47,7 +47,7 @@ namespace MSBuildProjectTools.LanguageServer.CustomProtocol
         {
             ArgumentNullException.ThrowIfNull(router);
 
-            router.SendNotification("msbuild/busy", new BusyNotificationParams
+            router.SendNotification(new BusyNotificationParams
             {
                 IsBusy = false,
                 Message = message

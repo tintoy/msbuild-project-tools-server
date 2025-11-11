@@ -1,12 +1,13 @@
 using OmniSharp.Extensions.JsonRpc;
+using OmniSharp.Extensions.LanguageServer.Protocol.Server;
 using Serilog;
 using System;
 using System.Reactive.Disposables;
-using OmniSharp.Extensions.LanguageServer.Protocol.Server;
-using MSBuildProjectTools.LanguageServer.Utilities;
 
 namespace MSBuildProjectTools.LanguageServer.Handlers
 {
+    using Utilities;
+
     /// <summary>
     ///     The base class for language server event handlers.
     /// </summary>

@@ -1,6 +1,7 @@
 using OmniSharp.Extensions.JsonRpc;
 using OmniSharp.Extensions.LanguageServer.Protocol;
 using OmniSharp.Extensions.LanguageServer.Protocol.Client.Capabilities;
+using OmniSharp.Extensions.LanguageServer.Protocol.Server;
 using OmniSharp.Extensions.LanguageServer.Server;
 using Serilog;
 using System;
@@ -11,7 +12,6 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
     using System.Threading;
     using CustomProtocol;
     using MediatR;
-    using OmniSharp.Extensions.LanguageServer.Protocol.Server;
 
     /// <summary>
     ///     Language Server message handler that tracks configuration.

@@ -5,6 +5,7 @@ using NuGet.Configuration;
 using NuGet.Protocol;
 using NuGet.Protocol.Core.Types;
 using NuGet.Versioning;
+using OmniSharp.Extensions.LanguageServer.Protocol;
 using Serilog;
 using System;
 using System.Collections.Generic;
@@ -17,7 +18,6 @@ using LspModels = OmniSharp.Extensions.LanguageServer.Protocol.Models;
 
 namespace MSBuildProjectTools.LanguageServer.Documents
 {
-    using OmniSharp.Extensions.LanguageServer.Protocol;
     using SemanticModel;
     using SemanticModel.MSBuildExpressions;
     using Utilities;

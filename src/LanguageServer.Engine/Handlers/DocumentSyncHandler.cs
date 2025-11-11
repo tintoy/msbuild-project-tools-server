@@ -1,7 +1,9 @@
 using NuGet.Configuration;
 using OmniSharp.Extensions.LanguageServer.Protocol;
 using OmniSharp.Extensions.LanguageServer.Protocol.Client.Capabilities;
+using OmniSharp.Extensions.LanguageServer.Protocol.Document;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
+using OmniSharp.Extensions.LanguageServer.Protocol.Server;
 using OmniSharp.Extensions.LanguageServer.Protocol.Server.Capabilities;
 using Serilog;
 using Serilog.Events;
@@ -17,8 +19,6 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
     using CustomProtocol;
     using Documents;
     using MediatR;
-    using OmniSharp.Extensions.LanguageServer.Protocol.Document;
-    using OmniSharp.Extensions.LanguageServer.Protocol.Server;
     using SemanticModel;
     using Utilities;
 
@@ -151,7 +151,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         {
             Server.NotifyBusy("Loading project...");
 
-            ProjectDocument projectDocument = await Workspace.GetProjectDocument(parameters.TextDocument.Uri.ToUri(), cancellationToken: cancellationToken);
+            ProjectDocument projectDocument = await Workspace.GetProjectDocument(parameters.TextDocument.Uri, cancellationToken: cancellationToken);
             Workspace.PublishDiagnostics(projectDocument);
 
             // Only enable expression-related language service facilities if they're using our custom "MSBuild" language type (rather than "XML").

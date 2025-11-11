@@ -1,6 +1,8 @@
 using Autofac;
 using Autofac.Core;
+using OmniSharp.Extensions.LanguageServer.Protocol.Server;
 using Serilog;
+using Serilog.Core;
 using Serilog.Events;
 using System;
 using System.Collections.Generic;
@@ -9,8 +11,6 @@ namespace MSBuildProjectTools.LanguageServer
 {
     using Logging;
     using Utilities;
-    using Serilog.Core;
-    using OmniSharp.Extensions.LanguageServer.Protocol.Server;
 
     /// <summary>
     ///     Registration logic for logging components.

@@ -1,4 +1,5 @@
 using Microsoft.Build.Exceptions;
+using OmniSharp.Extensions.LanguageServer.Protocol;
 using Serilog;
 using System;
 using System.IO;
@@ -6,7 +7,6 @@ using System.Xml;
 
 namespace MSBuildProjectTools.LanguageServer.Documents
 {
-    using OmniSharp.Extensions.LanguageServer.Protocol;
     using SemanticModel;
 
     /// <summary>

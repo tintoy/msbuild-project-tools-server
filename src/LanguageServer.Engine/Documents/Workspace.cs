@@ -1,3 +1,5 @@
+using OmniSharp.Extensions.LanguageServer.Protocol;
+using OmniSharp.Extensions.LanguageServer.Protocol.Server;
 using Serilog;
 using System;
 using System.Collections.Concurrent;
@@ -11,8 +13,6 @@ using System.Xml;
 namespace MSBuildProjectTools.LanguageServer.Documents
 {
     using Diagnostics;
-    using OmniSharp.Extensions.LanguageServer.Protocol;
-    using OmniSharp.Extensions.LanguageServer.Protocol.Server;
     using SemanticModel;
     using Utilities;
 

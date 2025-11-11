@@ -1,6 +1,8 @@
 using OmniSharp.Extensions.LanguageServer.Protocol;
 using OmniSharp.Extensions.LanguageServer.Protocol.Client.Capabilities;
+using OmniSharp.Extensions.LanguageServer.Protocol.Document;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
+using OmniSharp.Extensions.LanguageServer.Protocol.Server;
 using Serilog;
 using System;
 using System.Linq;
@@ -11,8 +13,6 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
 {
     using Documents;
     using MediatR;
-    using OmniSharp.Extensions.LanguageServer.Protocol.Document;
-    using OmniSharp.Extensions.LanguageServer.Protocol.Server;
     using SemanticModel;
     using Utilities;
 
