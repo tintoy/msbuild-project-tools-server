@@ -19,9 +19,14 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
     /// <summary>
     /// Fixture for managing the language server process and client connection.
     /// </summary>
-    public class LanguageServerFixture : IAsyncDisposable
+    public class LanguageServerFixture(bool dynamicRegistration = true) : IAsyncDisposable
     {
         const string ServerDllName = "MSBuildProjectTools.LanguageServer.Host.dll";
+
+        /// <summary>
+        ///  Controls dynamic registration support of the language client.
+        /// </summary>
+        readonly bool _dynamicRegistration = dynamicRegistration;
 
         /// <summary>
         /// The logger.
@@ -144,6 +149,10 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
                             _logger?.LogDebug("[SRV] {Msg}", message.Message); break;
                     }
                 });
+                if (!_dynamicRegistration)
+                    options.DisableDynamicRegistration();
+                else
+                    options.EnableDynamicRegistration();
                 var initializeTask = LanguageClient.From(options, _ctsServerInitialize.Token);
 
                 _logger?.LogInformation("Initializing language client...");
@@ -281,7 +290,7 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
 
             string serverProjectDir = Path.Combine(gitRoot, "src", "LanguageServer");
             string binDir = Path.Combine(serverProjectDir, "bin");
-            
+
             // Check if bin directory exists to avoid hangs or exceptions on Linux
             if (!Directory.Exists(binDir))
             {

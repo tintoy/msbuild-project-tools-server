@@ -12,7 +12,7 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
 {
     public class BasicIntegrationTests(ITestOutputHelper testOutput) : IntegrationTestBase(testOutput), IAsyncLifetime
     {
-        private readonly LanguageServerFixture _fixture = new();
+        private readonly LanguageServerFixture _fixture = new(false);
         private readonly TempDirectory _workspaceRoot = new();
 
         public async Task InitializeAsync()
@@ -44,7 +44,10 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
         [Fact]
         public void ServerProvidesStaticCompletionHandler()
         {
-            Assert.NotNull(_fixture.Client?.ServerSettings?.Capabilities?.CompletionProvider);
+            Assert.NotNull(_fixture.Client);
+            Assert.NotNull(_fixture.Client!.ServerSettings?.Capabilities?.CompletionProvider);
+            Assert.DoesNotContain(_fixture.Client!.RegistrationManager?.CurrentRegistrations,
+                reg => reg.Method == TextDocumentNames.Completion);
         }
 
         [Fact]
