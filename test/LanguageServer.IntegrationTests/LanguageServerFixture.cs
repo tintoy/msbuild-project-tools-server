@@ -194,10 +194,10 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
             catch (Exception ex)
             {
                 _logger?.LogError(ex, "Failed to initialize language client");
-                _ctsServerInitialize.Dispose();
-                _ctsServerInitialize = null;
-                _serverProcess.Dispose();
-                _serverProcess = null;
+                // xUnit changed its cleanup logic for IAsyncLifetime,
+                // so call StopAsync manually here when an exception is caught.
+                //see: https://github.com/xunit/xunit/issues/3124
+                await StopAsync();
                 throw;
             }
         }
@@ -257,7 +257,16 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
                         }
                     }
 
-                    await _serverExitCompletion.Task;
+                    try
+                    {
+                        await _serverExitCompletion.Task;
+                    }
+                    catch (TaskCanceledException tce)
+                    when (tce.CancellationToken == _ctsServerInitialize.Token)
+                    {
+                        _logger?.LogInformation("The server process did not shutdown in a timely manner.");
+                        // swallow cancellation exception
+                    }
                 }
                 finally
                 {
