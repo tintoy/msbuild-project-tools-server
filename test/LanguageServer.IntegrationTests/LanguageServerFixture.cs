@@ -16,6 +16,8 @@ using Xunit;
 
 namespace MSBuildProjectTools.LanguageServer.IntegrationTests
 {
+    using Utilities;
+
     /// <summary>
     /// Fixture for managing the language server process and client connection.
     /// </summary>
@@ -106,11 +108,7 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
 
             _serverExitCompletion = new TaskCompletionSource<object>();
             _ctsServerInitialize = new CancellationTokenSource();
-            _ctsServerInitialize.Token.Register((state, token) =>
-            {
-                var _this = (LanguageServerFixture)state;
-                _this._serverExitCompletion.TrySetCanceled(token);
-            }, this);
+            _serverExitCompletion.CanceledBy(_ctsServerInitialize);
             _serverProcess = new Process
             {
                 StartInfo = serverInfo,

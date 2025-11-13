@@ -1,8 +1,10 @@
+using OmniSharp.Extensions.JsonRpc;
 using OmniSharp.Extensions.LanguageServer.Protocol;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using Serilog.Extensions.Logging;
 using System;
 using System.IO;
+using System.Reactive.Disposables;
 using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
@@ -10,6 +12,9 @@ using Xunit.Abstractions;
 
 namespace MSBuildProjectTools.LanguageServer.IntegrationTests
 {
+    using CustomProtocol;
+    using Utilities;
+
     public class BasicIntegrationTests(ITestOutputHelper testOutput) : IntegrationTestBase(testOutput), IAsyncLifetime
     {
         private readonly LanguageServerFixture _fixture = new(false);
@@ -75,6 +80,68 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
             }, timeout.Token);
 
             Assert.NotNull(response);
+        }
+
+        /// <summary>
+        ///     Test that the language server does process textDocument/didOpen
+        ///     notification by testing that the busy state notification (msbuild/busy)
+        ///     reaches the client.
+        /// </summary>
+        [Fact]
+        public async Task OpenCsproj()
+        {
+            var testFilePath = Path.Combine(_workspaceRoot, "Test.csproj");
+            await File.WriteAllTextAsync(testFilePath,
+            """
+            <Project Sdk="Microsoft.NET.Sdk">
+                <PropertyGroup>
+                    <OutputType>Exe</OutputType>
+                    <TargetFramework>net6.0</TargetFramework>
+                </PropertyGroup>  
+            </Project>
+            """);
+
+            IDisposable handlerRegistration = null;
+            var tcsBusy = new TaskCompletionSource();
+
+            Action<Action<BusyNotificationParams>> attach =
+                handler =>
+                {
+                    var assertHandler = handler;
+                    handler = @params =>
+                    {
+                        assertHandler(@params);
+                        if (!@params.IsBusy)
+                            tcsBusy.TrySetResult();
+                    };
+                    var cancelReg = tcsBusy.CancelAfter(TimeSpan.FromSeconds(5));
+                    var handlerReg = _fixture.Client.Register(
+                        registry => registry.AddHandler("msbuild/busy",
+                            NotificationHandler.For(handler)));
+                    handlerRegistration = new CompositeDisposable(handlerReg, cancelReg);
+                };
+
+            Action<Action<BusyNotificationParams>> detach =
+                handler => handlerRegistration?.Dispose();
+
+            var raisedBusy = await Assert.RaisesAsync(
+                attach, detach,
+                () =>
+                {
+                    _fixture.Client.SendNotification(new DidOpenTextDocumentParams
+                    {
+                        TextDocument = new TextDocumentItem
+                        {
+                            Uri = DocumentUri.FromFileSystemPath(testFilePath),
+                            LanguageId = "msbuild"
+                        }
+                    });
+                    return tcsBusy.Task;
+                }
+            );
+
+            Assert.False(raisedBusy.Arguments.IsBusy);
+            Assert.Equal("Project loaded.", raisedBusy.Arguments.Message);
         }
     }
 }
