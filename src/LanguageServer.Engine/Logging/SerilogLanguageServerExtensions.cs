@@ -1,4 +1,4 @@
-using OmniSharp.Extensions.LanguageServer.Server;
+using OmniSharp.Extensions.LanguageServer.Protocol.Server;
 using Serilog;
 using Serilog.Configuration;
 using Serilog.Core;
@@ -28,14 +28,9 @@ namespace MSBuildProjectTools.LanguageServer.Logging
         /// </returns>
         public static LoggerConfiguration LanguageServer(this LoggerSinkConfiguration loggerSinkConfiguration, ILanguageServer languageServer, LoggingLevelSwitch levelSwitch)
         {
-            if (loggerSinkConfiguration == null)
-                throw new ArgumentNullException(nameof(loggerSinkConfiguration));
-
-            if (languageServer == null)
-                throw new ArgumentNullException(nameof(languageServer));
-
-            if (levelSwitch == null)
-                throw new ArgumentNullException(nameof(levelSwitch));
+            ArgumentNullException.ThrowIfNull(loggerSinkConfiguration);
+            ArgumentNullException.ThrowIfNull(languageServer);
+            ArgumentNullException.ThrowIfNull(levelSwitch);
 
             return loggerSinkConfiguration.Sink(
                 new LanguageServerLoggingSink(languageServer, levelSwitch)
@@ -53,8 +48,7 @@ namespace MSBuildProjectTools.LanguageServer.Logging
         /// </returns>
         public static LoggerConfiguration WithCurrentActivityId(this LoggerEnrichmentConfiguration loggerEnrichmentConfiguration)
         {
-            if (loggerEnrichmentConfiguration == null)
-                throw new ArgumentNullException(nameof(loggerEnrichmentConfiguration));
+            ArgumentNullException.ThrowIfNull(loggerEnrichmentConfiguration);
 
             return loggerEnrichmentConfiguration.With<ActivityIdEnricher>();
         }

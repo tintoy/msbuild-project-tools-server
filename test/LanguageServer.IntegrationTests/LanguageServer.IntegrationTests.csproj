@@ -22,4 +22,8 @@
     <ProjectReference Include="../../src/LanguageServer.Common/LanguageServer.Common.csproj" />
     <ProjectReference Include="../../src/LanguageServer.Engine/LanguageServer.Engine.csproj" />
   </ItemGroup>
+  
+  <ItemGroup>
+    <Content Include="xunit.runner.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
 </Project>

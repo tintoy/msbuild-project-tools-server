@@ -1,8 +1,8 @@
-using OmniSharp.Extensions.JsonRpc;
 using OmniSharp.Extensions.LanguageServer.Protocol;
 using OmniSharp.Extensions.LanguageServer.Protocol.Client.Capabilities;
+using OmniSharp.Extensions.LanguageServer.Protocol.Document;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
-using OmniSharp.Extensions.LanguageServer.Server;
+using OmniSharp.Extensions.LanguageServer.Protocol.Server;
 using Serilog;
 using System;
 using System.Threading;
@@ -13,11 +13,8 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
     using ContentProviders;
     using Documents;
     using MediatR;
-    using OmniSharp.Extensions.LanguageServer.Protocol.Server;
     using SemanticModel;
     using Utilities;
-
-    using ILanguageServer = OmniSharp.Extensions.LanguageServer.Server.ILanguageServer;
 
     /// <summary>
     ///     Handler for document hover requests.
@@ -40,8 +37,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         public HoverHandler(ILanguageServer server, Workspace workspace, ILogger logger)
             : base(server, logger)
         {
-            if (workspace == null)
-                throw new ArgumentNullException(nameof(workspace));
+            ArgumentNullException.ThrowIfNull(workspace);
 
             Workspace = workspace;
         }
@@ -315,8 +311,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         /// </returns>
         async Task<Hover> IRequestHandler<HoverParams, Hover>.Handle(HoverParams parameters, CancellationToken cancellationToken)
         {
-            if (parameters == null)
-                throw new ArgumentNullException(nameof(parameters));
+            ArgumentNullException.ThrowIfNull(parameters);
 
             try
             {

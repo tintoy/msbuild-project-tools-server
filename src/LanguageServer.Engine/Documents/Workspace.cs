@@ -1,4 +1,5 @@
-using OmniSharp.Extensions.LanguageServer.Server;
+using OmniSharp.Extensions.LanguageServer.Protocol;
+using OmniSharp.Extensions.LanguageServer.Protocol.Server;
 using Serilog;
 using System;
 using System.Collections.Concurrent;
@@ -24,7 +25,7 @@ namespace MSBuildProjectTools.LanguageServer.Documents
         /// <summary>
         ///     Documents for loaded project, keyed by document URI.
         /// </summary>
-        readonly ConcurrentDictionary<Uri, ProjectDocument> _projectDocuments = new ConcurrentDictionary<Uri, ProjectDocument>();
+        readonly ConcurrentDictionary<DocumentUri, ProjectDocument> _projectDocuments = new ConcurrentDictionary<DocumentUri, ProjectDocument>();
 
         /// <summary>
         ///     Create a new <see cref="Workspace"/>.
@@ -43,17 +44,10 @@ namespace MSBuildProjectTools.LanguageServer.Documents
         /// </param>
         public Workspace(ILanguageServer server, Configuration configuration, IPublishDiagnostics diagnosticsPublisher, ILogger logger)
         {
-            if (server == null)
-                throw new ArgumentNullException(nameof(server));
-
-            if (configuration == null)
-                throw new ArgumentNullException(nameof(configuration));
-
-            if (diagnosticsPublisher == null)
-                throw new ArgumentNullException(nameof(diagnosticsPublisher));
-
-            if (logger == null)
-                throw new ArgumentNullException(nameof(logger));
+            ArgumentNullException.ThrowIfNull(server);
+            ArgumentNullException.ThrowIfNull(configuration);
+            ArgumentNullException.ThrowIfNull(diagnosticsPublisher);
+            ArgumentNullException.ThrowIfNull(logger);
 
             Server = server;
             Configuration = configuration;
@@ -166,9 +160,9 @@ namespace MSBuildProjectTools.LanguageServer.Documents
         /// <returns>
         ///     The project document.
         /// </returns>
-        public async Task<ProjectDocument> GetProjectDocument(Uri documentUri, bool reload = false, CancellationToken cancellationToken = default)
+        public async Task<ProjectDocument> GetProjectDocument(DocumentUri documentUri, bool reload = false, CancellationToken cancellationToken = default)
         {
-            string projectFilePath = VSCodeDocumentUri.GetFileSystemPath(documentUri);
+            string projectFilePath = DocumentUri.GetFileSystemPath(documentUri);
 
             bool isNewProject = false;
             ProjectDocument projectDocument = _projectDocuments.GetOrAdd(documentUri, _ =>
@@ -240,7 +234,7 @@ namespace MSBuildProjectTools.LanguageServer.Documents
         ///     The project document.
         /// </returns>
         /// <exception cref="InvalidOperationException"></exception>
-        public ProjectDocument GetLoadedProjectDocument(Uri documentUri)
+        public ProjectDocument GetLoadedProjectDocument(DocumentUri documentUri)
         {
             if (!_projectDocuments.TryGetValue(documentUri, out ProjectDocument projectDocument))
             {
@@ -267,7 +261,7 @@ namespace MSBuildProjectTools.LanguageServer.Documents
         /// <returns>
         ///     The project document.
         /// </returns>
-        public async Task<ProjectDocument> TryUpdateProjectDocument(Uri documentUri, string documentText, CancellationToken cancellationToken = default)
+        public async Task<ProjectDocument> TryUpdateProjectDocument(DocumentUri documentUri, string documentText, CancellationToken cancellationToken = default)
         {
             if (!_projectDocuments.TryGetValue(documentUri, out ProjectDocument projectDocument))
             {
@@ -299,8 +293,7 @@ namespace MSBuildProjectTools.LanguageServer.Documents
         /// </param>
         public void PublishDiagnostics(ProjectDocument projectDocument)
         {
-            if (projectDocument == null)
-                throw new ArgumentNullException(nameof(projectDocument));
+            ArgumentNullException.ThrowIfNull(projectDocument);
 
             DiagnosticsPublisher.Publish(
                 documentUri: projectDocument.DocumentUri,
@@ -316,8 +309,7 @@ namespace MSBuildProjectTools.LanguageServer.Documents
         /// </param>
         public void ClearDiagnostics(ProjectDocument projectDocument)
         {
-            if (projectDocument == null)
-                throw new ArgumentNullException(nameof(projectDocument));
+            ArgumentNullException.ThrowIfNull(projectDocument);
 
             if (!projectDocument.HasDiagnostics)
                 return;
@@ -340,10 +332,9 @@ namespace MSBuildProjectTools.LanguageServer.Documents
         /// <returns>
         ///     A <see cref="Task{TResult}"/> that resolves to <c>true</c> if the document was removed to the workspace; otherwise, <c>false</c>.
         /// </returns>
-        public async Task<bool> RemoveProjectDocument(Uri documentUri, CancellationToken cancellationToken = default)
+        public async Task<bool> RemoveProjectDocument(DocumentUri documentUri, CancellationToken cancellationToken = default)
         {
-            if (documentUri == null)
-                throw new ArgumentNullException(nameof(documentUri));
+            ArgumentNullException.ThrowIfNull(documentUri);
 
             if (!_projectDocuments.TryRemove(documentUri, out ProjectDocument projectDocument))
                 return false;

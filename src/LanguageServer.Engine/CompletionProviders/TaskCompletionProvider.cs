@@ -36,8 +36,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
         /// </returns>
         protected static Dictionary<string, MSBuildTaskMetadata> GetProjectTasks(ProjectDocument projectDocument)
         {
-            if (projectDocument == null)
-                throw new ArgumentNullException(nameof(projectDocument));
+            ArgumentNullException.ThrowIfNull(projectDocument);
 
             // We trust that all tasks discovered via GetMSBuildProjectTaskAssemblies are accessible in the current project.
 

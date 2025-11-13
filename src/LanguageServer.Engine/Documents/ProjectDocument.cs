@@ -5,6 +5,7 @@ using NuGet.Configuration;
 using NuGet.Protocol;
 using NuGet.Protocol.Core.Types;
 using NuGet.Versioning;
+using OmniSharp.Extensions.LanguageServer.Protocol;
 using Serilog;
 using System;
 using System.Collections.Generic;
@@ -82,19 +83,14 @@ namespace MSBuildProjectTools.LanguageServer.Documents
         /// <param name="logger">
         ///     The application logger.
         /// </param>
-        protected ProjectDocument(Workspace workspace, Uri documentUri, ILogger logger)
+        protected ProjectDocument(Workspace workspace, DocumentUri documentUri, ILogger logger)
         {
-            if (workspace == null)
-                throw new ArgumentNullException(nameof(workspace));
-
-            if (documentUri == null)
-                throw new ArgumentNullException(nameof(documentUri));
+            ArgumentNullException.ThrowIfNull(workspace);
+            ArgumentNullException.ThrowIfNull(documentUri);
 
             Workspace = workspace;
             DocumentUri = documentUri;
-            ProjectFile = new FileInfo(
-                VSCodeDocumentUri.GetFileSystemPath(documentUri)
-            );
+            ProjectFile = new FileInfo(DocumentUri.GetFileSystemPath(documentUri));
 
             if (ProjectFile.Extension.EndsWith("proj", StringComparison.OrdinalIgnoreCase))
                 Kind = ProjectDocumentKind.Project;
@@ -143,7 +139,7 @@ namespace MSBuildProjectTools.LanguageServer.Documents
         /// <summary>
         ///     The project document URI.
         /// </summary>
-        public Uri DocumentUri { get; }
+        public DocumentUri DocumentUri { get; }
 
         /// <summary>
         ///     The project file.
@@ -309,8 +305,7 @@ namespace MSBuildProjectTools.LanguageServer.Documents
         /// </returns>
         public virtual void Update(string xml)
         {
-            if (xml == null)
-                throw new ArgumentNullException(nameof(xml));
+            ArgumentNullException.ThrowIfNull(xml);
 
             ClearDiagnostics();
 
@@ -400,7 +395,7 @@ namespace MSBuildProjectTools.LanguageServer.Documents
 
                 Log.Information("{PackageSourceCount} package sources configured for project {ProjectFile}.",
                     _configuredPackageSources.Count,
-                    VSCodeDocumentUri.GetFileSystemPath(DocumentUri)
+                    DocumentUri.GetFileSystemPath(DocumentUri)
                 );
                 foreach (PackageSource packageSource in _configuredPackageSources)
                 {
@@ -704,8 +699,7 @@ namespace MSBuildProjectTools.LanguageServer.Documents
         /// </returns>
         public Range GetRange(ExpressionNode expression, Range relativeTo)
         {
-            if (expression == null)
-                throw new ArgumentNullException(nameof(expression));
+            ArgumentNullException.ThrowIfNull(expression);
 
             return GetRange(expression, relativeTo.Start);
         }
@@ -724,8 +718,7 @@ namespace MSBuildProjectTools.LanguageServer.Documents
         /// </returns>
         public Range GetRange(ExpressionNode expression, Position relativeToPosition)
         {
-            if (expression == null)
-                throw new ArgumentNullException(nameof(expression));
+            ArgumentNullException.ThrowIfNull(expression);
 
             if (!HasXml)
                 throw new InvalidOperationException($"XML for project '{ProjectFile.FullName}' is not loaded.");

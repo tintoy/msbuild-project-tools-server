@@ -1,4 +1,4 @@
-using OmniSharp.Extensions.LanguageServer.Client.Utilities;
+using OmniSharp.Extensions.LanguageServer.Protocol;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using Serilog.Extensions.Logging;
 using System;
@@ -8,19 +8,17 @@ using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 
-[assembly: CollectionBehavior(DisableTestParallelization = true)]
-
 namespace MSBuildProjectTools.LanguageServer.IntegrationTests
 {
     public class BasicIntegrationTests(ITestOutputHelper testOutput) : IntegrationTestBase(testOutput), IAsyncLifetime
     {
-        private readonly LanguageServerFixture _fixture = new();
+        private readonly LanguageServerFixture _fixture = new(false);
         private readonly TempDirectory _workspaceRoot = new();
 
         public async Task InitializeAsync()
         {
-            var loggerFactory = new SerilogLoggerFactory(Log);
-            await _fixture.StartAsync(_workspaceRoot, loggerFactory);
+            var loggerProvider = new SerilogLoggerProvider(Log);
+            await _fixture.StartAsync(_workspaceRoot, loggerProvider);
         }
 
         public async Task DisposeAsync()
@@ -36,7 +34,8 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
         public void ServerProvidesCapabilities()
         {
             Assert.NotNull(_fixture.Client);
-            Assert.NotNull(_fixture.Client.ServerCapabilities);
+            Assert.NotNull(_fixture.Client.ServerSettings);
+            Assert.NotNull(_fixture.Client.ServerSettings.Capabilities);
         }
 
         /// <summary>
@@ -45,7 +44,10 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
         [Fact]
         public void ServerProvidesStaticCompletionHandler()
         {
-            Assert.NotNull(_fixture.Client?.ServerCapabilities?.CompletionProvider);
+            Assert.NotNull(_fixture.Client);
+            Assert.NotNull(_fixture.Client!.ServerSettings?.Capabilities?.CompletionProvider);
+            Assert.DoesNotContain(_fixture.Client!.RegistrationManager?.CurrentRegistrations,
+                reg => reg.Method == TextDocumentNames.Completion);
         }
 
         [Fact]
@@ -63,7 +65,7 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
             """);
 
             var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(5));
-            var response = await _fixture.Client.SendRequest<CompletionList>("textDocument/completion", new CompletionParams
+            var response = await _fixture.Client.SendRequest(new CompletionParams
             {
                 TextDocument = new TextDocumentIdentifier
                 {

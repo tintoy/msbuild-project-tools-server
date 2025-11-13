@@ -1,6 +1,8 @@
 using OmniSharp.Extensions.LanguageServer.Protocol;
 using OmniSharp.Extensions.LanguageServer.Protocol.Client.Capabilities;
+using OmniSharp.Extensions.LanguageServer.Protocol.Document;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
+using OmniSharp.Extensions.LanguageServer.Protocol.Server;
 using Serilog;
 using System;
 using System.Linq;
@@ -11,11 +13,8 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
 {
     using Documents;
     using MediatR;
-    using OmniSharp.Extensions.LanguageServer.Protocol.Server;
     using SemanticModel;
     using Utilities;
-
-    using ILanguageServer = OmniSharp.Extensions.LanguageServer.Server.ILanguageServer;
 
     /// <summary>
     ///     Handler for symbol definition requests.
@@ -38,8 +37,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         public DefinitionHandler(ILanguageServer server, Workspace workspace, ILogger logger)
             : base(server, logger)
         {
-            if (workspace == null)
-                throw new ArgumentNullException(nameof(workspace));
+            ArgumentNullException.ThrowIfNull(workspace);
 
             Workspace = workspace;
         }
@@ -164,8 +162,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         /// </returns>
         async Task<LocationOrLocationLinks> IRequestHandler<DefinitionParams, LocationOrLocationLinks>.Handle(DefinitionParams parameters, CancellationToken cancellationToken)
         {
-            if (parameters == null)
-                throw new ArgumentNullException(nameof(parameters));
+            ArgumentNullException.ThrowIfNull(parameters);
 
             using (BeginOperation("OnDefinition"))
             {

@@ -1,11 +1,15 @@
 using Microsoft.Extensions.Logging;
 using OmniSharp.Extensions.LanguageServer.Client;
+using OmniSharp.Extensions.LanguageServer.Protocol;
 using OmniSharp.Extensions.LanguageServer.Protocol.Client;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
+using OmniSharp.Extensions.LanguageServer.Protocol.Window;
 using Serilog;
+using Serilog.Extensions.Logging;
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
@@ -15,9 +19,29 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
     /// <summary>
     /// Fixture for managing the language server process and client connection.
     /// </summary>
-    public class LanguageServerFixture : IAsyncDisposable
+    public class LanguageServerFixture(bool dynamicRegistration = true) : IAsyncDisposable
     {
         const string ServerDllName = "MSBuildProjectTools.LanguageServer.Host.dll";
+
+        /// <summary>
+        ///  Controls dynamic registration support of the language client.
+        /// </summary>
+        readonly bool _dynamicRegistration = dynamicRegistration;
+
+        /// <summary>
+        /// The logger.
+        /// </summary>
+        Microsoft.Extensions.Logging.ILogger _logger;
+
+        /// <summary>
+        /// The cancellation token source for server initialization.
+        /// </summary>
+        CancellationTokenSource _ctsServerInitialize;
+
+        /// <summary>
+        /// The task completion source to wait for the server process to exit.
+        /// </summary>
+        TaskCompletionSource<object> _serverExitCompletion;
 
         /// <summary>
         /// The language server process.
@@ -27,12 +51,12 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
         /// <summary>
         /// The language client.
         /// </summary>
-        LanguageClient _client;
+        ILanguageClient _client;
 
         /// <summary>
         /// The language client.
         /// </summary>
-        public LanguageClient Client => _client;
+        public ILanguageClient Client => _client;
 
         /// <summary>
         /// Start the language server and connect the client.
@@ -40,8 +64,8 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
         /// <param name="workspaceRoot">
         /// The root directory of the workspace to open.
         /// </param>
-        /// <param name="loggerFactory">
-        /// An optional logger factory for the client.
+        /// <param name="loggerProvider">
+        /// An optional logger provider for the client.
         /// </param>
         /// <param name="cancellationToken">
         /// An optional cancellation token.
@@ -49,7 +73,7 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
         /// <returns>
         /// A <see cref="Task"/> representing the asynchronous operation.
         /// </returns>
-        public async Task StartAsync(string workspaceRoot, ILoggerFactory loggerFactory)
+        public async Task StartAsync(string workspaceRoot, ILoggerProvider loggerProvider)
         {
             if (_client != null)
                 throw new InvalidOperationException("Language server is already started.");
@@ -59,9 +83,9 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
             if (string.IsNullOrEmpty(serverExecutable))
                 throw new FileNotFoundException("Cannot find the language server executable.");
 
-            var logger = loggerFactory?.CreateLogger("LanguageServerFixture");
+            _logger = loggerProvider?.CreateLogger("LanguageServerFixture");
 
-            logger?.LogInformation("Starting language server from: {ServerExecutable}", serverExecutable);
+            _logger?.LogInformation("Starting language server from: {ServerExecutable}", serverExecutable);
 
             // Create the server process info, 
             // Important: run from the directory containing the DLL
@@ -70,40 +94,127 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
                 FileName = "dotnet",
                 Arguments = ServerDllName,
                 WorkingDirectory = Path.GetDirectoryName(serverExecutable),
+                RedirectStandardInput = true,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                UseShellExecute = false,
+                CreateNoWindow = true,
                 Environment = {
                      { "MSBUILD_PROJECT_TOOLS_VERBOSE_LOGGING", "1" }
                 }
             };
 
+            _serverExitCompletion = new TaskCompletionSource<object>();
+            _ctsServerInitialize = new CancellationTokenSource();
+            _ctsServerInitialize.Token.Register((state, token) =>
+            {
+                var _this = (LanguageServerFixture)state;
+                _this._serverExitCompletion.TrySetCanceled(token);
+            }, this);
+            _serverProcess = new Process
+            {
+                StartInfo = serverInfo,
+                EnableRaisingEvents = true
+            };
+            _serverProcess.Exited += ServerProcess_Exit;
+            _serverProcess.ErrorDataReceived += ServerProcess_ErrorDataReceived;
             try
             {
+                if (!_serverProcess.Start())
+                    throw new InvalidOperationException("Failed to launch language server.");
+                _logger.LogInformation("Language server process started. PID: {ServerProcessId}", _serverProcess.Id);
+                _serverProcess.BeginErrorReadLine();
+
                 // Create and initialize the language client
-                _client = new LanguageClient(loggerFactory, serverInfo);
-                _client.Window.OnLogMessage((message, messageType) =>
+                var options = new LanguageClientOptions()
+                    .ConfigureLogging(builder =>
+                    {
+                        builder.AddProvider(loggerProvider);
+                        builder.AddFilter<SerilogLoggerProvider>(null, LogLevel.Trace);
+                    })
+                    .WithInput(_serverProcess.StandardOutput.BaseStream)
+                    .WithOutput(_serverProcess.StandardInput.BaseStream)
+                    .WithRootUri(DocumentUri.FromFileSystemPath(workspaceRoot));
+                options.OnLogMessage(message =>
                 {
-                    switch (messageType)
+                    switch (message.Type)
                     {
                         case MessageType.Error:
-                            logger?.LogError("[SRV] {Msg}", message); break;
+                            _logger?.LogError("[SRV] {Msg}", message.Message); break;
                         case MessageType.Warning:
-                            logger?.LogWarning("[SRV] {Msg}", message); break;
+                            _logger?.LogWarning("[SRV] {Msg}", message.Message); break;
                         case MessageType.Info:
-                            logger?.LogInformation("[SRV] {Msg}", message); break;
+                            _logger?.LogInformation("[SRV] {Msg}", message.Message); break;
                         case MessageType.Log:
-                            logger?.LogDebug("[SRV] {Msg}", message); break;
+                            _logger?.LogDebug("[SRV] {Msg}", message.Message); break;
                     }
                 });
+                if (!_dynamicRegistration)
+                    options.DisableDynamicRegistration();
+                else
+                    options.EnableDynamicRegistration();
+                var initializeTask = LanguageClient.From(options, _ctsServerInitialize.Token);
 
-                logger?.LogInformation("Initializing language client...");
+                _logger?.LogInformation("Initializing language client...");
 
-                await _client.Initialize(workspaceRoot);
-                logger?.LogInformation("Language client initialized.");
+                var initCancelRegistration = _ctsServerInitialize.Token.Register((state, token) =>
+                {
+                    var (_this, _options) = ((LanguageServerFixture, LanguageClientOptions))state;
+                    // As long as the bug in OmniSharp libs exists, 
+                    // we need to cancel request from ResponseRouter manually
+                    var client = _this._client;
+                    if (client == null)
+                    {
+                        client = (from x in _options.Services
+                                  where x.ServiceType == typeof(ILanguageClient)
+                                      && x.ImplementationInstance != null
+                                  select (ILanguageClient)x.ImplementationInstance)
+                                .FirstOrDefault();
+                        if (client != null)
+                        {
+                            // The first request should always be the initialize request
+                            var (method, tcsRequest) = client.GetRequest(1);
+                            if (method == GeneralNames.Initialize)
+                                tcsRequest.TrySetCanceled(token);
+
+                            client.Dispose();
+                        }
+                    }
+                }, (this, options));
+                try
+                {
+                    _client = await initializeTask;
+                }
+                finally
+                {
+                    initCancelRegistration.Dispose();
+                }
+                _logger?.LogInformation("Language client initialized.");
             }
             catch (Exception ex)
             {
-                logger?.LogError(ex, "Failed to initialize language client");
+                _logger?.LogError(ex, "Failed to initialize language client");
+                _ctsServerInitialize.Dispose();
+                _ctsServerInitialize = null;
+                _serverProcess.Dispose();
+                _serverProcess = null;
                 throw;
             }
+        }
+
+        private void ServerProcess_ErrorDataReceived(object sender, DataReceivedEventArgs e)
+        {
+            if (e.Data is not null)
+                _logger.LogError("[SRV] STDERR: {Line}", e.Data);
+        }
+
+        private void ServerProcess_Exit(object sender, EventArgs e)
+        {
+            _logger.LogDebug("Server process has exited.");
+            _serverExitCompletion.TrySetResult(null);
+            _ctsServerInitialize?.Cancel();
+            var client = Interlocked.Exchange(ref _client, null);
+            client?.Dispose();
         }
 
         /// <summary>
@@ -114,34 +225,47 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
         /// </returns>
         public async Task StopAsync()
         {
-            if (_client != null)
+            var client = Interlocked.Exchange(ref _client, null);
+            if (client != null)
             {
                 try
                 {
-                    await _client.Shutdown();
+                    await client.Shutdown();
                 }
                 catch (Exception)
                 {
                     // Ignore errors during shutdown
                 }
 
-                _client = null;
+                client.Dispose();
             }
 
-            if (_serverProcess != null && !_serverProcess.HasExited)
+            if (_serverProcess != null)
             {
+                _ctsServerInitialize?.CancelAfter(5000);
                 try
                 {
-                    _serverProcess.Kill();
-                    _serverProcess.WaitForExit(5000);
-                }
-                catch (Exception)
-                {
-                    // Ignore errors during process termination
-                }
+                    if (!_serverProcess.HasExited)
+                    {
+                        try
+                        {
+                            _serverProcess.Kill();
+                        }
+                        catch (Exception)
+                        {
+                            // Ignore errors during process termination
+                        }
+                    }
 
-                _serverProcess?.Dispose();
-                _serverProcess = null;
+                    await _serverExitCompletion.Task;
+                }
+                finally
+                {
+                    _ctsServerInitialize?.Dispose();
+                    _ctsServerInitialize = null;
+                    _serverProcess?.Dispose();
+                    _serverProcess = null;
+                }
             }
         }
 
@@ -166,7 +290,7 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
 
             string serverProjectDir = Path.Combine(gitRoot, "src", "LanguageServer");
             string binDir = Path.Combine(serverProjectDir, "bin");
-            
+
             // Check if bin directory exists to avoid hangs or exceptions on Linux
             if (!Directory.Exists(binDir))
             {

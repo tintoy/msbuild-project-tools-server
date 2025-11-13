@@ -1,7 +1,9 @@
 using NuGet.Configuration;
 using OmniSharp.Extensions.LanguageServer.Protocol;
 using OmniSharp.Extensions.LanguageServer.Protocol.Client.Capabilities;
+using OmniSharp.Extensions.LanguageServer.Protocol.Document;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
+using OmniSharp.Extensions.LanguageServer.Protocol.Server;
 using OmniSharp.Extensions.LanguageServer.Protocol.Server.Capabilities;
 using Serilog;
 using Serilog.Events;
@@ -17,11 +19,8 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
     using CustomProtocol;
     using Documents;
     using MediatR;
-    using OmniSharp.Extensions.LanguageServer.Protocol.Server;
     using SemanticModel;
     using Utilities;
-
-    using ILanguageServer = OmniSharp.Extensions.LanguageServer.Server.ILanguageServer;
 
     /// <summary>
     ///     The handler for language server document synchronization.
@@ -44,8 +43,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         public DocumentSyncHandler(ILanguageServer server, Workspace workspace, ILogger logger)
             : base(server, logger)
         {
-            if (workspace == null)
-                throw new ArgumentNullException(nameof(workspace));
+            ArgumentNullException.ThrowIfNull(workspace);
 
             Workspace = workspace;
         }
@@ -128,7 +126,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
             get => new TextDocumentSaveRegistrationOptions
             {
                 DocumentSelector = DocumentSelector,
-                IncludeText = Options.Save.IncludeText
+                IncludeText = Options.Save.Value.IncludeText
             };
         }
 
@@ -249,7 +247,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         async Task OnDidChangeTextDocument(DidChangeTextDocumentParams parameters, CancellationToken cancellationToken)
         {
             Log.Verbose("Reloading project {ProjectFile}...",
-                VSCodeDocumentUri.GetFileSystemPath(parameters.TextDocument.Uri)
+                DocumentUri.GetFileSystemPath(parameters.TextDocument.Uri)
             );
 
             TextDocumentContentChangeEvent mostRecentChange = parameters.ContentChanges.LastOrDefault();
@@ -303,7 +301,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         async Task OnDidSaveTextDocument(DidSaveTextDocumentParams parameters, CancellationToken cancellationToken)
         {
             Log.Information("Reloading project {ProjectFile}...",
-                VSCodeDocumentUri.GetFileSystemPath(parameters.TextDocument.Uri)
+                DocumentUri.GetFileSystemPath(parameters.TextDocument.Uri)
             );
 
             ProjectDocument projectDocument = await Workspace.GetProjectDocument(parameters.TextDocument.Uri, reload: true, cancellationToken: cancellationToken);
@@ -343,7 +341,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
             await Workspace.RemoveProjectDocument(parameters.TextDocument.Uri, cancellationToken);
 
             Log.Information("Unloaded project {ProjectFile}.",
-                VSCodeDocumentUri.GetFileSystemPath(parameters.TextDocument.Uri)
+                DocumentUri.GetFileSystemPath(parameters.TextDocument.Uri)
             );
         }
 
@@ -365,7 +363,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
             Workspace.PublishDiagnostics(projectDocument);
 
             Log.Information("Project {ProjectFile} will be saved, because it was triggered by {Reason}.",
-                VSCodeDocumentUri.GetFileSystemPath(parameters.TextDocument.Uri),
+                DocumentUri.GetFileSystemPath(parameters.TextDocument.Uri),
                 parameters.Reason
             );
 
@@ -390,7 +388,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
             Workspace.PublishDiagnostics(projectDocument);
 
             Log.Information("Project {ProjectFile} will be saved, because it was triggered by {Reason}.",
-                VSCodeDocumentUri.GetFileSystemPath(parameters.TextDocument.Uri),
+                DocumentUri.GetFileSystemPath(parameters.TextDocument.Uri),
                 parameters.Reason
             );
             //TODO: retrieve text edits async.
@@ -408,9 +406,9 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         /// <returns>
         ///     The document attributes.
         /// </returns>
-        static TextDocumentAttributes GetTextDocumentAttributes(Uri documentUri)
+        static TextDocumentAttributes GetTextDocumentAttributes(DocumentUri documentUri)
         {
-            string documentFilePath = VSCodeDocumentUri.GetFileSystemPath(documentUri);
+            string documentFilePath = DocumentUri.GetFileSystemPath(documentUri);
             if (documentFilePath == null)
                 return new TextDocumentAttributes(documentUri, "plaintext");
 
@@ -448,8 +446,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         /// </returns>
         async Task<Unit> IRequestHandler<DidOpenTextDocumentParams, Unit>.Handle(DidOpenTextDocumentParams parameters, CancellationToken cancellationToken)
         {
-            if (parameters == null)
-                throw new ArgumentNullException(nameof(parameters));
+            ArgumentNullException.ThrowIfNull(parameters);
 
             using (BeginOperation("OnDidOpenTextDocument"))
             {
@@ -480,8 +477,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         /// </returns>
         async Task<Unit> IRequestHandler<DidCloseTextDocumentParams, Unit>.Handle(DidCloseTextDocumentParams parameters, CancellationToken cancellationToken)
         {
-            if (parameters == null)
-                throw new ArgumentNullException(nameof(parameters));
+            ArgumentNullException.ThrowIfNull(parameters);
 
             using (BeginOperation("OnDidCloseTextDocument"))
             {
@@ -512,8 +508,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         /// </returns>
         async Task<Unit> IRequestHandler<DidChangeTextDocumentParams, Unit>.Handle(DidChangeTextDocumentParams parameters, CancellationToken cancellationToken)
         {
-            if (parameters == null)
-                throw new ArgumentNullException(nameof(parameters));
+            ArgumentNullException.ThrowIfNull(parameters);
 
             using (BeginOperation("OnDidChangeTextDocument"))
             {
@@ -544,8 +539,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         /// </returns>
         async Task<Unit> IRequestHandler<DidSaveTextDocumentParams, Unit>.Handle(DidSaveTextDocumentParams parameters, CancellationToken cancellationToken)
         {
-            if (parameters == null)
-                throw new ArgumentNullException(nameof(parameters));
+            ArgumentNullException.ThrowIfNull(parameters);
 
             using (BeginOperation("OnDidSaveTextDocument"))
             {
@@ -576,8 +570,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         /// </returns>
         async Task<Unit> IRequestHandler<WillSaveTextDocumentParams, Unit>.Handle(WillSaveTextDocumentParams parameters, CancellationToken cancellationToken)
         {
-            if (parameters == null)
-                throw new ArgumentNullException(nameof(parameters));
+            ArgumentNullException.ThrowIfNull(parameters);
 
             using (BeginOperation("OnWillSaveTextDocument"))
             {
@@ -608,8 +601,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         /// </returns>
         async Task<TextEditContainer> IRequestHandler<WillSaveWaitUntilTextDocumentParams, TextEditContainer>.Handle(WillSaveWaitUntilTextDocumentParams parameters, CancellationToken cancellationToken)
         {
-            if (parameters == null)
-                throw new ArgumentNullException(nameof(parameters));
+            ArgumentNullException.ThrowIfNull(parameters);
 
             using (BeginOperation("OnWillSaveWaitUntilTextDocument"))
             {
@@ -677,10 +669,9 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         /// <returns>
         ///     The document attributes.
         /// </returns>
-        TextDocumentAttributes ITextDocumentIdentifier.GetTextDocumentAttributes(Uri documentUri)
+        TextDocumentAttributes ITextDocumentIdentifier.GetTextDocumentAttributes(DocumentUri documentUri)
         {
-            if (documentUri == null)
-                throw new ArgumentNullException(nameof(documentUri));
+            ArgumentNullException.ThrowIfNull(documentUri);
 
             return GetTextDocumentAttributes(documentUri);
         }
