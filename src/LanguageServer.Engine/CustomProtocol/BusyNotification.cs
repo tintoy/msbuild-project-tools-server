@@ -9,7 +9,7 @@ namespace MSBuildProjectTools.LanguageServer.CustomProtocol
     ///     Parameters for notifying the LSP language client that the language service is (or is not) busy.
     /// </summary>
     [JsonObject(NamingStrategyType = typeof(CamelCaseNamingStrategy))]
-    [Serial, Method("msbuild/busy")]
+    [Serial, Method("msbuild/busy", Direction.ServerToClient)]
     public class BusyNotificationParams : IRequest, INotification
     {
         /// <summary>

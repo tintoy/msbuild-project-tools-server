@@ -102,6 +102,7 @@ namespace MSBuildProjectTools.LanguageServer
         /// </returns>
         public static LoggerConfiguration CreateDefaultLoggerConfiguration(Configuration languageServerConfiguration = null)
         {
+            bool isDefaultConfig = languageServerConfiguration is null;
             languageServerConfiguration ??= new Configuration();
 
             // Override defaults from environment.
@@ -124,6 +125,8 @@ namespace MSBuildProjectTools.LanguageServer
                 .Enrich.WithCurrentActivityId()
                 .Enrich.WithDemystifiedStackTraces()
                 .Enrich.FromLogContext();
+            if (!isDefaultConfig)
+                loggerConfiguration.MinimumLevel.ControlledBy(languageServerConfiguration.Logging.LevelSwitch);
 
             if (!string.IsNullOrWhiteSpace(languageServerConfiguration.Logging.Seq.Url))
             {

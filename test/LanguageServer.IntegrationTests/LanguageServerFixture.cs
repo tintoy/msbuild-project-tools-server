@@ -16,6 +16,8 @@ using Xunit;
 
 namespace MSBuildProjectTools.LanguageServer.IntegrationTests
 {
+    using Utilities;
+
     /// <summary>
     /// Fixture for managing the language server process and client connection.
     /// </summary>
@@ -106,11 +108,7 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
 
             _serverExitCompletion = new TaskCompletionSource<object>();
             _ctsServerInitialize = new CancellationTokenSource();
-            _ctsServerInitialize.Token.Register((state, token) =>
-            {
-                var _this = (LanguageServerFixture)state;
-                _this._serverExitCompletion.TrySetCanceled(token);
-            }, this);
+            _serverExitCompletion.CanceledBy(_ctsServerInitialize);
             _serverProcess = new Process
             {
                 StartInfo = serverInfo,
@@ -194,10 +192,10 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
             catch (Exception ex)
             {
                 _logger?.LogError(ex, "Failed to initialize language client");
-                _ctsServerInitialize.Dispose();
-                _ctsServerInitialize = null;
-                _serverProcess.Dispose();
-                _serverProcess = null;
+                // xUnit changed its cleanup logic for IAsyncLifetime,
+                // so call StopAsync manually here when an exception is caught.
+                //see: https://github.com/xunit/xunit/issues/3124
+                await StopAsync();
                 throw;
             }
         }
@@ -257,7 +255,16 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
                         }
                     }
 
-                    await _serverExitCompletion.Task;
+                    try
+                    {
+                        await _serverExitCompletion.Task;
+                    }
+                    catch (TaskCanceledException tce)
+                    when (tce.CancellationToken == _ctsServerInitialize.Token)
+                    {
+                        _logger?.LogInformation("The server process did not shutdown in a timely manner.");
+                        // swallow cancellation exception
+                    }
                 }
                 finally
                 {
