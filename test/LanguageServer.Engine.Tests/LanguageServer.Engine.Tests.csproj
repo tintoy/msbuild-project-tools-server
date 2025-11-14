@@ -3,7 +3,7 @@
     <IsPackable>false</IsPackable>
     <RootNamespace>MSBuildProjectTools.LanguageServer.Tests</RootNamespace>
     <AssemblyName>MSBuildProjectTools.LanguageServer.Engine.Tests</AssemblyName>
-    <Platforms>x64</Platforms>
+    <Platforms>AnyCPU;x86;x64</Platforms>
     <RollForward>LatestMajor</RollForward>
   </PropertyGroup>
   

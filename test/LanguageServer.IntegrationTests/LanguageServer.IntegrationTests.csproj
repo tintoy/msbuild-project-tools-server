@@ -3,7 +3,7 @@
     <IsPackable>false</IsPackable>
     <RootNamespace>MSBuildProjectTools.LanguageServer.IntegrationTests</RootNamespace>
     <AssemblyName>MSBuildProjectTools.LanguageServer.IntegrationTests</AssemblyName>
-    <Platforms>x64</Platforms>
+    <Platforms>AnyCPU;x86;x64</Platforms>
   </PropertyGroup>
   
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
