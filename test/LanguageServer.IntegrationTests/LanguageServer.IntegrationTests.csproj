@@ -4,6 +4,7 @@
     <RootNamespace>MSBuildProjectTools.LanguageServer.IntegrationTests</RootNamespace>
     <AssemblyName>MSBuildProjectTools.LanguageServer.IntegrationTests</AssemblyName>
     <Platforms>AnyCPU;x86;x64</Platforms>
+    <CopyDebugSymbolFilesFromPackages>true</CopyDebugSymbolFilesFromPackages>
   </PropertyGroup>
   
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">

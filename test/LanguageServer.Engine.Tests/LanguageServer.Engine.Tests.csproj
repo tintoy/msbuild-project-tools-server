@@ -5,6 +5,7 @@
     <AssemblyName>MSBuildProjectTools.LanguageServer.Engine.Tests</AssemblyName>
     <Platforms>AnyCPU;x86;x64</Platforms>
     <RollForward>LatestMajor</RollForward>
+    <CopyDebugSymbolFilesFromPackages>true</CopyDebugSymbolFilesFromPackages>
   </PropertyGroup>
   
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
