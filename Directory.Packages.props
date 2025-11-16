@@ -9,6 +9,9 @@
   <ItemGroup>
     <!-- Autofac -->
     <PackageVersion Include="Autofac" Version="8.4.0" />
+
+    <!-- GuiLabs.Language.Xml -->
+    <PackageVersion Include="GuiLabs.Language.Xml" Version="1.2.93" />
     
     <!-- OmniSharp -->
     <PackageVersion Include="OmniSharp.Extensions.JsonRpc" Version="0.17.4" />

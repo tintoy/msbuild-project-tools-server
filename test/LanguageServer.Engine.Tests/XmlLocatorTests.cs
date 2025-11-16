@@ -48,12 +48,14 @@ namespace MSBuildProjectTools.LanguageServer.Tests
 
             int absolutePosition = positions.GetAbsolutePosition(testPosition) - 1; // To find out if we can insert an element, make sure we find the node at the position ONE BEFORE the insertion point!
             SyntaxNode foundNode = xmlDocument.FindNode(absolutePosition,
-                descendIntoChildren: node => true
+                descendIntoChildren: node => node.Kind != SyntaxKind.WhitespaceTrivia
             );
             Assert.NotNull(foundNode);
-            SyntaxList list = Assert.IsAssignableFrom<SyntaxList>(foundNode);
 
-            Range listSpan = list.Span.ToNative(positions);
+            IXmlElementSyntax containingElement = foundNode as IXmlElementSyntax ?? foundNode.ParentElement;
+            Assert.NotNull(containingElement);
+            
+            Range listSpan = containingElement.AsNode.Span.ToNative(positions);
             Assert.True(
                 listSpan.Contains(testPosition),
                 "List's span must contain the test position."

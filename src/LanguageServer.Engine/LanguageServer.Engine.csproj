@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <AssemblyName>MSBuildProjectTools.LanguageServer.Engine</AssemblyName>
     <RootNamespace>MSBuildProjectTools.LanguageServer</RootNamespace>
@@ -17,7 +17,7 @@
     <PackageReference Include="OmniSharp.Extensions.LanguageServer" />
     <PackageReference Include="Microsoft.Build" ExcludeAssets="runtime" />
     <PackageReference Include="Microsoft.Extensions.Logging" />
-    <PackageReference Include="Microsoft.Language.Xml" />
+    <PackageReference Include="GuiLabs.Language.Xml" />
     <PackageReference Include="Nito.AsyncEx.Tasks" />
     <PackageReference Include="Nito.AsyncEx.Coordination" />
     <PackageReference Include="NuGet.PackageManagement" />

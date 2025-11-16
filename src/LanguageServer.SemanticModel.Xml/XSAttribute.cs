@@ -52,7 +52,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
         /// <summary>
         ///     The attribute name prefix (if any).
         /// </summary>
-        public string Prefix => SyntaxNode.NameNode?.Prefix?.Name?.Text;
+        public string Prefix => SyntaxNode.NameNode?.Prefix;
 
         /// <summary>
         ///     The attribute value.
