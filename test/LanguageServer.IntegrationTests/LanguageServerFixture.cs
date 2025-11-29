@@ -327,10 +327,15 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
             var counter = 0;
             while (currentDir != null)
             {
-                if (Directory.Exists(Path.Combine(currentDir, ".git")))
-                {
+                string dotGitPath = Path.Combine(currentDir, ".git");
+
+                bool isMainRepository = Directory.Exists(dotGitPath);
+                if (isMainRepository)
                     return currentDir;
-                }
+
+                bool isSubmodule = File.Exists(dotGitPath);
+                if (isSubmodule)
+                    return currentDir;
 
                 currentDir = Path.GetDirectoryName(currentDir);
                 counter++;
