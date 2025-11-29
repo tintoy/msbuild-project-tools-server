@@ -4,12 +4,15 @@ using OmniSharp.Extensions.LanguageServer.Protocol;
 using OmniSharp.Extensions.LanguageServer.Protocol.Client;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using OmniSharp.Extensions.LanguageServer.Protocol.Window;
-using Serilog;
 using Serilog.Extensions.Logging;
 using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
+using System.Runtime.InteropServices;
+using System.Runtime.Loader;
+using System.Runtime.Versioning;
 using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
@@ -33,7 +36,7 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
         /// <summary>
         /// The logger.
         /// </summary>
-        Microsoft.Extensions.Logging.ILogger _logger;
+        ILogger _logger;
 
         /// <summary>
         /// The cancellation token source for server initialization.
@@ -80,12 +83,12 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
             if (_client != null)
                 throw new InvalidOperationException("Language server is already started.");
 
+            _logger = loggerProvider?.CreateLogger("LanguageServerFixture");
+
             // Find the language server executable
             string serverExecutable = FindServerExecutable();
             if (string.IsNullOrEmpty(serverExecutable))
                 throw new FileNotFoundException("Cannot find the language server executable.");
-
-            _logger = loggerProvider?.CreateLogger("LanguageServerFixture");
 
             _logger?.LogInformation("Starting language server from: {ServerExecutable}", serverExecutable);
 
@@ -102,7 +105,7 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
                 UseShellExecute = false,
                 CreateNoWindow = true,
                 Environment = {
-                     { "MSBUILD_PROJECT_TOOLS_VERBOSE_LOGGING", "1" }
+                     ["MSBUILD_PROJECT_TOOLS_VERBOSE_LOGGING"] = "1",
                 }
             };
 
@@ -284,14 +287,16 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
         /// <returns>
         /// The path to the language server executable, or <c>null</c> if not found.
         /// </returns>
-        static string FindServerExecutable()
+        string FindServerExecutable()
         {
+            Assembly thisAssembly = GetType().Assembly;
+
             // Find the git root directory by looking for .git folder
             string gitRoot = FindGitRoot();
             if (gitRoot == null)
             {
                 // Fallback: try relative to test assembly
-                string testAssemblyDir = Path.GetDirectoryName(typeof(LanguageServerFixture).Assembly.Location);
+                string testAssemblyDir = Path.GetDirectoryName(thisAssembly.Location);
                 gitRoot = Path.GetFullPath(Path.Combine(testAssemblyDir, "..", "..", "..", ".."));
             }
 
@@ -304,14 +309,102 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
                 throw new FileNotFoundException($"Language server bin directory not found: {binDir}");
             }
 
-            var dlls = Directory.GetFiles(binDir, ServerDllName, SearchOption.AllDirectories);
-
-            if (dlls.Length == 0)
+            var serverAssemblyPaths = Directory.GetFiles(binDir, ServerDllName, SearchOption.AllDirectories);
+            if (serverAssemblyPaths.Length == 0)
             {
-                throw new FileNotFoundException($"Language server executable '{ServerDllName}' not found in: {binDir}");
+                throw new FileNotFoundException($"Language server executable '{ServerDllName}' not found under: '{binDir}'");
             }
 
-            return dlls[0];
+            // Find first matching assembly by target framework.
+            string thisTargetFramework = thisAssembly.GetCustomAttribute<TargetFrameworkAttribute>()?.FrameworkName;
+            if (thisTargetFramework != null)
+                _logger.LogInformation("Searching for language server assembly matching target framework {FrameworkName}...", thisTargetFramework);
+            else
+                Assert.Fail("The current assembly is missing a [TargetFramework] attribute.");
+
+            using (MetadataLoadContext loader = CreateServerAssemblyLoader())
+            {
+                foreach (string serverAssemblyPath in serverAssemblyPaths)
+                {
+                    try
+                    {
+                        Assembly serverAssembly = loader.LoadFromAssemblyPath(serverAssemblyPath);
+
+                        string assemblyTargetFramework = GetTargetFramework(serverAssembly);
+                        if (assemblyTargetFramework != thisTargetFramework)
+                        {
+                            _logger.LogInformation("Ignoring assembly {AssemblyPath} (its target framework {TargetFrameworkName} does not match {FrameworkName}).",
+                                serverAssemblyPath,
+                                assemblyTargetFramework,
+                                thisTargetFramework
+                            );
+
+                            continue;
+                        }
+                    }
+                    catch (BadImageFormatException invalidAssembly)
+                    {
+                        _logger.LogError(invalidAssembly, "Ignoring assembly {AssemblyPath} (this file does not appear to be a valid assembly).", serverAssemblyPath);
+
+                        continue;
+                    }
+                    catch (FileLoadException assemblyLoadFailure)
+                    {
+                        _logger.LogError(assemblyLoadFailure, "Ignoring assembly {AssemblyPath} (an unexpected error occurred while loading this assembly).", serverAssemblyPath);
+
+                        continue;
+                    }
+
+                    return serverAssemblyPath;
+                }
+
+                throw new FileNotFoundException($"No matching language server executable '{ServerDllName}' was found under: '{binDir}'.");
+            }
+        }
+
+        /// <summary>
+        ///     Attempt to determine the name of the target framework for the specified assembly (via <see cref="TargetFrameworkAttribute"/>).
+        /// </summary>
+        /// <param name="assembly">
+        ///     The assembly to examine.
+        /// </param>
+        /// <returns>
+        ///     The assembly's target framework, or <c>null</c> if the assembly is not decorated with <see cref="TargetFrameworkAttribute"/>.
+        /// </returns>
+        string GetTargetFramework(Assembly assembly)
+        {
+            if (assembly == null)
+                throw new ArgumentNullException(nameof(assembly));
+
+            // Some jiggery-pokery is required to access custom-attribute data, since we aren't really loading the assembly.
+            CustomAttributeData targetFrameworkAttributeData = assembly.GetCustomAttributesData().FirstOrDefault(
+                attributeData => attributeData.AttributeType.FullName == typeof(TargetFrameworkAttribute).FullName
+            );
+            if (targetFrameworkAttributeData == null)
+            {
+                _logger.LogWarning("Ignoring assembly {AssemblyPath} (missing [TargetFramework] attribute).", assembly.Location);
+
+                return null;
+            }
+
+            return targetFrameworkAttributeData.ConstructorArguments[0].Value as string;
+        }
+
+        /// <summary>
+        ///     Create a <see cref="MetadataLoadContext"/> to examine candidate language-server assemblies.
+        /// </summary>
+        /// <returns>
+        ///     The configured <see cref="MetadataLoadContext"/> (including assemblies from the current runtime).
+        /// </returns>
+        /// <remarks>
+        ///     We use <see cref="MetadataLoadContext"/>, rather than <see cref="AssemblyLoadContext"/>, because we want to examine candidate assemblies without have to load them (and all their dependencies).
+        /// </remarks>
+        static MetadataLoadContext CreateServerAssemblyLoader()
+        {
+            string[] runtimeAssemblies = Directory.GetFiles(RuntimeEnvironment.GetRuntimeDirectory(), "*.dll");
+            PathAssemblyResolver assemblyResolver = new PathAssemblyResolver(runtimeAssemblies);
+
+            return new MetadataLoadContext(assemblyResolver);
         }
 
         /// <summary>
