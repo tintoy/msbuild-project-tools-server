@@ -143,15 +143,15 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
         /// <returns>
         ///     The containing element, or <c>null</c> the syntax node is not a child of an element.
         /// </returns>
-        public static XmlElementSyntaxBase GetContainingElement(this SyntaxNode syntaxNode)
+        public static XmlElementSyntax GetContainingElement(this SyntaxNode syntaxNode)
         {
             if (syntaxNode == null)
                 throw new ArgumentNullException(nameof(syntaxNode));
 
-            if (syntaxNode is XmlElementSyntaxBase element)
+            if (syntaxNode is XmlElementSyntax element )
                 return element;
 
-            return syntaxNode.GetFirstParentOfType<XmlElementSyntaxBase>();
+            return syntaxNode.GetFirstParentOfType<XmlElementSyntax>();
         }
 
         /// <summary>
@@ -300,6 +300,9 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
         /// <summary>
         ///     Determine whether the element lies before the specified position.
         /// </summary>
+        /// <typeparam name="TElementSyntax">
+        ///     The type of <see cref="SyntaxNode"/> used to represent the target element.
+        /// </typeparam>
         /// <param name="element">
         ///     The element.
         /// </param>
@@ -312,7 +315,8 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
         /// <returns>
         ///     <c>true</c>, if the element's final closing tag ("/&gt;" or "&gt;") lies after the specified position; otherwise, <c>false</c>.
         /// </returns>
-        public static bool IsAfterPosition(this XmlElementSyntaxBase element, Position position, TextPositions xmlPositions)
+        public static bool IsAfterPosition<TElementSyntax>(this TElementSyntax element, Position position, TextPositions xmlPositions)
+            where TElementSyntax : SyntaxNode, IXmlElement
         {
             if (element == null)
                 throw new ArgumentNullException(nameof(element));
@@ -334,6 +338,9 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
         /// <summary>
         ///     Determine whether the element lies after the specified position.
         /// </summary>
+        /// <typeparam name="TElementSyntax">
+        ///     The type of <see cref="SyntaxNode"/> used to represent the target element.
+        /// </typeparam>
         /// <param name="element">
         ///     The element.
         /// </param>
@@ -346,7 +353,8 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
         /// <returns>
         ///     <c>true</c>, if the element's opening tag ("&lt;") lies after the specified position; otherwise, <c>false</c>.
         /// </returns>
-        public static bool IsAfter(this XmlElementSyntaxBase element, Position position, TextPositions xmlPositions)
+        public static bool IsAfter<TElementSyntax>(this TElementSyntax element, Position position, TextPositions xmlPositions)
+            where TElementSyntax : SyntaxNode, IXmlElement
         {
             if (element == null)
                 throw new ArgumentNullException(nameof(element));

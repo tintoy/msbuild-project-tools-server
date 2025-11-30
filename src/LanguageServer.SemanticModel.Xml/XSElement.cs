@@ -9,7 +9,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
     ///     Represents an XML element.
     /// </summary>
     public abstract class XSElement
-        : XSNode<XmlElementSyntaxBase>
+        : XSNode<IXmlElementSyntax>
     {
         /// <summary>
         ///     The element's path within the XML.
@@ -20,7 +20,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
         ///     Create a new <see cref="XSElement"/>.
         /// </summary>
         /// <param name="element">
-        ///     The <see cref="XmlElementSyntaxBase"/> represented by the <see cref="XSElement"/>.
+        ///     The <see cref="IXmlElementSyntax"/> represented by the <see cref="XSElement"/>.
         /// </param>
         /// <param name="range">
         ///     The range, within the source text, spanned by the element.
@@ -34,7 +34,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
         /// <param name="parent">
         ///     The <see cref="XSElement"/>'s parent element (if any).
         /// </param>
-        protected XSElement(XmlElementSyntaxBase element, Range range, Range nameRange, Range attributesRange, XSElement parent)
+        protected XSElement(IXmlElementSyntax element, Range range, Range nameRange, Range attributesRange, XSElement parent)
             : base(element, range)
         {
             NameRange = nameRange;
@@ -53,12 +53,12 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
         /// <summary>
         ///     The element name prefix (if any).
         /// </summary>
-        public string Prefix => SyntaxNode.NameNode?.Prefix?.Name?.Text;
+        public string Prefix => SyntaxNode.NameNode?.Prefix;
 
         /// <summary>
-        ///     The <see cref="XmlElementSyntaxBase"/> represented by the <see cref="XSElement"/>.
+        ///     The <see cref="IXmlElementSyntax"/> represented by the <see cref="XSElement"/>.
         /// </summary>
-        public XmlElementSyntaxBase ElementNode => SyntaxNode;
+        public IXmlElementSyntax ElementNode => SyntaxNode;
 
         /// <summary>
         ///     The range, within the source text, spanned by the element's name.
