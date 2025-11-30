@@ -48,7 +48,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests
 
             int absolutePosition = positions.GetAbsolutePosition(testPosition) - 1; // To find out if we can insert an element, make sure we find the node at the position ONE BEFORE the insertion point!
             SyntaxNode foundNode = xmlDocument.FindNode(absolutePosition,
-                descendIntoChildren: node => node.Kind != SyntaxKind.WhitespaceTrivia
+                descendIntoChildren: node => true, includeTrivia: false
             );
             Assert.NotNull(foundNode);
 
