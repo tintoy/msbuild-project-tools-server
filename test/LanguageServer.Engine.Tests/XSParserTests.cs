@@ -36,7 +36,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests
         /// <param name="expectedNodeCount">
         ///     The expected number of nodes to be 
         /// </param>
-        [InlineData("Test1", 12)]
+        [InlineData("Test1", 14)]
         [Theory(DisplayName = "XSParser discovers node count ")]
         public void NodeCount(string testFileName, int expectedNodeCount)
         {
@@ -153,7 +153,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests
         /// <param name="endColumn">
         ///     The node's ending column.
         /// </param>
-        [InlineData("Test1", 0, 1, 1, 7, 12)]
+        [InlineData("Test1", 0, 1, 1, 8, 12)]
         [InlineData("Test1", 1, 1, 11, 2, 5)]
         [InlineData("Test1", 2, 2, 5, 5, 16)]
         [InlineData("Test1", 3, 2, 15, 2, 34)]
