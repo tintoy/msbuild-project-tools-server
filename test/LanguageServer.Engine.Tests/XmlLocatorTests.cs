@@ -34,6 +34,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests
         /// </param>
         [InlineData("Test1", 2, 5)]
         [InlineData("Test1", 3, 9)]
+        [InlineData("Test1", 7, 1)]
         [Trait("Component", "XmlLocator")]
         [Theory(DisplayName = "Inside element ")]
         public void InsideElement1(string testFileName, int line, int column)
