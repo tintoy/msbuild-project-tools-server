@@ -12,7 +12,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
         ///     Create a new <see cref="XSInvalidElement"/>.
         /// </summary>
         /// <param name="element">
-        ///     The <see cref="XmlElementSyntaxBase"/> represented by the <see cref="XSInvalidElement"/>.
+        ///     The <see cref="IXmlElementSyntax"/> represented by the <see cref="XSInvalidElement"/>.
         /// </param>
         /// <param name="range">
         ///     The <see cref="Range"/>, within the source text, spanned by the element.
@@ -29,7 +29,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
         /// <param name="hasContent">
         ///     Does the <see cref="XSInvalidElement"/> have any content (besides attributes)?
         /// </param>
-        public XSInvalidElement(XmlElementSyntaxBase element, Range range, Range nameRange, Range attributesRange, XSElement parent, bool hasContent)
+        public XSInvalidElement(IXmlElementSyntax element, Range range, Range nameRange, Range attributesRange, XSElement parent, bool hasContent)
             : base(element, range, nameRange, attributesRange, parent)
         {
             if (parent == null)

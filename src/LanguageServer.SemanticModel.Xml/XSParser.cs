@@ -167,7 +167,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
 
                         if (element.Content[contentIndex] is XSElement childElement)
                         {
-                            startOfNextNode = childElement.ElementNode.Span.Start;
+                            startOfNextNode = childElement.ElementNode.AsNode.Span.Start;
 
                             whitespaceLength = startOfNextNode - endOfNode;
                             if (whitespaceLength > 0)
@@ -183,7 +183,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
                                 DiscoveredNodes.Add(whitespace);
                             }
 
-                            endOfNode = childElement.ElementNode.Span.End;
+                            endOfNode = childElement.ElementNode.AsNode.Span.End;
                         }
                     }
 
@@ -249,14 +249,14 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
             /// </returns>
             public override SyntaxNode VisitXmlDocument(XmlDocumentSyntax document)
             {
-                if (document.Root is not XmlElementSyntaxBase root)
+                if (document.Root is not IXmlElementSyntax root)
                     return document;
 
                 if (root is XmlElementSyntax rootElement && rootElement.StartTag == null)
-                    root = rootElement.Elements.FirstOrDefault() as XmlElementSyntaxBase;
+                    root = rootElement.Elements.FirstOrDefault();
 
                 if (root != null)
-                    Visit(root);
+                    Visit(root.AsNode);
 
                 return document;
             }
@@ -275,7 +275,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
                 Range elementRange = element.Span.ToNative(_textPositions);
                 Range nameRange = element.NameNode?.Span.ToNative(_textPositions) ?? elementRange;
                 Range openingTagRange = element.StartTag?.Span.ToNative(_textPositions) ?? elementRange;
-                Range attributesRange = element.AttributesNode?.FullSpan.ToNative(_textPositions) ?? elementRange;
+                Range attributesRange = element.AsSyntaxElement.AttributesNode.FullSpan.ToNative(_textPositions);
                 Range closingTagRange = element.EndTag?.Span.ToNative(_textPositions) ?? elementRange;
                 Range contentRange;
                 if (openingTagRange.End <= closingTagRange.Start)
@@ -321,15 +321,24 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
                 foreach (XmlAttributeSyntax attribute in element.AsSyntaxElement.Attributes)
                     Visit(attribute);
 
-                if (element.Content is SyntaxList childElements)
+                foreach ( SyntaxNode childNode in element.AsSyntaxElement.Content )
                 {
-                    foreach (XmlElementSyntaxBase childElement in childElements.ChildNodes.OfType<XmlElementSyntaxBase>())
-                        Visit(childElement);
+                    switch (childNode)
+                    {
+                        case IXmlElementSyntax childElement:
+                        {
+                            Visit(childElement.AsNode);
+
+                            break;
+                        }
+                        case XmlTextSyntax childText:
+                        {
+                            Visit(childText);
+
+                            break;
+                        }
+                    }
                 }
-                else if (element.Content is XmlElementSyntaxBase singleChildElement)
-                    Visit(singleChildElement);
-                else if (element.Content is XmlTextSyntax text)
-                    VisitXmlText(text);
 
                 PopElement();
 
@@ -349,7 +358,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
             {
                 Range elementRange = emptyElement.Span.ToNative(_textPositions);
                 Range nameRange = emptyElement.NameNode?.Span.ToNative(_textPositions) ?? elementRange;
-                Range attributesRange = emptyElement.AttributesNode?.FullSpan.ToNative(_textPositions) ?? elementRange;
+                Range attributesRange = emptyElement.AttributesNode.FullSpan.ToNative(_textPositions);
 
                 XSElement xsElement;
                 if (string.IsNullOrWhiteSpace(emptyElement.Name))

@@ -5,7 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Language.Xml" />
+    <PackageReference Include="GuiLabs.Language.Xml" />
     <PackageReference Include="Serilog" />
   </ItemGroup>
 
