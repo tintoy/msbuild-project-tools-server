@@ -22,6 +22,9 @@
     <!-- Microsoft.Build -->
     <PackageVersion Include="Microsoft.Build" Version="17.11.48" />
     <PackageVersion Include="Microsoft.Build.Locator" Version="1.10.2" />
+
+    <!-- Microsoft.VisualStudio -->
+    <PackageVersion Include="Microsoft.VisualStudio.SolutionPersistence" Version="1.0.52" />
     
     <!-- Microsoft.Extensions -->
     <PackageVersion Include="Microsoft.Extensions.Logging" Version="8.0.0" />
