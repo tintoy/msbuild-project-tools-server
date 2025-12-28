@@ -1,7 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using Microsoft.Build.Evaluation;
+using Microsoft.VisualStudio.SolutionPersistence;
 using Microsoft.VisualStudio.SolutionPersistence.Model;
+using Microsoft.VisualStudio.SolutionPersistence.Serializer;
 using Serilog;
 
 #nullable enable
@@ -68,6 +71,54 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
                 throw new AggregateException($"Unable to load one or more projects for solution '{solution.File.FullName}'.", projectLoadFailures);
 
             return projectCollection;
+        }
+
+        /// <summary>
+        ///     Determine the likely format of the specified solution file.
+        /// </summary>
+        /// <param name="solutionFile">
+        ///     The name of the solution file (including extension).
+        /// </param>
+        /// <returns>
+        ///     A <see cref="VsSolutionFormat"/> value indicating the solution-file format.
+        /// </returns>
+        /// <exception cref="ArgumentException">
+        ///     <paramref name="solutionFile"/> is not a valid file name (with a recognised extension).
+        /// </exception>
+        public static VsSolutionFormat GetSolutionFormat(string solutionFile)
+        {
+            if (String.IsNullOrWhiteSpace(solutionFile))
+                throw new ArgumentException("Argument cannot be null, empty, or entirely composed of whitespace: 'solutionFile'.", nameof(solutionFile));
+
+            string? solutionFileExtension = Path.GetExtension(solutionFile);
+            if (String.IsNullOrWhiteSpace(solutionFileExtension))
+                throw new ArgumentException($"Cannot determine the solution file format (file name '{solutionFile}' has no extension).", nameof(solutionFile));
+
+            return solutionFileExtension?.ToLowerInvariant() switch
+            {
+                ".sln"  => VsSolutionFormat.Legacy,
+                ".slnx" => VsSolutionFormat.Xml,
+                _       => VsSolutionFormat.Unknown,
+            };
+        }
+
+        /// <summary>
+        ///     Get an a appropriate solution serialiser for the specified solution-file format.
+        /// </summary>
+        /// <param name="format">
+        ///     A <see cref="VsSolutionFormat"/> value indicating the solution-file format.
+        /// </param>
+        /// <returns>
+        ///     The <see cref="ISolutionSerializer"/>, or <c>null</c> if the <paramref name="format"/> is not supported.
+        /// </returns>
+        public static ISolutionSerializer? GetSolutionSerializer(VsSolutionFormat format)
+        {
+            return format switch
+            {
+                VsSolutionFormat.Legacy => SolutionSerializers.SlnFileV12,
+                VsSolutionFormat.Xml    => SolutionSerializers.SlnXml,
+                _                       => null,
+            };
         }
     }
 }

@@ -16,10 +16,13 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
     /// <param name="File">
     ///     The solution file that the underlying <see cref="SolutionModel"/> was loaded from.
     /// </param>
+    /// <param name="Format">
+    ///     The solution file format.
+    /// </param>
     /// <param name="Model">
     ///     A <see cref="SolutionModel"/> representing the solution contents.
     /// </param>
-    public record class VsSolution(FileInfo File, SolutionModel Model)
+    public record class VsSolution(FileInfo File, VsSolutionFormat Format, SolutionModel Model)
     {
         /// <summary>
         ///     Save the solution's contents to the solution <see cref="File"/>.
@@ -88,18 +91,24 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
             if (String.IsNullOrWhiteSpace(solutionFile.Extension))
                 throw new ArgumentException($"Cannot determine the solution file format (file name '{solutionFile.FullName}' has no extension).", nameof(solutionFile));
 
-            ISolutionSerializer? solutionSerializer = SolutionSerializers.GetSerializerByMoniker(solutionFile.FullName);
+            if (solutionFile == File)
+            {
+                await Save(cancellationToken);
+
+                return this;
+            }
+
+            VsSolutionFormat format = VsSolutionHelper.GetSolutionFormat(solutionFile.Name);
+            ISolutionSerializer? solutionSerializer = VsSolutionHelper.GetSolutionSerializer(format);
             if (solutionSerializer == null)
-                throw new ArgumentException($"Cannot determine the solution file format for '{solutionFile.FullName}'.", nameof(solutionFile));
+                throw new ArgumentException($"Unsupported format for solution file '{solutionFile.FullName}'.", nameof(solutionFile));
 
             await solutionSerializer.SaveAsync(solutionFile.FullName, Model, cancellationToken);
-
-            if (solutionFile == File)
-                return this;
 
             return this with
             {
                 File = solutionFile,
+                Format = format,
             };
         }
 
@@ -149,14 +158,16 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
             if (String.IsNullOrWhiteSpace(solutionFile.Extension))
                 throw new ArgumentException($"Cannot determine the solution file format (file name '{solutionFile.FullName}' has no extension).", nameof(solutionFile));
 
-            ISolutionSerializer? solutionSerializer = SolutionSerializers.GetSerializerByMoniker(solutionFile.FullName);
+            VsSolutionFormat format = VsSolutionHelper.GetSolutionFormat(solutionFile.Name);
+            ISolutionSerializer? solutionSerializer = VsSolutionHelper.GetSolutionSerializer(format);
             if (solutionSerializer == null)
-                throw new ArgumentException($"Cannot determine the solution file format for '{solutionFile.FullName}'.", nameof(solutionFile));
+                throw new ArgumentException($"Unsupported format for solution file '{solutionFile.FullName}'.", nameof(solutionFile));
 
             SolutionModel solutionModel = await solutionSerializer.OpenAsync(solutionFile.FullName, cancellationToken);
 
             return new VsSolution(
                 File: solutionFile,
+                Format: format,
                 Model: solutionModel
             );
         }
@@ -175,5 +186,26 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
 
             return solution.Model;
         }
+    }
+
+    /// <summary>
+    ///     Well-known Visual Studio solution formats.
+    /// </summary>
+    public enum VsSolutionFormat
+    {
+        /// <summary>
+        ///     An unknown format.
+        /// </summary>
+        Unknown = 0,
+
+        /// <summary>
+        ///     The legacy (v12) solution format (.sln).
+        /// </summary>
+        Legacy = 1,
+
+        /// <summary>
+        ///     The XML solution format (.slnx).
+        /// </summary>
+        Xml = 2,
     }
 }
