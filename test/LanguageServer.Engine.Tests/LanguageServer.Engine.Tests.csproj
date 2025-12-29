@@ -29,5 +29,6 @@
   <ItemGroup>
     <Content Include="TestFiles/**/*.xml" CopyToOutputDirectory="Always" CopyToPublishDirectory="Always" />
     <Content Include="TestProjects/**/*.csproj" CopyToOutputDirectory="Always" CopyToPublishDirectory="Always" />
+    <Content Include="TestSolutions/**/*.slnx" CopyToOutputDirectory="Always" CopyToPublishDirectory="Always" />
   </ItemGroup>
 </Project>

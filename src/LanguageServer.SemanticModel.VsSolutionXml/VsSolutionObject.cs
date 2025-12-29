@@ -50,7 +50,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
         public abstract string Name { get; }
 
         /// <summary>
-        ///     The kind of VsSolution object represented by the <see cref="VsSolutionObject"/>.
+        ///     The kind of solution object represented by the <see cref="VsSolutionObject"/>.
         /// </summary>
         public abstract VsSolutionObjectKind Kind { get; }
 

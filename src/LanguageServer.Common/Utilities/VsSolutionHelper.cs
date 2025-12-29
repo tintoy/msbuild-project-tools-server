@@ -27,6 +27,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         /// </param>
         /// <param name="throwOnProjectLoadFailure">
         ///     Propagate project-load exceptions, if one or more projects fail to load?
+        /// </param>
         /// <param name="logger">
         ///     An optional <see cref="ILogger"/> to use for diagnostic purposes (if not specified, the static <see cref="Log.Logger"/> will be used).
         /// </param>
@@ -34,7 +35,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         ///     The configured <see cref="ProjectCollection"/>
         /// </returns>
         /// <exception cref="AggregateException">
-        ///     One or more projects failed to load, and <see cref="throwOnProjectLoadFailure"/> is <c>true</c>.
+        ///     One or more projects failed to load, and <paramref name="throwOnProjectLoadFailure"/> is <c>true</c>.
         /// </exception>
         public static ProjectCollection CreateMSBuildProjectCollection(this VsSolution solution, Dictionary<string, string>? globalPropertyOverrides = null, bool throwOnProjectLoadFailure = false, ILogger? logger = null)
         {

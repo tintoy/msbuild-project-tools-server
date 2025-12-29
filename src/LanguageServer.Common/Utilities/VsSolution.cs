@@ -1,9 +1,6 @@
-using Microsoft.Build.Construction;
-using Microsoft.VisualStudio.SolutionPersistence;
 using Microsoft.VisualStudio.SolutionPersistence.Model;
 using Microsoft.VisualStudio.SolutionPersistence.Serializer;
 using System;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -167,6 +164,9 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         /// <exception cref="InvalidOperationException">
         ///     The solution format could not be termined from the name of the target <paramref name="solutionContent"/>.
         /// </exception>
+        /// <exception cref="SolutionException">
+        ///     The solution could not be parsed (see <see cref="SolutionException.ErrorType"/>, for details).
+        /// </exception>
         public async Task<VsSolution> LoadFrom(Stream solutionContent, CancellationToken cancellationToken = default)
         {
             if (solutionContent == null)
@@ -224,6 +224,9 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         /// <exception cref="InvalidOperationException">
         ///     The solution format could not be termined from the name of the target <paramref name="solutionFile"/>.
         /// </exception>
+        /// <exception cref="SolutionException">
+        ///     The solution could not be parsed (see <see cref="SolutionException.ErrorType"/>, for details).
+        /// </exception>
         public static Task<VsSolution> Load(string solutionFile, CancellationToken cancellationToken = default)
         {
             if (String.IsNullOrWhiteSpace(solutionFile))
@@ -246,6 +249,9 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         /// </returns>
         /// <exception cref="InvalidOperationException">
         ///     The solution format could not be termined from the name of the target <paramref name="solutionFile"/>.
+        /// </exception>
+        /// <exception cref="SolutionException">
+        ///     The solution could not be parsed (see <see cref="SolutionException.ErrorType"/>, for details).
         /// </exception>
         public static async Task<VsSolution> Load(FileInfo solutionFile, CancellationToken cancellationToken = default)
         {
