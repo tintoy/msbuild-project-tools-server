@@ -274,7 +274,7 @@ namespace MSBuildProjectTools.LanguageServer.Documents
             {
                 using (await projectDocument.Lock.WriterLockAsync(cancellationToken))
                 {
-                    projectDocument.Update(documentText);
+                    await projectDocument.Update(documentText, cancellationToken);
                 }
             }
             catch (Exception updateError)
@@ -346,7 +346,7 @@ namespace MSBuildProjectTools.LanguageServer.Documents
             {
                 ClearDiagnostics(projectDocument);
 
-                projectDocument.Unload();
+                await projectDocument.Unload(cancellationToken);
             }
 
             return true;

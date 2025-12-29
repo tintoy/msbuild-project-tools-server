@@ -26,13 +26,8 @@ namespace MSBuildProjectTools.LanguageServer.Documents
     ///     Represents the document state for an MSBuild project.
     /// </summary>
     public abstract class ProjectDocument
-        : IDisposable
+        : XmlDocument
     {
-        /// <summary>
-        ///     Diagnostics (if any) for the project.
-        /// </summary>
-        readonly List<LspModels.Diagnostic> _diagnostics = new List<LspModels.Diagnostic>();
-
         /// <summary>
         ///     The project's configured package sources.
         /// </summary>
@@ -84,13 +79,10 @@ namespace MSBuildProjectTools.LanguageServer.Documents
         ///     The application logger.
         /// </param>
         protected ProjectDocument(Workspace workspace, DocumentUri documentUri, ILogger logger)
+            : base(workspace, documentUri, logger)
         {
             ArgumentNullException.ThrowIfNull(workspace);
             ArgumentNullException.ThrowIfNull(documentUri);
-
-            Workspace = workspace;
-            DocumentUri = documentUri;
-            ProjectFile = new FileInfo(DocumentUri.GetFileSystemPath(documentUri));
 
             if (ProjectFile.Extension.EndsWith("proj", StringComparison.OrdinalIgnoreCase))
                 Kind = ProjectDocumentKind.Project;
@@ -100,25 +92,6 @@ namespace MSBuildProjectTools.LanguageServer.Documents
                 Kind = ProjectDocumentKind.Targets;
             else
                 Kind = ProjectDocumentKind.Other;
-
-            Log = logger.ForContext(GetType()).ForContext("ProjectDocument", ProjectFile.FullName);
-        }
-
-        /// <summary>
-        ///     Finalizer for <see cref="ProjectDocument"/>.
-        /// </summary>
-        ~ProjectDocument()
-        {
-            Dispose(false);
-        }
-
-        /// <summary>
-        ///     Dispose of resources being used by the <see cref="ProjectDocument"/>.
-        /// </summary>
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
         }
 
         /// <summary>
@@ -127,24 +100,14 @@ namespace MSBuildProjectTools.LanguageServer.Documents
         /// <param name="disposing">
         ///     Explicit disposal?
         /// </param>
-        protected virtual void Dispose(bool disposing)
+        protected override void Dispose(bool disposing)
         {
         }
 
         /// <summary>
-        ///     The document workspace.
-        /// </summary>
-        public Workspace Workspace { get; }
-
-        /// <summary>
-        ///     The project document URI.
-        /// </summary>
-        public DocumentUri DocumentUri { get; }
-
-        /// <summary>
         ///     The project file.
         /// </summary>
-        public FileInfo ProjectFile { get; }
+        public FileInfo ProjectFile => DocumentFile;
 
         /// <summary>
         ///     The kind of project document.
@@ -152,49 +115,9 @@ namespace MSBuildProjectTools.LanguageServer.Documents
         public ProjectDocumentKind Kind { get; }
 
         /// <summary>
-        ///     A lock used to control access to project state.
-        /// </summary>
-        public AsyncReaderWriterLock Lock { get; } = new AsyncReaderWriterLock();
-
-        /// <summary>
-        ///     Are there currently any diagnostics to be published for the project?
-        /// </summary>
-        public bool HasDiagnostics => _diagnostics.Count > 0;
-
-        /// <summary>
-        ///     Diagnostics (if any) for the project.
-        /// </summary>
-        public IReadOnlyList<LspModels.Diagnostic> Diagnostics => _diagnostics;
-
-        /// <summary>
-        ///     The parsed project XML.
-        /// </summary>
-        public XmlDocumentSyntax Xml { get; protected set; }
-
-        /// <summary>
-        ///     Is the project XML currently loaded?
-        /// </summary>
-        public bool HasXml => Xml != null && XmlPositions != null;
-
-        /// <summary>
         ///     Is the underlying MSBuild project currently loaded?
         /// </summary>
         public bool HasMSBuildProject => HasXml && MSBuildProjectCollection != null && MSBuildProject != null;
-
-        /// <summary>
-        ///     Does the project have in-memory changes?
-        /// </summary>
-        public bool IsDirty { get; protected set; }
-
-        /// <summary>
-        ///     The textual position translator for the project XML .
-        /// </summary>
-        public TextPositions XmlPositions { get; protected set; }
-
-        /// <summary>
-        ///     The project XML node lookup facility.
-        /// </summary>
-        public XmlLocator XmlLocator { get; protected set; }
 
         /// <summary>
         ///     The project MSBuild object-lookup facility.
@@ -232,28 +155,6 @@ namespace MSBuildProjectTools.LanguageServer.Documents
         public IReadOnlyDictionary<string, SemanticVersion> ReferencedPackageVersions => _referencedPackageVersions;
 
         /// <summary>
-        ///     The document's logger.
-        /// </summary>
-        protected ILogger Log { get; set; }
-
-        /// <summary>
-        ///     Inspect the specified location in the XML.
-        /// </summary>
-        /// <param name="position">
-        ///     The location's position.
-        /// </param>
-        /// <returns>
-        ///     An <see cref="XmlLocation"/> representing the result of the inspection.
-        /// </returns>
-        public XmlLocation InspectXml(Position position)
-        {
-            if (!HasXml)
-                throw new InvalidOperationException($"XML for project '{ProjectFile.FullName}' is not loaded.");
-
-            return XmlLocator.Inspect(position);
-        }
-
-        /// <summary>
         ///     Load and parse the project.
         /// </summary>
         /// <param name="cancellationToken">
@@ -262,24 +163,12 @@ namespace MSBuildProjectTools.LanguageServer.Documents
         /// <returns>
         ///     A task representing the load operation.
         /// </returns>
-        public virtual async Task Load(CancellationToken cancellationToken = default)
+        public override async ValueTask Load(CancellationToken cancellationToken = default)
         {
-            ClearDiagnostics();
+            await base.Load(cancellationToken);
 
-            Xml = null;
-            XmlPositions = null;
-            XmlLocator = null;
-
-            string xml;
-            using (StreamReader reader = ProjectFile.OpenText())
-            {
-                xml = await reader.ReadToEndAsync();
-            }
-            Xml = Parser.ParseText(xml);
-            XmlPositions = new TextPositions(xml);
-            XmlLocator = new XmlLocator(Xml, XmlPositions);
-
-            IsDirty = false;
+            if (!HasXml)
+                return;
 
             await ConfigurePackageSources(cancellationToken);
 
@@ -300,19 +189,20 @@ namespace MSBuildProjectTools.LanguageServer.Documents
         /// <param name="xml">
         ///     The project XML.
         /// </param>
+        /// <param name="cancellationToken">
+        ///     An optional <see cref="CancellationToken"/> that can be used to cancel the operation.
+        /// </param>
         /// <returns>
         ///     A task representing the update operation.
         /// </returns>
-        public virtual void Update(string xml)
+        public override async ValueTask Update(string xml, CancellationToken cancellationToken = default)
         {
             ArgumentNullException.ThrowIfNull(xml);
 
-            ClearDiagnostics();
+            await base.Update(xml, cancellationToken);
 
-            Xml = Parser.ParseText(xml);
-            XmlPositions = new TextPositions(xml);
-            XmlLocator = new XmlLocator(Xml, XmlPositions);
-            IsDirty = true;
+            if (!HasXml)
+                return; 
 
             bool loaded = TryLoadMSBuildProject();
             if (loaded)
@@ -323,6 +213,25 @@ namespace MSBuildProjectTools.LanguageServer.Documents
             IsMSBuildProjectCached = !loaded;
 
             UpdatePackageReferences();
+        }
+
+        /// <summary>
+        ///     Unload the project.
+        /// </summary>
+        /// <param name="cancellationToken">
+        ///     An optional <see cref="CancellationToken"/> that can be used to cancel the operation.
+        /// </param>
+        public override async ValueTask Unload(CancellationToken cancellationToken = default)
+        {
+            await base.Unload(cancellationToken);
+
+            TryUnloadMSBuildProject();
+            MSBuildLocator = null;
+            IsMSBuildProjectCached = false;
+
+            Xml = null;
+            XmlPositions = null;
+            IsDirty = false;
         }
 
         /// <summary>
@@ -617,20 +526,6 @@ namespace MSBuildProjectTools.LanguageServer.Documents
         }
 
         /// <summary>
-        ///     Unload the project.
-        /// </summary>
-        public virtual void Unload()
-        {
-            TryUnloadMSBuildProject();
-            MSBuildLocator = null;
-            IsMSBuildProjectCached = false;
-
-            Xml = null;
-            XmlPositions = null;
-            IsDirty = false;
-        }
-
-        /// <summary>
         ///     Get the XML object (if any) at the specified position in the project file.
         /// </summary>
         /// <param name="position">
@@ -822,115 +717,5 @@ namespace MSBuildProjectTools.LanguageServer.Documents
         /// </returns>
         protected abstract bool TryUnloadMSBuildProject();
 
-        /// <summary>
-        ///     Remove all diagnostics for the project file.
-        /// </summary>
-        protected void ClearDiagnostics()
-        {
-            _diagnostics.Clear();
-        }
-
-        /// <summary>
-        ///     Add a diagnostic to be published for the project file.
-        /// </summary>
-        /// <param name="severity">
-        ///     The diagnostic severity.
-        /// </param>
-        /// <param name="message">
-        ///     The diagnostic message.
-        /// </param>
-        /// <param name="range">
-        ///     The range of text within the project XML that the diagnostic relates to.
-        /// </param>
-        /// <param name="diagnosticCode">
-        ///     A code to identify the diagnostic type.
-        /// </param>
-        protected void AddDiagnostic(LspModels.DiagnosticSeverity severity, string message, Range range, string diagnosticCode)
-        {
-            if (string.IsNullOrWhiteSpace(message))
-                throw new ArgumentException("Argument cannot be null, empty, or entirely composed of whitespace: 'message'.", nameof(message));
-
-            _diagnostics.Add(new LspModels.Diagnostic
-            {
-                Severity = severity,
-                Code = new LspModels.DiagnosticCode(diagnosticCode),
-                Message = message,
-                Range = range.ToLsp(),
-                Source = ProjectFile.FullName
-            });
-        }
-
-        /// <summary>
-        ///     Add an error diagnostic to be published for the project file.
-        /// </summary>
-        /// <param name="message">
-        ///     The diagnostic message.
-        /// </param>
-        /// <param name="range">
-        ///     The range of text within the project XML that the diagnostic relates to.
-        /// </param>
-        /// <param name="diagnosticCode">
-        ///     A code to identify the diagnostic type.
-        /// </param>
-        protected void AddErrorDiagnostic(string message, Range range, string diagnosticCode) => AddDiagnostic(LspModels.DiagnosticSeverity.Error, message, range, diagnosticCode);
-
-        /// <summary>
-        ///     Add a warning diagnostic to be published for the project file.
-        /// </summary>
-        /// <param name="message">
-        ///     The diagnostic message.
-        /// </param>
-        /// <param name="range">
-        ///     The range of text within the project XML that the diagnostic relates to.
-        /// </param>
-        /// <param name="diagnosticCode">
-        ///     A code to identify the diagnostic type.
-        /// </param>
-        protected void AddWarningDiagnostic(string message, Range range, string diagnosticCode) => AddDiagnostic(LspModels.DiagnosticSeverity.Warning, message, range, diagnosticCode);
-
-        /// <summary>
-        ///     Add an informational diagnostic to be published for the project file.
-        /// </summary>
-        /// <param name="message">
-        ///     The diagnostic message.
-        /// </param>
-        /// <param name="range">
-        ///     The range of text within the project XML that the diagnostic relates to.
-        /// </param>
-        /// <param name="diagnosticCode">
-        ///     A code to identify the diagnostic type.
-        /// </param>
-        protected void AddInformationDiagnostic(string message, Range range, string diagnosticCode) => AddDiagnostic(LspModels.DiagnosticSeverity.Information, message, range, diagnosticCode);
-
-        /// <summary>
-        ///     Add a hint diagnostic to be published for the project file.
-        /// </summary>
-        /// <param name="message">
-        ///     The diagnostic message.
-        /// </param>
-        /// <param name="range">
-        ///     The range of text within the project XML that the diagnostic relates to.
-        /// </param>
-        /// <param name="diagnosticCode">
-        ///     A code to identify the diagnostic type.
-        /// </param>
-        protected void AddHintDiagnostic(string message, Range range, string diagnosticCode) => AddDiagnostic(LspModels.DiagnosticSeverity.Hint, message, range, diagnosticCode);
-
-        /// <summary>
-        ///     Create a <see cref="Serilog.Context.LogContext"/> representing an operation.
-        /// </summary>
-        /// <param name="operationDescription">
-        ///     The operation description.
-        /// </param>
-        /// <returns>
-        ///     An <see cref="IDisposable"/> representing the log context.
-        /// </returns>
-        protected static IDisposable OperationContext(string operationDescription)
-        {
-            if (string.IsNullOrWhiteSpace(operationDescription))
-                throw new ArgumentException("Argument cannot be null, empty, or entirely composed of whitespace: 'operationDescription'.", nameof(operationDescription));
-
-            return Serilog.Context.LogContext.PushProperty("Operation", operationDescription);
-        }
     }
 }

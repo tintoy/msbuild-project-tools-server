@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>MSBuildProjectTools.LanguageServer.SemanticModel.VsSolutionXml</AssemblyName>
+    <RootNamespace>MSBuildProjectTools.LanguageServer.SemanticModel</RootNamespace>
+    <Nullable>enable</Nullable>
+    
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.VisualStudio.SolutionPersistence" />
+    <PackageReference Include="Nito.AsyncEx.Tasks" />
+    <PackageReference Include="Nito.AsyncEx.Coordination" />
+    <PackageReference Include="Serilog" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../LanguageServer.SemanticModel.Xml/LanguageServer.SemanticModel.Xml.csproj" />
+  </ItemGroup>
+</Project>

@@ -90,25 +90,31 @@ namespace MSBuildProjectTools.LanguageServer.Documents
         /// <param name="documentUri">
         ///     The sub-project document URI.
         /// </param>
-        public void RemoveSubProject(DocumentUri documentUri)
+        /// <param name="cancellationToken">
+        ///     An optional <see cref="CancellationToken"/> that can be used to cancel the operation.
+        /// </param>
+        public async ValueTask RemoveSubProject(DocumentUri documentUri, CancellationToken cancellationToken = default)
         {
             ArgumentNullException.ThrowIfNull(documentUri);
 
             if (_subProjects.TryRemove(documentUri, out SubProjectDocument subProjectDocument))
-                subProjectDocument.Unload();
+                await subProjectDocument.Unload(cancellationToken);
         }
 
         /// <summary>
         ///     Unload the project.
         /// </summary>
-        public override void Unload()
+        /// <param name="cancellationToken">
+        ///     An optional <see cref="CancellationToken"/> that can be used to cancel the operation.
+        /// </param>
+        public override async ValueTask Unload(CancellationToken cancellationToken = default)
         {
             // Unload sub-projects, if necessary.
             DocumentUri[] subProjectDocumentUris = SubProjects.Keys.ToArray();
             foreach (DocumentUri subProjectDocumentUri in subProjectDocumentUris)
-                RemoveSubProject(subProjectDocumentUri);
+                await RemoveSubProject(subProjectDocumentUri);
 
-            base.Unload();
+            await base.Unload();
         }
 
         /// <summary>
@@ -120,7 +126,7 @@ namespace MSBuildProjectTools.LanguageServer.Documents
         /// <returns>
         ///     A <see cref="Task"/> representing the operation.
         /// </returns>
-        public override async Task Load(CancellationToken cancellationToken)
+        public override async ValueTask Load(CancellationToken cancellationToken = default)
         {
             await base.Load(cancellationToken);
 

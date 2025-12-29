@@ -49,6 +49,8 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
             if (documentPositions == null)
                 throw new ArgumentNullException(nameof(documentPositions));
 
+            Xml = document;
+
             _documentPositions = documentPositions;
 
             List<XSNode> allNodes = document.GetSemanticModel(_documentPositions);
@@ -60,6 +62,11 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
 
             _nodeRanges.Sort();
         }
+
+        /// <summary>
+        ///     The underlying XML document.
+        /// </summary>
+        public XmlDocumentSyntax Xml { get; }
 
         /// <summary>
         ///     All nodes in the document.

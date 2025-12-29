@@ -15,6 +15,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests
     ///     The base class for test suites.
     /// </summary>
     public abstract class TestBase
+        : IDisposable
     {
         /// <summary>
         ///     An <see cref="IDisposable"/> representing the log context for the current test.
@@ -52,6 +53,21 @@ namespace MSBuildProjectTools.LanguageServer.Tests
             Assert.True(CurrentTest != null, "Cannot retrieve current test from ITestOutputHelper.");
 
             _logContext = LogContext.PushProperty("TestName", CurrentTest.DisplayName);
+        }
+
+        ~TestBase()
+        {
+            Dispose(false);
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(false);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
         }
 
         /// <summary>
