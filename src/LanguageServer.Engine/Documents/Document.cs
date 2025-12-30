@@ -93,6 +93,11 @@ namespace MSBuildProjectTools.LanguageServer.Documents
         public FileInfo DocumentFile { get; }
 
         /// <summary>
+        ///     The document kind.
+        /// </summary>
+        public abstract DocumentKind DocumentKind { get; }
+
+        /// <summary>
         ///     A lock used to control access to document state.
         /// </summary>
         public AsyncReaderWriterLock Lock { get; } = new AsyncReaderWriterLock();

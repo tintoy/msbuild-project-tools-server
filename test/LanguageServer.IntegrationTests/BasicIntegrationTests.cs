@@ -13,6 +13,7 @@ using Xunit.Abstractions;
 namespace MSBuildProjectTools.LanguageServer.IntegrationTests
 {
     using CustomProtocol;
+    using System.Linq;
     using Utilities;
 
     public class BasicIntegrationTests(ITestOutputHelper testOutput) : IntegrationTestBase(testOutput), IAsyncLifetime
@@ -70,7 +71,7 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
             """);
 
             var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(5));
-            var response = await _fixture.Client.SendRequest(new CompletionParams
+            CompletionList completionList = await _fixture.Client.SendRequest(new CompletionParams
             {
                 TextDocument = new TextDocumentIdentifier
                 {
@@ -79,7 +80,69 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
                 Position = new(4, 6)
             }, timeout.Token);
 
-            Assert.NotNull(response);
+            Assert.NotNull(completionList);
+            Assert.NotNull(completionList.Items);
+
+            CompletionItem[] completionItems = completionList.Items.OrderBy(item => item.SortText ?? item.Label).ToArray();
+            
+            Log.Information("Received {CompletionCount} completions from the language server.", completionItems.Length);
+            for (int itemIndex = 0; itemIndex < completionItems.Length; itemIndex++)
+            {
+                Log.Information("\tCompletionItems[{ItemIndex}] = {@CompletionItem}",
+                    itemIndex,
+                    completionItems[itemIndex]
+                );
+            }
+
+            Assert.NotEmpty(completionItems);
+            Assert.Collection(completionItems,
+                item => item.Label = "<PropertyGroup>",
+                item => item.Label = "<ItemGroup>",
+                item => item.Label = "<Target>",
+                item => item.Label = "<Import>",
+                item => item.Label = "<!-- -->"
+            );
+        }
+
+        [Fact]
+        public async Task AutoCompleteSlnx()
+        {
+            var testFilePath = Path.Combine(_workspaceRoot, "Test.slnx");
+            await File.WriteAllTextAsync(testFilePath,
+            """
+            <Solution>
+
+            </Solution>
+            """);
+
+            var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+            CompletionList completionList = await _fixture.Client.SendRequest(new CompletionParams
+            {
+                TextDocument = new TextDocumentIdentifier
+                {
+                    Uri = DocumentUri.FromFileSystemPath(testFilePath)
+                },
+                Position = new(2, 1)
+            }, timeout.Token);
+
+            Assert.NotNull(completionList);
+            Assert.NotNull(completionList.Items);
+
+            CompletionItem[] completionItems = completionList.Items.OrderBy(item => item.SortText ?? item.Label).ToArray();
+
+            Log.Information("Received {CompletionCount} completions from the language server.", completionItems.Length);
+            for (int itemIndex = 0; itemIndex < completionItems.Length; itemIndex++)
+            {
+                Log.Information("\tCompletionItems[{ItemIndex}] = {@CompletionItem}",
+                    itemIndex,
+                    completionItems[itemIndex]
+                );
+            }
+
+            Assert.NotEmpty(completionItems);
+            Assert.Collection(completionItems,
+                item => item.Label = "<!-- -->"
+            );
         }
 
         /// <summary>

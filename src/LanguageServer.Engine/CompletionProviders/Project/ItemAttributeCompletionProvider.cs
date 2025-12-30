@@ -7,7 +7,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace MSBuildProjectTools.LanguageServer.CompletionProviders
+namespace MSBuildProjectTools.LanguageServer.CompletionProviders.Project
 {
     using Documents;
     using SemanticModel;
@@ -17,7 +17,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
     ///     Completion provider for attributes of items.
     /// </summary>
     public class ItemAttributeCompletionProvider
-        : CompletionProvider
+        : CompletionProvider<ProjectDocument>
     {
         /// <summary>
         ///     The names of well-known attributes for MSBuild item elements.
@@ -53,7 +53,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
         /// <param name="location">
         ///     The <see cref="XmlLocation"/> where completions are requested.
         /// </param>
-        /// <param name="projectDocument">
+        /// <param name="document">
         ///     The <see cref="ProjectDocument"/> that contains the <paramref name="location"/>.
         /// </param>
         /// <param name="triggerCharacters">
@@ -65,15 +65,15 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
         /// <returns>
         ///     A <see cref="Task{TResult}"/> that resolves either a <see cref="CompletionList"/>s, or <c>null</c> if no completions are provided.
         /// </returns>
-        public override async Task<CompletionList> ProvideCompletionsAsync(XmlLocation location, ProjectDocument projectDocument, string triggerCharacters, CancellationToken cancellationToken)
+        public override async Task<CompletionList> ProvideCompletionsAsync(XmlLocation location, ProjectDocument document, string triggerCharacters, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(location);
 
-            ArgumentNullException.ThrowIfNull(projectDocument);
+            ArgumentNullException.ThrowIfNull(document);
 
             var completions = new List<CompletionItem>();
 
-            using (await projectDocument.Lock.ReaderLockAsync(cancellationToken))
+            using (await document.Lock.ReaderLockAsync(cancellationToken))
             {
                 if (!location.CanCompleteAttribute(out XSElement element, out XSAttribute replaceAttribute, out PaddingType needsPadding))
                     return null;

@@ -86,6 +86,12 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
                 Pattern = "**/*.targets",
                 Language = "xml",
                 Scheme = "file"
+            },
+            new DocumentFilter
+            {
+                Pattern = "**/*.slnx",
+                Language = "slnx",
+                Scheme = "file"
             }
         );
 
@@ -128,25 +134,28 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         /// </returns>
         async Task<CompletionList> OnCompletion(CompletionParams parameters, CancellationToken cancellationToken)
         {
-            ProjectDocument projectDocument = await Workspace.GetProjectDocument(parameters.TextDocument.Uri, cancellationToken: cancellationToken);
+            Document document = await Workspace.GetDocument(parameters.TextDocument.Uri, cancellationToken: cancellationToken);
 
             XmlLocation location;
 
             bool isIncomplete = false;
             var completionItems = new List<CompletionItem>();
-            using (await projectDocument.Lock.ReaderLockAsync(cancellationToken))
+            if (document is not XmlDocument xmlDocument)
+                return completionItems;
+
+            using (await xmlDocument.Lock.ReaderLockAsync(cancellationToken))
             {
                 Position position = parameters.Position.ToNative();
                 Log.Verbose("Completion requested for {Position:l}", position);
 
-                if (!projectDocument.HasXml)
+                if (!xmlDocument.HasXml)
                 {
                     Log.Verbose("Completion short-circuited; project document does not have valid XML.");
 
                     return NoCompletions;
                 }
 
-                location = projectDocument.XmlLocator.Inspect(position);
+                location = xmlDocument.XmlLocator.Inspect(position);
                 if (location == null)
                 {
                     Log.Verbose("Completion short-circuited; nothing interesting at {Position:l}", position);
@@ -160,12 +169,28 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
                 if (parameters.Context != null && parameters.Context.TriggerKind == CompletionTriggerKind.TriggerCharacter)
                     triggerCharacters = parameters.Context.TriggerCharacter;
 
-                var allProviderCompletions =
-                    _completionProviders.Select(
-                        provider => provider.ProvideCompletionsAsync(location, projectDocument, triggerCharacters, cancellationToken)
-                    )
-                    .ToList();
+                var projectDocument = xmlDocument as ProjectDocument;
+                var solutionDocument = xmlDocument as SolutionDocument;
 
+                var allProviderCompletions = new List<Task<CompletionList>>(
+                    _completionProviders.Select(provider =>
+                    {
+                        // The following logic implements document-kind fallback behaviour for completion providers (e.g. a completion provider for XmlDocuments will also be called for ProjectDocuments and SolutionDocuments).
+
+                        if (projectDocument != null && provider is ICompletionProvider<ProjectDocument> projectDocumentCompletionProvider)
+                            return projectDocumentCompletionProvider.ProvideCompletionsAsync(location, projectDocument, triggerCharacters, cancellationToken);
+
+                        if (solutionDocument != null && provider is ICompletionProvider<SolutionDocument> solutionDocumentCompletionProvider)
+                            return solutionDocumentCompletionProvider.ProvideCompletionsAsync(location, solutionDocument, triggerCharacters, cancellationToken);
+
+                        if (provider is ICompletionProvider<XmlDocument> xmlDocumentCompletionProvider)
+                            return xmlDocumentCompletionProvider.ProvideCompletionsAsync(location, xmlDocument, triggerCharacters, cancellationToken);
+
+                        return Task.FromResult(new CompletionList());
+                    })
+                );
+
+                
                 while (allProviderCompletions.Count > 0)
                 {
                     var providerCompletionTask = await Task.WhenAny(allProviderCompletions);

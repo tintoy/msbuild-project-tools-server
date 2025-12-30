@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace MSBuildProjectTools.LanguageServer.CompletionProviders
+namespace MSBuildProjectTools.LanguageServer.CompletionProviders.Project
 {
     using Documents;
     using SemanticModel;
@@ -15,7 +15,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
     ///     Completion provider for metadata elements / attributes of items.
     /// </summary>
     public class ItemMetadataCompletionProvider
-        : CompletionProvider
+        : CompletionProvider<ProjectDocument>
     {
         /// <summary>
         ///     Create a new <see cref="ItemMetadataCompletionProvider"/>.
@@ -34,7 +34,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
         /// <param name="location">
         ///     The <see cref="XmlLocation"/> where completions are requested.
         /// </param>
-        /// <param name="projectDocument">
+        /// <param name="document">
         ///     The <see cref="ProjectDocument"/> that contains the <paramref name="location"/>.
         /// </param>
         /// <param name="triggerCharacters">
@@ -46,17 +46,17 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
         /// <returns>
         ///     A <see cref="Task{TResult}"/> that resolves either a <see cref="CompletionList"/>s, or <c>null</c> if no completions are provided.
         /// </returns>
-        public override async Task<CompletionList> ProvideCompletionsAsync(XmlLocation location, ProjectDocument projectDocument, string triggerCharacters, CancellationToken cancellationToken)
+        public override async Task<CompletionList> ProvideCompletionsAsync(XmlLocation location, ProjectDocument document, string triggerCharacters, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(location);
 
-            ArgumentNullException.ThrowIfNull(projectDocument);
+            ArgumentNullException.ThrowIfNull(document);
 
             Log.Verbose("Evaluate completions for {XmlLocation:l}", location);
 
             var completions = new List<CompletionItem>();
 
-            using (await projectDocument.Lock.ReaderLockAsync(cancellationToken))
+            using (await document.Lock.ReaderLockAsync(cancellationToken))
             {
                 if (location.IsElement(out XSElement element) && !element.HasParentPath(WellKnownElementPaths.ItemGroup))
                 {
@@ -72,7 +72,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
                 );
 
                 completions.AddRange(
-                    GetElementCompletions(location, projectDocument, triggerCharacters, existingMetadata)
+                    GetElementCompletions(location, document, triggerCharacters, existingMetadata)
                 );
             }
 

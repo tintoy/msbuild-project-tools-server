@@ -10,7 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using LspModels = OmniSharp.Extensions.LanguageServer.Protocol.Models;
 
-namespace MSBuildProjectTools.LanguageServer.CompletionProviders
+namespace MSBuildProjectTools.LanguageServer.CompletionProviders.Project
 {
     using Documents;
     using SemanticModel;
@@ -21,7 +21,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
     ///     Completion provider for attributes on Target elements that refer to the names of other targets.
     /// </summary>
     public class TargetNameCompletionProvider
-        : CompletionProvider
+        : CompletionProvider<ProjectDocument>
     {
         /// <summary>
         ///     Create a new <see cref="TargetNameCompletionProvider"/>.
@@ -40,7 +40,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
         /// <param name="location">
         ///     The <see cref="XmlLocation"/> where completions are requested.
         /// </param>
-        /// <param name="projectDocument">
+        /// <param name="document">
         ///     The <see cref="ProjectDocument"/> that contains the <paramref name="location"/>.
         /// </param>
         /// <param name="triggerCharacters">
@@ -52,17 +52,17 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
         /// <returns>
         ///     A <see cref="Task{TResult}"/> that resolves either a <see cref="CompletionList"/>s, or <c>null</c> if no completions are provided.
         /// </returns>
-        public override async Task<CompletionList> ProvideCompletionsAsync(XmlLocation location, ProjectDocument projectDocument, string triggerCharacters, CancellationToken cancellationToken)
+        public override async Task<CompletionList> ProvideCompletionsAsync(XmlLocation location, ProjectDocument document, string triggerCharacters, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(location);
 
-            ArgumentNullException.ThrowIfNull(projectDocument);
+            ArgumentNullException.ThrowIfNull(document);
 
             Log.Verbose("Evaluate completions for {XmlLocation:l}", location);
 
             var completions = new List<CompletionItem>();
 
-            using (await projectDocument.Lock.ReaderLockAsync(cancellationToken))
+            using (await document.Lock.ReaderLockAsync(cancellationToken))
             {
                 if (!location.CanCompleteAttributeValue(out XSAttribute attribute, onElementWithPath: WellKnownElementPaths.Target) || !SupportedAttributeNames.Contains(attribute.Name))
                 {
@@ -77,7 +77,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
                 // Handle potentially composite (i.e. "Value1;Value2;Value3") values, where it's legal to have them.
                 if (attribute.Name != "Name" && attribute.Value.IndexOf(';') != -1)
                 {
-                    int startPosition = projectDocument.XmlPositions.GetAbsolutePosition(attribute.ValueRange.Start);
+                    int startPosition = document.XmlPositions.GetAbsolutePosition(attribute.ValueRange.Start);
                     int relativePosition = location.AbsolutePosition - startPosition;
 
                     SimpleList list = MSBuildExpression.ParseSimpleList(attribute.Value);
@@ -92,14 +92,14 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
                         attribute.Value
                     );
 
-                    targetRange = projectDocument.XmlPositions.GetRange(
+                    targetRange = document.XmlPositions.GetRange(
                         absoluteStartPosition: startPosition + itemAtPosition.AbsoluteStart,
                         absoluteEndPosition: startPosition + itemAtPosition.AbsoluteEnd
                     );
                 }
 
                 completions.AddRange(
-                    GetCompletionItems(projectDocument, targetRange, excludeTargetNames)
+                    GetCompletionItems(document, targetRange, excludeTargetNames)
                 );
             }
 
@@ -183,7 +183,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
         ///     The range of text that will be replaced by the completion.
         /// </param>
         /// <param name="priority">
-        ///     The item sort priority (defaults to <see cref="CompletionProvider.Priority"/>).
+        ///     The item sort priority (defaults to <see cref="CompletionProvider{TDocument}.Priority"/>).
         /// </param>
         /// <param name="description">
         ///     An optional description for the item.

@@ -8,7 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using LspModels = OmniSharp.Extensions.LanguageServer.Protocol.Models;
 
-namespace MSBuildProjectTools.LanguageServer.CompletionProviders
+namespace MSBuildProjectTools.LanguageServer.CompletionProviders.Project
 {
     using Documents;
     using SemanticModel;
@@ -18,7 +18,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
     ///     Completion provider for "PackageReference" and "DotNetCliToolReference" items.
     /// </summary>
     public class PackageReferenceCompletionProvider
-        : CompletionProvider
+        : CompletionProvider<ProjectDocument>
     {
         /// <summary>
         ///     The names of elements supported by the provider.
@@ -52,7 +52,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
         /// <param name="location">
         ///     The <see cref="XmlLocation"/> where completions are requested.
         /// </param>
-        /// <param name="projectDocument">
+        /// <param name="document">
         ///     The <see cref="ProjectDocument"/> that contains the <paramref name="location"/>.
         /// </param>
         /// <param name="triggerCharacters">
@@ -64,18 +64,18 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
         /// <returns>
         ///     A <see cref="Task{TResult}"/> that resolves either a <see cref="CompletionList"/>s, or <c>null</c> if no completions are provided.
         /// </returns>
-        public override async Task<CompletionList> ProvideCompletionsAsync(XmlLocation location, ProjectDocument projectDocument, string triggerCharacters, CancellationToken cancellationToken)
+        public override async Task<CompletionList> ProvideCompletionsAsync(XmlLocation location, ProjectDocument document, string triggerCharacters, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(location);
 
-            ArgumentNullException.ThrowIfNull(projectDocument);
+            ArgumentNullException.ThrowIfNull(document);
 
             bool isIncomplete = false;
             var completions = new List<CompletionItem>();
 
             Log.Verbose("Evaluate completions for {XmlLocation:l}", location);
 
-            using (await projectDocument.Lock.ReaderLockAsync(cancellationToken))
+            using (await document.Lock.ReaderLockAsync(cancellationToken))
             {
                 if (location.CanCompleteAttributeValue(out XSAttribute attribute, WellKnownElementPaths.Item, "Include", "Version") && SupportedElementNames.Contains(attribute.Element.Name))
                 {
@@ -85,7 +85,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
                         location.Position
                     );
 
-                    List<CompletionItem> packageCompletions = await HandlePackageReferenceAttributeCompletion(projectDocument, attribute, cancellationToken);
+                    List<CompletionItem> packageCompletions = await HandlePackageReferenceAttributeCompletion(document, attribute, cancellationToken);
                     if (packageCompletions != null)
                     {
                         isIncomplete |= packageCompletions.Count > 10; // Default page size.
@@ -117,9 +117,9 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
                     }
 
                     // Replace any characters that were typed to trigger the completion.
-                    HandleTriggerCharacters(triggerCharacters, projectDocument, ref targetRange);
+                    HandleTriggerCharacters(triggerCharacters, document, ref targetRange);
 
-                    List<CompletionItem> elementCompletions = HandlePackageReferenceElementCompletion(location, projectDocument, targetRange);
+                    List<CompletionItem> elementCompletions = HandlePackageReferenceElementCompletion(location, document, targetRange);
                     if (elementCompletions != null)
                         completions.AddRange(elementCompletions);
                 }

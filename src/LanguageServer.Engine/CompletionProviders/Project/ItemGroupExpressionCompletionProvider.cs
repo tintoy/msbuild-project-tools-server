@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 using LspModels = OmniSharp.Extensions.LanguageServer.Protocol.Models;
 
-namespace MSBuildProjectTools.LanguageServer.CompletionProviders
+namespace MSBuildProjectTools.LanguageServer.CompletionProviders.Project
 {
     using Documents;
     using SemanticModel;
@@ -19,7 +19,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
     ///     Completion provider for item group expressions.
     /// </summary>
     public class ItemGroupExpressionCompletionProvider
-        : CompletionProvider
+        : CompletionProvider<ProjectDocument>
     {
         /// <summary>
         ///     Create a new <see cref="ItemGroupExpressionCompletionProvider"/>.
@@ -38,7 +38,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
         /// <param name="location">
         ///     The <see cref="XmlLocation"/> where completions are requested.
         /// </param>
-        /// <param name="projectDocument">
+        /// <param name="document">
         ///     The <see cref="ProjectDocument"/> that contains the <paramref name="location"/>.
         /// </param>
         /// <param name="triggerCharacters">
@@ -50,19 +50,19 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
         /// <returns>
         ///     A <see cref="Task{TResult}"/> that resolves either a <see cref="CompletionList"/>s, or <c>null</c> if no completions are provided.
         /// </returns>
-        public override async Task<CompletionList> ProvideCompletionsAsync(XmlLocation location, ProjectDocument projectDocument, string triggerCharacters, CancellationToken cancellationToken)
+        public override async Task<CompletionList> ProvideCompletionsAsync(XmlLocation location, ProjectDocument document, string triggerCharacters, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(location);
 
-            ArgumentNullException.ThrowIfNull(projectDocument);
+            ArgumentNullException.ThrowIfNull(document);
 
             var completions = new List<CompletionItem>();
 
             Log.Verbose("Evaluate completions for {XmlLocation:l}", location);
 
-            using (await projectDocument.Lock.ReaderLockAsync(cancellationToken))
+            using (await document.Lock.ReaderLockAsync(cancellationToken))
             {
-                if (!projectDocument.EnableExpressions)
+                if (!document.EnableExpressions)
                     return null;
 
                 if (!location.IsExpression(out ExpressionNode expression, out Range expressionRange))
@@ -84,7 +84,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
                 );
 
                 completions.AddRange(
-                    GetCompletionItems(projectDocument, expressionRange)
+                    GetCompletionItems(document, expressionRange)
                 );
             }
 
@@ -160,7 +160,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
         ///     The range of text that will be replaced by the completion.
         /// </param>
         /// <param name="priority">
-        ///     The item sort priority (defaults to <see cref="CompletionProvider.Priority"/>).
+        ///     The item sort priority (defaults to <see cref="CompletionProvider{TDocument}.Priority"/>).
         /// </param>
         /// <param name="description">
         ///     An optional description for the item.

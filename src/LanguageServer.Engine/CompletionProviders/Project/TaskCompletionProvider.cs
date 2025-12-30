@@ -1,9 +1,8 @@
 using Serilog;
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 
-namespace MSBuildProjectTools.LanguageServer.CompletionProviders
+namespace MSBuildProjectTools.LanguageServer.CompletionProviders.Project
 {
     using Documents;
     using SemanticModel;
@@ -12,7 +11,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
     ///     Base class for MSBuild task completion providers.
     /// </summary>
     public abstract class TaskCompletionProvider
-        : CompletionProvider
+        : CompletionProvider<ProjectDocument>
     {
         /// <summary>
         ///     Create a new <see cref="TaskCompletionProvider"/>.

@@ -85,13 +85,13 @@ namespace MSBuildProjectTools.LanguageServer.Documents
             ArgumentNullException.ThrowIfNull(documentUri);
 
             if (ProjectFile.Extension.EndsWith("proj", StringComparison.OrdinalIgnoreCase))
-                Kind = ProjectDocumentKind.Project;
+                ProjectKind = ProjectKind.Project;
             else if (ProjectFile.Extension.Equals(".props", StringComparison.OrdinalIgnoreCase))
-                Kind = ProjectDocumentKind.Properties;
+                ProjectKind = ProjectKind.Properties;
             else if (ProjectFile.Extension.Equals(".targets", StringComparison.OrdinalIgnoreCase))
-                Kind = ProjectDocumentKind.Targets;
+                ProjectKind = ProjectKind.Targets;
             else
-                Kind = ProjectDocumentKind.Other;
+                ProjectKind = ProjectKind.Other;
         }
 
         /// <summary>
@@ -105,14 +105,19 @@ namespace MSBuildProjectTools.LanguageServer.Documents
         }
 
         /// <summary>
+        ///     The document kind.
+        /// </summary>
+        public override DocumentKind DocumentKind => DocumentKind.Project;
+
+        /// <summary>
         ///     The project file.
         /// </summary>
         public FileInfo ProjectFile => DocumentFile;
 
         /// <summary>
-        ///     The kind of project document.
+        ///     The kind of project.
         /// </summary>
-        public ProjectDocumentKind Kind { get; }
+        public ProjectKind ProjectKind { get; }
 
         /// <summary>
         ///     Is the underlying MSBuild project currently loaded?

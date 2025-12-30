@@ -3,8 +3,13 @@ namespace MSBuildProjectTools.LanguageServer.Documents
     /// <summary>
     ///     A kind of <see cref="ProjectDocument"/>.
     /// </summary>
-    public enum ProjectDocumentKind
+    public enum ProjectKind
     {
+        /// <summary>
+        ///     An unknown project kind.
+        /// </summary>
+        Unknown = 0,
+
         /// <summary>
         ///     A project (*.*proj).
         /// </summary>

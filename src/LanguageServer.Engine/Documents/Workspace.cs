@@ -13,6 +13,7 @@ using System.Xml;
 namespace MSBuildProjectTools.LanguageServer.Documents
 {
     using Diagnostics;
+    using Microsoft.VisualStudio.SolutionPersistence.Model;
     using SemanticModel;
     using Utilities;
 
@@ -23,9 +24,9 @@ namespace MSBuildProjectTools.LanguageServer.Documents
         : IDisposable
     {
         /// <summary>
-        ///     Documents for loaded project, keyed by document URI.
+        ///     Documents, keyed by document URI.
         /// </summary>
-        readonly ConcurrentDictionary<DocumentUri, ProjectDocument> _projectDocuments = new ConcurrentDictionary<DocumentUri, ProjectDocument>();
+        readonly ConcurrentDictionary<DocumentUri, Document> _documents = new ConcurrentDictionary<DocumentUri, Document>();
 
         /// <summary>
         ///     Create a new <see cref="Workspace"/>.
@@ -90,11 +91,11 @@ namespace MSBuildProjectTools.LanguageServer.Documents
         /// </param>
         protected virtual void Dispose(bool disposing)
         {
-            ProjectDocument[] projectDocuments = _projectDocuments.Values.ToArray();
-            _projectDocuments.Clear();
+            Document[] documents = _documents.Values.ToArray();
+            _documents.Clear();
 
-            foreach (ProjectDocument projectDocument in projectDocuments)
-                projectDocument.Dispose();
+            foreach (Document document in documents)
+                document.Dispose();
         }
 
         /// <summary>
@@ -146,6 +147,132 @@ namespace MSBuildProjectTools.LanguageServer.Documents
         bool _msbuildVersionLogged;
 
         /// <summary>
+        ///     Try to retrieve the current state for the specified document.
+        /// </summary>
+        /// <param name="documentUri">
+        ///     The document URI.
+        /// </param>
+        /// <param name="reload">
+        ///     Reload the document if it is already loaded?
+        /// </param>
+        /// <param name="cancellationToken">
+        ///     A <see cref="CancellationToken"/> that can be used to cancel the async operation.
+        /// </param>
+        /// <returns>
+        ///     The document.
+        /// </returns>
+        public async Task<Document> GetDocument(DocumentUri documentUri, bool reload = false, CancellationToken cancellationToken = default)
+        {
+            string documentFilePath = DocumentUri.GetFileSystemPath(documentUri);
+            DocumentKind documentKind = GetDocumentKind(documentFilePath);
+
+            switch (documentKind)
+            {
+                case DocumentKind.Project:
+                {
+                    bool isNewProject = false;
+                    var projectDocument = (ProjectDocument)_documents.GetOrAdd(documentUri, _ =>
+                    {
+                        isNewProject = true;
+
+                        if (MasterProject == null)
+                        {
+                            MasterProjectDocument masterProjectDocument = new(this, documentUri, Log);
+                            MasterProject = masterProjectDocument;
+
+                            return masterProjectDocument;
+                        }
+
+                        SubProjectDocument subProject = MasterProject.GetOrAddSubProject(documentUri,
+                            () => new SubProjectDocument(this, documentUri, Log, MasterProject)
+                        );
+
+                        return subProject;
+                    });
+
+                    if (!_msbuildVersionLogged)
+                    {
+                        if (MSBuildHelper.HaveMSBuild)
+                        {
+                            Log.Information("Using MSBuild engine v{MSBuildVersion:l} from {MSBuildPath}.",
+                                MSBuildHelper.MSBuildVersion,
+                                MSBuildHelper.MSBuildPath
+                            );
+                        }
+                        else
+                            Log.Warning("Failed to find any version of MSBuild compatible with the current .NET SDK (respecting global.json).");
+
+                        _msbuildVersionLogged = true;
+                    }
+
+                    try
+                    {
+                        if (isNewProject || reload)
+                        {
+                            using (await projectDocument.Lock.WriterLockAsync(cancellationToken))
+                            {
+                                await projectDocument.Load(cancellationToken);
+                            }
+                        }
+                    }
+                    catch (XmlException invalidXml)
+                    {
+                        Log.Error("Error parsing project file {ProjectFilePath}: {ErrorMessage:l}",
+                            documentFilePath,
+                            invalidXml.Message
+                        );
+                    }
+                    catch (Exception loadError)
+                    {
+                        Log.Error(loadError, "Unexpected error loading file {ProjectFilePath}.", documentFilePath);
+                    }
+
+                    return projectDocument;
+                }
+                case DocumentKind.Solution:
+                {
+                    bool isNewSolution = false;
+
+                    var solutionDocument = (SolutionDocument)_documents.GetOrAdd(documentUri, _ =>
+                    {
+                        isNewSolution = true;
+
+                        return new SolutionDocument(this, documentUri, Log);
+                    });
+
+                    try
+                    {
+                        if (isNewSolution || reload)
+                        {
+                            using (await solutionDocument.Lock.WriterLockAsync(cancellationToken))
+                            {
+                                await solutionDocument.Load(cancellationToken);
+                            }
+                        }
+                    }
+                    catch (SolutionException invalidSolution)
+                    {
+                        Log.Error("Error parsing solution file {ProjectFilePath} ({ErrorType}): {ErrorMessage:l}",
+                            documentFilePath,
+                            invalidSolution.ErrorType,
+                            invalidSolution.Message
+                        );
+                    }
+                    catch (Exception loadError)
+                    {
+                        Log.Error(loadError, "Unexpected error loading file {ProjectFilePath}.", documentFilePath);
+                    }
+
+                    return solutionDocument;
+                }
+                default:
+                {
+                    throw new InvalidOperationException($"Unsupported document kind '{documentKind}' for document '{documentFilePath}'.");
+                }
+            }
+        }
+
+        /// <summary>
         ///     Try to retrieve the current state for the specified project document.
         /// </summary>
         /// <param name="documentUri">
@@ -165,7 +292,7 @@ namespace MSBuildProjectTools.LanguageServer.Documents
             string projectFilePath = DocumentUri.GetFileSystemPath(documentUri);
 
             bool isNewProject = false;
-            ProjectDocument projectDocument = _projectDocuments.GetOrAdd(documentUri, _ =>
+            var projectDocument = (ProjectDocument)_documents.GetOrAdd(documentUri, _ =>
             {
                 isNewProject = true;
 
@@ -236,14 +363,58 @@ namespace MSBuildProjectTools.LanguageServer.Documents
         /// <exception cref="InvalidOperationException"></exception>
         public ProjectDocument GetLoadedProjectDocument(DocumentUri documentUri)
         {
-            if (!_projectDocuments.TryGetValue(documentUri, out ProjectDocument projectDocument))
+            if (_documents.TryGetValue(documentUri, out Document document))
             {
-                Log.Error("Tried to use non-existent project with document URI {DocumentUri}.", documentUri);
+                if (document is ProjectDocument projectDocument)
+                    return projectDocument;
 
-                throw new InvalidOperationException($"Project with document URI '{documentUri}' is not loaded.");
+                Log.Error("Tried to use non-project document with document URI {DocumentUri}.", documentUri);
+
+                throw new InvalidOperationException($"Document with URI '{documentUri}' is not a project.");
             }
 
-            return projectDocument;
+            Log.Error("Tried to use non-existent project with document URI {DocumentUri}.", documentUri);
+
+            throw new InvalidOperationException($"Project with document URI '{documentUri}' is not loaded.");
+        }
+
+        /// <summary>
+        ///     Try to update the current state for the specified document.
+        /// </summary>
+        /// <param name="documentUri">
+        ///     The document URI.
+        /// </param>
+        /// <param name="documentText">
+        ///     The new document text.
+        /// </param>
+        /// <param name="cancellationToken">
+        ///     A <see cref="CancellationToken"/> that can be used to cancel the async operation.
+        /// </param>
+        /// <returns>
+        ///     The document.
+        /// </returns>
+        public async Task<Document> TryUpdateDocument(DocumentUri documentUri, string documentText, CancellationToken cancellationToken = default)
+        {
+            if (!_documents.TryGetValue(documentUri, out Document document))
+            {
+                Log.Error("Tried to update non-existent document with URI {DocumentUri}.", documentUri);
+
+                throw new InvalidOperationException($"Document with URI '{documentUri}' is not loaded.");
+            }
+
+            try
+            {
+                using (await document.Lock.WriterLockAsync(cancellationToken))
+                {
+                    await document.Update(documentText, cancellationToken);
+                }
+            }
+            catch (Exception updateError)
+            {
+                Log.Error(updateError, "Failed to update project {ProjectFile}.", document.DocumentFile.FullName);
+            }
+
+            return document;
         }
 
         /// <summary>
@@ -263,11 +434,18 @@ namespace MSBuildProjectTools.LanguageServer.Documents
         /// </returns>
         public async Task<ProjectDocument> TryUpdateProjectDocument(DocumentUri documentUri, string documentText, CancellationToken cancellationToken = default)
         {
-            if (!_projectDocuments.TryGetValue(documentUri, out ProjectDocument projectDocument))
+            if (!_documents.TryGetValue(documentUri, out Document document))
             {
                 Log.Error("Tried to update non-existent project with document URI {DocumentUri}.", documentUri);
 
                 throw new InvalidOperationException($"Project with document URI '{documentUri}' is not loaded.");
+            }
+
+            if (document is not ProjectDocument projectDocument)
+            {
+                Log.Error("Tried to update non-project document with URI {DocumentUri}.", documentUri);
+
+                throw new InvalidOperationException($"Document with URI '{documentUri}' is not a project.");
             }
 
             try
@@ -286,38 +464,70 @@ namespace MSBuildProjectTools.LanguageServer.Documents
         }
 
         /// <summary>
-        ///     Publish current diagnostics (if any) for the specified project document.
+        ///     Publish current diagnostics (if any) for the specified document.
         /// </summary>
-        /// <param name="projectDocument">
-        ///     The project document.
+        /// <param name="document">
+        ///     The document.
         /// </param>
-        public void PublishDiagnostics(ProjectDocument projectDocument)
+        public void PublishDiagnostics(Document document)
         {
-            ArgumentNullException.ThrowIfNull(projectDocument);
+            ArgumentNullException.ThrowIfNull(document);
 
             DiagnosticsPublisher.Publish(
-                documentUri: projectDocument.DocumentUri,
-                diagnostics: projectDocument.Diagnostics.ToArray()
+                documentUri: document.DocumentUri,
+                diagnostics: document.Diagnostics.ToArray()
             );
         }
 
         /// <summary>
         ///     Clear current diagnostics (if any) for the specified project document.
         /// </summary>
-        /// <param name="projectDocument">
-        ///     The project document.
+        /// <param name="document">
+        ///     The document.
         /// </param>
-        public void ClearDiagnostics(ProjectDocument projectDocument)
+        public void ClearDiagnostics(Document document)
         {
-            ArgumentNullException.ThrowIfNull(projectDocument);
+            ArgumentNullException.ThrowIfNull(document);
 
-            if (!projectDocument.HasDiagnostics)
+            if (!document.HasDiagnostics)
                 return;
 
             DiagnosticsPublisher.Publish(
-                documentUri: projectDocument.DocumentUri,
+                documentUri: document.DocumentUri,
                 diagnostics: null // Overwrites existing diagnostics for this document with an empty list
             );
+        }
+
+        /// <summary>
+        ///     Remove a document from the workspace.
+        /// </summary>
+        /// <param name="documentUri">
+        ///     The document URI.
+        /// </param>
+        /// <param name="cancellationToken">
+        ///     A <see cref="CancellationToken"/> that can be used to cancel the async operation.
+        /// </param>
+        /// <returns>
+        ///     A <see cref="Task{TResult}"/> that resolves to <c>true</c> if the document was removed to the workspace; otherwise, <c>false</c>.
+        /// </returns>
+        public async Task<bool> RemoveDocument(DocumentUri documentUri, CancellationToken cancellationToken = default)
+        {
+            ArgumentNullException.ThrowIfNull(documentUri);
+
+            if (!_documents.TryRemove(documentUri, out Document document))
+                return false;
+
+            if (MasterProject == document)
+                MasterProject = null;
+
+            using (await document.Lock.WriterLockAsync(cancellationToken))
+            {
+                ClearDiagnostics(document);
+
+                await document.Unload(cancellationToken);
+            }
+
+            return true;
         }
 
         /// <summary>
@@ -336,10 +546,17 @@ namespace MSBuildProjectTools.LanguageServer.Documents
         {
             ArgumentNullException.ThrowIfNull(documentUri);
 
-            if (!_projectDocuments.TryRemove(documentUri, out ProjectDocument projectDocument))
+            if (!_documents.TryRemove(documentUri, out Document document))
                 return false;
 
-            if (MasterProject == projectDocument)
+            if (document is not ProjectDocument projectDocument)
+            {
+                Log.Error("Tried to remove non-project document with URI {DocumentUri}.", documentUri);
+
+                throw new InvalidOperationException($"Document with URI '{documentUri}' is not a project.");
+            }
+
+            if (MasterProject == document)
                 MasterProject = null;
 
             using (await projectDocument.Lock.WriterLockAsync(cancellationToken))
@@ -389,6 +606,24 @@ namespace MSBuildProjectTools.LanguageServer.Documents
                 DataDirectory.Create();
 
             TaskMetadataCache.Save(TaskMetadataCacheFile.FullName);
+        }
+
+        static DocumentKind GetDocumentKind(string documentPath)
+        {
+            if (string.IsNullOrWhiteSpace(documentPath))
+                throw new ArgumentException($"Argument cannot be null, empty, or entirely composed of whitespace: {nameof(documentPath)}.", nameof(documentPath));
+
+            string fileExension = Path.GetExtension(documentPath);
+            if (String.IsNullOrWhiteSpace(fileExension))
+                return DocumentKind.Unknown;
+
+            if (fileExension == ".slnx")
+                return DocumentKind.Solution;
+
+            if (fileExension.EndsWith("proj"))
+                return DocumentKind.Project;
+
+            return DocumentKind.Unknown;
         }
     }
 }

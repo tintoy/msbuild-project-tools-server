@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 using LspModels = OmniSharp.Extensions.LanguageServer.Protocol.Models;
 
-namespace MSBuildProjectTools.LanguageServer.CompletionProviders
+namespace MSBuildProjectTools.LanguageServer.CompletionProviders.Xml
 {
     using Documents;
     using SemanticModel;
@@ -17,7 +17,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
     ///     Completion provider for XML comments.
     /// </summary>
     public class CommentCompletionProvider
-        : CompletionProvider
+        : CompletionProvider<XmlDocument>
     {
         /// <summary>
         ///     Create a new <see cref="CommentCompletionProvider"/> provider.
@@ -36,8 +36,8 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
         /// <param name="location">
         ///     The <see cref="XmlLocation"/> where completions are requested.
         /// </param>
-        /// <param name="projectDocument">
-        ///     The <see cref="ProjectDocument"/> that contains the <paramref name="location"/>.
+        /// <param name="document">
+        ///     The <see cref="XmlDocument"/> that contains the <paramref name="location"/>.
         /// </param>
         /// <param name="triggerCharacters">
         ///     The character(s), if any, that triggered completion.
@@ -48,17 +48,17 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
         /// <returns>
         ///     A <see cref="Task{TResult}"/> that resolves either a <see cref="CompletionList"/>s, or <c>null</c> if no completions are provided.
         /// </returns>
-        public override async Task<CompletionList> ProvideCompletionsAsync(XmlLocation location, ProjectDocument projectDocument, string triggerCharacters, CancellationToken cancellationToken)
+        public override async Task<CompletionList> ProvideCompletionsAsync(XmlLocation location, XmlDocument document, string triggerCharacters, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(location);
 
-            ArgumentNullException.ThrowIfNull(projectDocument);
+            ArgumentNullException.ThrowIfNull(document);
 
             var completions = new List<CompletionItem>();
 
             Log.Verbose("Evaluate completions for {XmlLocation:l}", location);
 
-            using (await projectDocument.Lock.ReaderLockAsync(cancellationToken))
+            using (await document.Lock.ReaderLockAsync(cancellationToken))
             {
                 if (!location.CanCompleteElement(out XSElement replaceElement))
                 {
@@ -88,7 +88,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
                 }
 
                 // Replace any characters that were typed to trigger the completion.
-                HandleTriggerCharacters(triggerCharacters, projectDocument, ref targetRange);
+                HandleTriggerCharacters(triggerCharacters, document, ref targetRange);
 
                 completions.AddRange(
                     GetCompletionItems(targetRange)

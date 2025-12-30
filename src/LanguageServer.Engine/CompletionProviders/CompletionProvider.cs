@@ -12,11 +12,15 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
     /// <summary>
     ///     The base class for completion providers.
     /// </summary>
-    public abstract class CompletionProvider
-        : ICompletionProvider
+    /// <typeparam name="TDocument">
+    ///     The type of <see cref="Document"/> targeted by the completion provider.
+    /// </typeparam>
+    public abstract class CompletionProvider<TDocument>
+        : ICompletionProvider, ICompletionProvider<TDocument>
+        where TDocument : Document
     {
         /// <summary>
-        ///     Create a new <see cref="CompletionProvider"/>.
+        ///     Create a new <see cref="CompletionProvider{TDocument}"/>.
         /// </summary>
         /// <param name="logger">
         ///     The application logger.
@@ -44,8 +48,8 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
         /// <param name="location">
         ///     The <see cref="XmlLocation"/> where completions are requested.
         /// </param>
-        /// <param name="projectDocument">
-        ///     The <see cref="ProjectDocument"/> that contains the <paramref name="location"/>.
+        /// <param name="document">
+        ///     The <typeparamref name="TDocument"/> that contains the <paramref name="location"/>.
         /// </param>
         /// <param name="triggerCharacters">
         ///     The character(s), if any, that triggered completion.
@@ -56,7 +60,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
         /// <returns>
         ///     A <see cref="Task{TResult}"/> that resolves either a <see cref="CompletionList"/>, or <c>null</c> if no completions are provided.
         /// </returns>
-        public abstract Task<CompletionList> ProvideCompletionsAsync(XmlLocation location, ProjectDocument projectDocument, string triggerCharacters, CancellationToken cancellationToken);
+        public abstract Task<CompletionList> ProvideCompletionsAsync(XmlLocation location, TDocument document, string triggerCharacters, CancellationToken cancellationToken);
 
         /// <summary>
         ///     Get the textual representation used to sort the completion item with the specified label.
@@ -75,7 +79,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
         /// <summary>
         ///     Handle characters (if any) that triggered the completion.
         /// </summary>
-        /// <param name="projectDocument">
+        /// <param name="document">
         ///     The <see cref="ProjectDocument"/> that contains the <paramref name="targetRange"/>.
         /// </param>
         /// <param name="triggerCharacters">
@@ -87,26 +91,6 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
         /// <returns>
         ///     <c>true</c>, if any trigger characters were handled (i.e. the selection was extended); otherwise, <c>false</c>.
         /// </returns>
-        protected virtual bool HandleTriggerCharacters(string triggerCharacters, ProjectDocument projectDocument, ref Range targetRange)
-        {
-            ArgumentNullException.ThrowIfNull(projectDocument);
-
-            // Replace any characters that were typed to trigger the completion.
-            if (!String.IsNullOrEmpty(triggerCharacters))
-            {
-                // The last character typed is implicitly part of the current selection, if it triggered completion.
-                int extendSelectionByCharCount = triggerCharacters.Length - 1;
-                if (extendSelectionByCharCount > 0)
-                {
-                    targetRange = projectDocument.XmlPositions.ExtendLeft(targetRange, extendSelectionByCharCount);
-
-                    Log.Verbose("Completion was triggered by typing one or more characters; target range will be extended by {TriggerCharacterCount} characters toward start of document (now: {TargetRange}).", triggerCharacters.Length, targetRange);
-
-                    return true;
-                }
-            }
-
-            return false;
-        }
+        protected virtual bool HandleTriggerCharacters(string triggerCharacters, TDocument document, ref Range targetRange) => false;
     }
 }

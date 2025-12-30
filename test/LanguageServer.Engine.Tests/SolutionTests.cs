@@ -1,4 +1,3 @@
-using MSBuildProjectTools.LanguageServer.SemanticModel;
 using System;
 using System.Threading.Tasks;
 using Xunit;
@@ -8,6 +7,8 @@ using Xunit.Abstractions;
 
 namespace MSBuildProjectTools.LanguageServer.Tests
 {
+    using SemanticModel;
+
     /// <summary>
     ///     Test suite for <see cref="VsSolution"/>, <see cref="VsSolutionObject"/>, <see cref="VsSolutionObjectLocator"/>, and related types.
     /// </summary>

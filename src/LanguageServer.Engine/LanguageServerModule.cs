@@ -17,6 +17,7 @@ namespace MSBuildProjectTools.LanguageServer
 {
     using CompletionProviders;
     using CustomProtocol;
+    using Documents;
     using Diagnostics;
     using Handlers;
     using Utilities;
@@ -122,7 +123,11 @@ namespace MSBuildProjectTools.LanguageServer
                             addRegistrations(services, currentScope, true, typeof(Handler));
 
                             // Register all completion providers.
-                            addRegistrations(services, currentScope, false, typeof(ICompletionProvider), typeof(CompletionProvider));
+                            //addRegistrations(services, currentScope, false, typeof(ICompletionProvider<Document>), typeof(ICompletionProvider<XmlDocument>), typeof(ICompletionProvider<ProjectDocument>), typeof(ICompletionProvider<SolutionDocument>));
+                            //addRegistrations(services, currentScope, false, typeof(ICompletionProvider<XmlDocument>), typeof(ICompletionProvider<ProjectDocument>), typeof(ICompletionProvider<SolutionDocument>));
+                            //addRegistrations(services, currentScope, false, typeof(ICompletionProvider<ProjectDocument>));
+                            //addRegistrations(services, currentScope, false, typeof(ICompletionProvider<SolutionDocument>));
+                            addRegistrations(services, currentScope, false, typeof(ICompletionProvider));
                         })
                         .OnInitialize((languageServer, initializationParameters, cancellationToken) =>
                         {
@@ -221,12 +226,12 @@ namespace MSBuildProjectTools.LanguageServer
                 .As<IPublishDiagnostics>()
                 .InstancePerDependency();
 
-            builder.RegisterType<Documents.Workspace>()
+            builder.RegisterType<Workspace>()
                 .AsSelf()
                 .SingleInstance()
                 .OnActivated(activated =>
                 {
-                    Documents.Workspace workspace = activated.Instance;
+                    Workspace workspace = activated.Instance;
                     workspace.RestoreTaskMetadataCache();
                 });
 
@@ -243,13 +248,44 @@ namespace MSBuildProjectTools.LanguageServer
                 .As<Handler>()
                 .SingleInstance();
 
-            Type completionProviderType = typeof(CompletionProvider);
+            Type documentCompletionProviderType = typeof(CompletionProvider<Document>);
             builder.RegisterAssemblyTypes(ThisAssembly)
                 .Where(
-                    type => type.IsSubclassOf(completionProviderType) && !type.IsAbstract
+                    type => type.IsSubclassOf(documentCompletionProviderType) && !type.IsAbstract
                 )
                 .AsSelf()
-                .As<CompletionProvider>()
+                .As<ICompletionProvider>()
+                .As<CompletionProvider<Document>>()
+                .As<ICompletionProvider<Document>>()
+                .As<ICompletionProvider<XmlDocument>>()
+                .As<ICompletionProvider<ProjectDocument>>()
+                .As<ICompletionProvider<SolutionDocument>>()
+                .SingleInstance();
+
+            Type xmlDocumentCompletionProviderType = typeof(CompletionProvider<XmlDocument>);
+            builder.RegisterAssemblyTypes(ThisAssembly)
+                .Where(
+                    type => type.IsSubclassOf(xmlDocumentCompletionProviderType) && !type.IsAbstract
+                )
+                .AsSelf()
+                .As<ICompletionProvider>()
+                .SingleInstance();
+
+            Type projectDocumentCompletionProviderType = typeof(CompletionProvider<ProjectDocument>);
+            builder.RegisterAssemblyTypes(ThisAssembly)
+                .Where(
+                    type => type.IsSubclassOf(projectDocumentCompletionProviderType) && !type.IsAbstract
+                )
+                .AsSelf()
+                .As<ICompletionProvider>()
+                .SingleInstance();
+
+            Type solutionDocumentCompletionProviderType = typeof(CompletionProvider<SolutionDocument>);
+            builder.RegisterAssemblyTypes(ThisAssembly)
+                .Where(
+                    type => type.IsSubclassOf(solutionDocumentCompletionProviderType) && !type.IsAbstract
+                )
+                .AsSelf()
                 .As<ICompletionProvider>()
                 .SingleInstance();
         }

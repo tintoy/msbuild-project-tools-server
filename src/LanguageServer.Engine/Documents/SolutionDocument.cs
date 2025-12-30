@@ -44,6 +44,11 @@ namespace MSBuildProjectTools.LanguageServer.Documents
         }
 
         /// <summary>
+        ///     The document kind.
+        /// </summary>
+        public override DocumentKind DocumentKind => DocumentKind.Solution;
+
+        /// <summary>
         ///     The parsed solution.
         /// </summary>
         public VsSolution Solution { get; private set; }
