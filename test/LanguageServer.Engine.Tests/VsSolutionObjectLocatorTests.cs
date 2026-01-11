@@ -13,7 +13,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests
     ///     Test suite for <see cref="VsSolution"/>, <see cref="VsSolutionObject"/>, <see cref="VsSolutionObjectLocator"/>, and related types.
     /// </summary>
     /// <param name="testOutput"></param>
-    public class SolutionTests(ITestOutputHelper testOutput)
+    public class VsSolutionObjectLocatorTests(ITestOutputHelper testOutput)
         : TestBase(testOutput)
     {
         /// <summary>
@@ -40,6 +40,11 @@ namespace MSBuildProjectTools.LanguageServer.Tests
         [InlineData("TestSolution1.slnx", 18, 25, VsSolutionObjectKind.Folder)]
         [InlineData("TestSolution1.slnx", 18, 26, VsSolutionObjectKind.Folder)]
         [InlineData("TestSolution1.slnx", 18, 27, VsSolutionObjectKind.Folder)]
+        [InlineData("TestSolution2.slnx", 1, 1, VsSolutionObjectKind.Solution)]
+        [InlineData("TestSolution2.slnx", 2, 7, VsSolutionObjectKind.Folder)]
+        [InlineData("TestSolution2.slnx", 3, 13, VsSolutionObjectKind.Project)]
+        [InlineData("TestSolution2.slnx", 8, 53, VsSolutionObjectKind.Folder)]
+        [InlineData("TestSolution2.slnx", 9, 17, VsSolutionObjectKind.Project)]
         public async Task Can_Determine_ObjectKind_At_Location(string solutionFileName, int line, int column, VsSolutionObjectKind expectedKind)
         {
             TestSolution testData = await LoadTestSolution("TestSolutions", solutionFileName);

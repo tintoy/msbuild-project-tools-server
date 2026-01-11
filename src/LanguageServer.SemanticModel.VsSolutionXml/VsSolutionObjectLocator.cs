@@ -7,6 +7,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
     using Microsoft.VisualStudio.SolutionPersistence.Model;
     using System.IO;
     using System.Linq;
+    using System.Xml;
     using Utilities;
 
     /// <summary>
@@ -69,7 +70,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
                 throw new ArgumentNullException(nameof(xmlPositions));
 
             _solution = solution;
-            
+
             _solutionXmlLocator = solutionXmlLocator;
             _xmlPositions = xmlPositions;
 
@@ -118,35 +119,29 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
             return _objectsByStartPosition[lastMatchingRange.Start];
         }
 
+        /// <summary>
+        ///     Scan the solution XML and match up each element to its corresponding object in the VS solution model.
+        /// </summary>
         void ScanSolution()
         {
-            IXmlElementSyntax solutionRootElementSyntax = _solutionXmlLocator.Xml.RootSyntax;
-            
-            XmlLocation rootLocation = _solutionXmlLocator.Inspect(solutionRootElementSyntax.AsNode.SpanStart);
+            XmlLocation rootLocation = _solutionXmlLocator.Inspect(_solutionXmlLocator.Xml.RootSyntax.AsNode.SpanStart);
             if (rootLocation == null)
                 return;
 
-            if (rootLocation.IsElement(out XSElement element))
-            {
-                if (element.Name != XmlSolutionSchema.ElementNames.Solution)
-                    return;
+            XSElement solutionElement;
+            if (!rootLocation.IsElement(out solutionElement))
+                return;
 
-                var solutionRoot = new VsSolutionRoot(_solution, _solution.Model, element);
-                Add(solutionRoot);
+            if (solutionElement.Name != XmlSolutionSchema.ElementNames.Solution)
+                return;
 
-                ScanFolders(solutionRoot, solutionRootElementSyntax);
-            }
-        }
+            var solutionRoot = new VsSolutionRoot(_solution, _solution.Model, solutionElement);
+            Add(solutionRoot);
 
-        void ScanFolders(VsSolutionRoot solutionRoot, IXmlElementSyntax solutionElementSyntax)
-        {
-            if (solutionRoot == null)
-                throw new ArgumentNullException(nameof(solutionRoot));
+            // TODO: Add logging for each success/failure when matching SLNX elements to their associated VsSolution model.
+            // TODO: Consider organising VsSolutionFolder objects into a hierarchy.
 
-            if (solutionElementSyntax == null)
-                throw new ArgumentNullException(nameof(solutionElementSyntax));
-
-            foreach (IXmlElementSyntax folderElementSyntax in solutionElementSyntax.Elements.Where(element => element.Name == XmlSolutionSchema.ElementNames.Folder))
+            foreach (IXmlElementSyntax folderElementSyntax in solutionElement.ElementNode.Elements.Where(element => element.Name == XmlSolutionSchema.ElementNames.Folder))
             {
                 XmlLocation folderLocation = _solutionXmlLocator.Inspect(folderElementSyntax.AsNode.SpanStart);
                 if (folderLocation == null)
@@ -159,18 +154,62 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
                 if (folderElement.Name != XmlSolutionSchema.ElementNames.Folder)
                     continue;
 
-                string? folderName = folderElementSyntax.AsElement.Attributes.Where(attribute => attribute.Key == XmlSolutionSchema.AttributeNames.Name).Select(attribute => attribute.Value).FirstOrDefault();
-                if (folderName == null)
+                string? folderPath = folderElementSyntax.AsElement.Attributes.Where(attribute => attribute.Key == XmlSolutionSchema.AttributeNames.Name).Select(attribute => attribute.Value).FirstOrDefault();
+                if (folderPath == null)
                     continue;
 
-                SolutionFolderModel? folderModel = _solution.Model.FindFolder(folderName);
+                SolutionFolderModel? folderModel = _solution.Model.FindFolder(folderPath);
                 if (folderModel == null)
                     continue;
 
-                var folder = new VsSolutionFolder(_solution, folderModel, folderElement);
+                var folder = new VsSolutionFolder(_solution, folderModel, declaringXml: folderElement);
                 Add(folder);
 
-                // TODO: Handle nested folders.
+                ScanProjects(parentElement: folderElement);
+            }
+
+            ScanProjects(parentElement: solutionElement);
+        }
+
+        /// <summary>
+        ///     Scan the solution XML and match up each element to its corresponding object in the VS solution model.
+        /// </summary>
+        void ScanProjects(XSElement parentElement)
+        {
+            if (parentElement == null)
+                throw new ArgumentNullException(nameof(parentElement));
+
+            // TODO: Add logging for each success/failure when matching SLNX elements to their associated VsSolution model.
+
+            foreach (IXmlElementSyntax projectElementSyntax in parentElement.ElementNode.Elements.Where(element => element.Name == XmlSolutionSchema.ElementNames.Project))
+            {
+                XmlLocation projectLocation = _solutionXmlLocator.Inspect(projectElementSyntax.AsNode.SpanStart);
+                if (projectLocation == null)
+                    continue;
+
+                XSElement? projectElement;
+                if (!projectLocation.IsElement(out projectElement))
+                    continue;
+
+                if (projectElement.Name != XmlSolutionSchema.ElementNames.Project)
+                    continue;
+
+                string? projectPath = projectElementSyntax.AsElement.Attributes.Where(attribute => attribute.Key == XmlSolutionSchema.AttributeNames.Path).Select(attribute => attribute.Value).FirstOrDefault();
+                if (projectPath == null)
+                    continue;
+
+                SolutionProjectModel? projectModel;
+
+                // UGLY: Buggy path-matching behaviour (platform-specific directory separators) in the current version of the VS solution-model library.
+                projectPath = projectPath.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
+                projectModel = _solution.Model.SolutionProjects.FirstOrDefault(
+                    projectModel => projectModel.FilePath.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar) == projectPath
+                );
+                if (projectModel == null)
+                    continue;
+
+                var project = new VsSolutionProject(_solution, projectModel, declaringXml: projectElement);
+                Add(project);
             }
         }
 
@@ -206,13 +245,15 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
     {
         public static class ElementNames
         {
-            public static readonly string Solution = "Solution";
             public static readonly string Folder = "Folder";
+            public static readonly string Project = "Project";
+            public static readonly string Solution = "Solution";
         }
 
         public static class AttributeNames
         {
             public static readonly string Name = "Name";
+            public static readonly string Path = "Path";
         }
     }
 }

@@ -6,9 +6,26 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
     /// <summary>
     ///     Represents a project in a solution's semantic model.
     /// </summary>
-    public class VsSolutionProject(VsSolution solution, SolutionProjectModel solutionProject, XSNode declaringXml)
-        : VsSolutionObject<SolutionProjectModel>(solution, solutionProject, declaringXml)
+    public class VsSolutionProject
+        : VsSolutionObject<SolutionProjectModel>
     {
+        /// <summary>
+        ///     Create a new <see cref="VsSolutionFolder"/>.
+        /// </summary>
+        /// <param name="solution">
+        ///     The <see cref="VsSolution"/> that contains the underlying object.
+        /// </param>
+        /// <param name="model">
+        ///     The underlying <see cref="SolutionFolderModel"/>.
+        /// </param>
+        /// <param name="declaringXml">
+        ///     An <see cref="XSNode"/> representing the object's declaring XML.
+        /// </param>
+        public VsSolutionProject(VsSolution solution, SolutionProjectModel model, XSNode declaringXml)
+            : base(solution, model, declaringXml)
+        {
+        }
+
         /// <summary>
         ///     The underlying <see cref="SolutionProjectModel"/> represented by the <see cref="VsSolutionProject"/>.
         /// </summary>
