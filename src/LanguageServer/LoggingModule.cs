@@ -153,8 +153,61 @@ namespace MSBuildProjectTools.LanguageServer
                     outputTemplate: "[{Level}/{Operation}] {Message}{NewLine}{Exception}"
                 );
             }
+            else if (Environment.GetEnvironmentVariable("MSBUILD_PROJECT_TOOLS_LOGGING_TO_STDERR") == "2")
+            {
+                // Produce logs in a format that is suited to being displayed, inline, with logs from other sources (e.g. integration-testing scenarios).
+                loggerConfiguration = loggerConfiguration.Enrich.With<SourceComponentLogEnricher>();
+                loggerConfiguration = loggerConfiguration.WriteTo.TextWriter(Console.Error,
+                    levelSwitch: languageServerConfiguration.Logging.LevelSwitch,
+                    outputTemplate: "[{Level}/{SourceComponent:l}] {Message}{NewLine}{Exception}"
+                );
+            }
 
             return loggerConfiguration;
+        }
+
+        /// <summary>
+        ///     Log event enricher that adds a property to be used when simplifying categorisation of log entries (without needing to use the entire namespace-qualified type name).
+        /// </summary>
+        public class SourceComponentLogEnricher
+            : ILogEventEnricher
+        {
+            /// <summary>
+            ///     Enrich the specified log event with a SourceComponent property.
+            /// </summary>
+            /// <param name="logEvent">
+            ///     The <see cref="LogEvent"/> to enrich.
+            /// </param>
+            /// <param name="propertyFactory">
+            ///     A factory for <see cref="LogEventProperty"/> implementations.
+            /// </param>
+            public void Enrich(LogEvent logEvent, ILogEventPropertyFactory propertyFactory)
+            {
+                if (logEvent == null)
+                    throw new ArgumentNullException(nameof(logEvent));
+
+                if (propertyFactory == null)
+                    throw new ArgumentNullException(nameof(propertyFactory));
+
+                if (logEvent.Properties.ContainsKey("SourceComponent"))
+                    return;
+
+                string sourceContext = null;
+                if (logEvent.Properties.TryGetValue("SourceContext", out LogEventPropertyValue rawSourceContextProperty) && rawSourceContextProperty is ScalarValue sourceContextProperty)
+                    sourceContext = sourceContextProperty.Value as string;
+
+                string sourceComponent = "<NoComponent>";
+                if (!String.IsNullOrWhiteSpace(sourceContext))
+                {
+                    int sourceComponentIndex = sourceContext.LastIndexOf('.') + 1;
+                    if (sourceComponentIndex != 0 && sourceComponentIndex != sourceContext.Length)
+                        sourceComponent = sourceContext.Substring(sourceComponentIndex);
+                }
+
+                logEvent.AddOrUpdateProperty(
+                    propertyFactory.CreateProperty("SourceComponent", sourceComponent)
+                );
+            }
         }
     }
 }

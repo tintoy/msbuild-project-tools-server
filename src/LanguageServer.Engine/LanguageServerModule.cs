@@ -123,10 +123,6 @@ namespace MSBuildProjectTools.LanguageServer
                             addRegistrations(services, currentScope, true, typeof(Handler));
 
                             // Register all completion providers.
-                            //addRegistrations(services, currentScope, false, typeof(ICompletionProvider<Document>), typeof(ICompletionProvider<XmlDocument>), typeof(ICompletionProvider<ProjectDocument>), typeof(ICompletionProvider<SolutionDocument>));
-                            //addRegistrations(services, currentScope, false, typeof(ICompletionProvider<XmlDocument>), typeof(ICompletionProvider<ProjectDocument>), typeof(ICompletionProvider<SolutionDocument>));
-                            //addRegistrations(services, currentScope, false, typeof(ICompletionProvider<ProjectDocument>));
-                            //addRegistrations(services, currentScope, false, typeof(ICompletionProvider<SolutionDocument>));
                             addRegistrations(services, currentScope, false, typeof(ICompletionProvider));
                         })
                         .OnInitialize((languageServer, initializationParameters, cancellationToken) =>
