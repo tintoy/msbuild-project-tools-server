@@ -26,9 +26,6 @@
     <!-- Microsoft.Extensions -->
     <PackageVersion Include="Microsoft.Extensions.Logging" Version="8.0.0" />
     
-    <!-- Microsoft.Language.Xml -->
-    <PackageVersion Include="Microsoft.Language.Xml" Version="1.1.20" />
-    
     <!-- Nito.AsyncEx -->
     <PackageVersion Include="Nito.AsyncEx.Tasks" Version="1.0.1" />
     <PackageVersion Include="Nito.AsyncEx.Coordination" Version="1.0.1" />
