@@ -23,6 +23,7 @@ namespace MSBuildProjectTools.LanguageServer
     using Utilities;
 
     using LanguageServer = OmniSharp.Extensions.LanguageServer.Server.LanguageServer;
+    using MSBuildProjectTools.LanguageServer.ToolTipProviders;
 
     /// <summary>
     ///     Registration logic for language server components.
@@ -121,6 +122,9 @@ namespace MSBuildProjectTools.LanguageServer
 
                             // Register all handlers.
                             addRegistrations(services, currentScope, true, typeof(Handler));
+
+                            // Register all tooltip providers.
+                            addRegistrations(services, currentScope, false, typeof(IToolTipProvider));
 
                             // Register all completion providers.
                             addRegistrations(services, currentScope, false, typeof(ICompletionProvider));
@@ -242,6 +246,47 @@ namespace MSBuildProjectTools.LanguageServer
                 )
                 .AsSelf()
                 .As<Handler>()
+                .SingleInstance();
+
+            Type documentToolTipProviderType = typeof(ToolTipProvider<Document>);
+            builder.RegisterAssemblyTypes(ThisAssembly)
+                .Where(
+                    type => type.IsSubclassOf(documentToolTipProviderType) && !type.IsAbstract
+                )
+                .AsSelf()
+                .As<IToolTipProvider>()
+                .As<ToolTipProvider<Document>>()
+                .As<IToolTipProvider<Document>>()
+                .As<IToolTipProvider<XmlDocument>>()
+                .As<IToolTipProvider<ProjectDocument>>()
+                .As<IToolTipProvider<SolutionDocument>>()
+                .SingleInstance();
+
+            Type xmlDocumentToolTipProviderType = typeof(ToolTipProvider<XmlDocument>);
+            builder.RegisterAssemblyTypes(ThisAssembly)
+                .Where(
+                    type => type.IsSubclassOf(xmlDocumentToolTipProviderType) && !type.IsAbstract
+                )
+                .AsSelf()
+                .As<IToolTipProvider>()
+                .SingleInstance();
+
+            Type projectDocumentToolTipProviderType = typeof(ToolTipProvider<ProjectDocument>);
+            builder.RegisterAssemblyTypes(ThisAssembly)
+                .Where(
+                    type => type.IsSubclassOf(projectDocumentToolTipProviderType) && !type.IsAbstract
+                )
+                .AsSelf()
+                .As<IToolTipProvider>()
+                .SingleInstance();
+
+            Type solutionDocumentToolTipProviderType = typeof(ToolTipProvider<SolutionDocument>);
+            builder.RegisterAssemblyTypes(ThisAssembly)
+                .Where(
+                    type => type.IsSubclassOf(solutionDocumentToolTipProviderType) && !type.IsAbstract
+                )
+                .AsSelf()
+                .As<IToolTipProvider>()
                 .SingleInstance();
 
             Type documentCompletionProviderType = typeof(CompletionProvider<Document>);

@@ -8,16 +8,21 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
+#nullable enable
+
 namespace MSBuildProjectTools.LanguageServer.Handlers
 {
     using ContentProviders;
     using Documents;
     using MediatR;
+    using MSBuildProjectTools.LanguageServer.ToolTipProviders;
     using SemanticModel;
+    using System.Collections.Generic;
+    using System.Linq;
     using Utilities;
 
     /// <summary>
-    ///     Handler for document hover requests.
+    ///     Handler for document tooltip requests.
     /// </summary>
     public sealed class HoverHandler
         : Handler, IHoverHandler
@@ -31,21 +36,31 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         /// <param name="workspace">
         ///     The document workspace.
         /// </param>
+        /// <param name="toolTipProviders">
+        ///     Registered tooltip providers.
+        /// </param>
         /// <param name="logger">
         ///     The application logger.
         /// </param>
-        public HoverHandler(ILanguageServer server, Workspace workspace, ILogger logger)
+        public HoverHandler(ILanguageServer server, Workspace workspace, IEnumerable<IToolTipProvider> toolTipProviders, ILogger logger)
             : base(server, logger)
         {
             ArgumentNullException.ThrowIfNull(workspace);
+            ArgumentNullException.ThrowIfNull(toolTipProviders);
 
             Workspace = workspace;
+            ToolTipProviders = toolTipProviders;
         }
 
         /// <summary>
         ///     The document workspace.
         /// </summary>
         Workspace Workspace { get; }
+
+        /// <summary>
+        ///     Registered tooltip providers.
+        /// </summary>
+        IEnumerable<IToolTipProvider> ToolTipProviders { get; }
 
         /// <summary>
         ///     The document selector that describes documents to synchronize.
@@ -89,7 +104,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         }
 
         /// <summary>
-        ///     Called when the mouse pointer hovers over text.
+        ///     Called when the mouse pointer tooltips over text.
         /// </summary>
         /// <param name="parameters">
         ///     The notification parameters.
@@ -98,35 +113,67 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         ///     A <see cref="CancellationToken"/> that can be used to cancel the operation.
         /// </param>
         /// <returns>
-        ///     A <see cref="Task{TResult}"/> whose result is the hover details, or <c>null</c> if no hover details are provided by the handler.
+        ///     A <see cref="Task{TResult}"/> whose result is the tooltip details, or <c>null</c> if no tooltip details are provided by the handler.
         /// </returns>
-        async Task<Hover> OnHover(TextDocumentPositionParams parameters, CancellationToken cancellationToken)
+        async Task<Hover?> OnHover(TextDocumentPositionParams parameters, CancellationToken cancellationToken)
         {
             if (Workspace.Configuration.Language.DisableFeature.Hover)
                 return null;
 
-            ProjectDocument projectDocument = await Workspace.GetProjectDocument(parameters.TextDocument.Uri, cancellationToken: cancellationToken);
+            Document document = await Workspace.GetDocument(parameters.TextDocument.Uri, cancellationToken: cancellationToken);
 
-            using (await projectDocument.Lock.ReaderLockAsync(cancellationToken))
+            using (await document.Lock.ReaderLockAsync(cancellationToken))
             {
-                // This won't work if we can't inspect the MSBuild project state and match it up to the target position.
-                if (!projectDocument.HasMSBuildProject || projectDocument.IsMSBuildProjectCached)
-                {
-                    Log.Debug("Not providing hover information for project {ProjectFile} (the underlying MSBuild project is not currently valid; see the list of diagnostics applicable to this file for more information).",
-                        projectDocument.ProjectFile.FullName
-                    );
-
-                    return null;
-                }
-
                 Position position = parameters.Position.ToNative();
 
-                XmlLocation location = projectDocument.XmlLocator.Inspect(position);
-                if (location == null)
+                var xmlDocument = document as XmlDocument;
+                var projectDocument = document as ProjectDocument;
+                var solutionDocument = document as SolutionDocument;
+
+                if (projectDocument != null)
                 {
-                    Log.Debug("Not providing hover information for {Position} in {ProjectFile} (nothing interesting at this position).",
+                    // This won't work if we can't inspect the MSBuild project state and match it up to the target position.
+                    if (!projectDocument.HasMSBuildProject || projectDocument.IsMSBuildProjectCached)
+                    {
+                        Log.Debug("Not providing tooltip information for project {ProjectFile} (the underlying MSBuild project is not currently valid; see the list of diagnostics applicable to this file for more information).",
+                            projectDocument.ProjectFile.FullName
+                        );
+
+                        return null;
+                    }
+                }
+                else if (solutionDocument != null)
+                {
+                    // This won't work if we can't inspect the MSBuild project state and match it up to the target position.
+                    if (!solutionDocument.HasSolution || solutionDocument.IsSolutionCached)
+                    {
+                        Log.Debug("Not providing tooltip information for solution {SolutionFile} (the underlying solution is not currently valid; see the list of diagnostics applicable to this file for more information).",
+                            solutionDocument.SolutionFile.FullName
+                        );
+
+                        return null;
+                    }
+                }
+
+                XmlLocation? location;
+                if (xmlDocument != null)
+                {
+                    location = xmlDocument.XmlLocator.Inspect(position);
+                    if (location == null)
+                    {
+                        Log.Debug("Not providing tooltip information for {Position} in {DocumentFile} (nothing interesting at this position).",
+                            position,
+                            xmlDocument.DocumentFile.FullName
+                        );
+
+                        return null;
+                    }
+                }
+                else
+                {
+                    Log.Debug("Not providing tooltip information for {Position} in {DocumentFile} (tooltips are not supported for this file type).",
                         position,
-                        projectDocument.ProjectFile.FullName
+                        document.DocumentFile.FullName
                     );
 
                     return null;
@@ -136,146 +183,47 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
 
                 if (!location.IsElementOrAttribute())
                 {
-                    Log.Debug("Not providing hover information for {Position} in {ProjectFile} (position does not represent an element or attribute).",
+                    Log.Debug("Not providing tooltip information for {Position} in {ProjectFile} (position does not represent an element or attribute).",
                         position,
-                        projectDocument.ProjectFile.FullName
+                        document.DocumentFile.FullName
                     );
 
                     return null;
                 }
 
-                // Match up the MSBuild item / property with its corresponding XML element / attribute.
-                MSBuildObject msbuildObject;
+                MarkedStringsOrMarkupContent? toolTipContent = null;
 
-                Container<MarkedString> hoverContent = null;
-                var contentProvider = new HoverContentProvider(projectDocument);
-                if (location.IsElement(out XSElement element))
+                foreach (IToolTipProvider toolTipProvider in ToolTipProviders.OrderBy(provider => provider.Priority))
                 {
-                    msbuildObject = projectDocument.GetMSBuildObjectAtPosition(element.Start);
-                    switch (msbuildObject)
+                    // The following logic implements document-kind fallback behaviour for tooltip providers (e.g. a tooltip provider for XmlDocuments will also be called for ProjectDocuments and SolutionDocuments).
+
+                    if (projectDocument != null && toolTipProvider is IToolTipProvider<ProjectDocument> projectDocumentToolTipProvider)
                     {
-                        case MSBuildProperty property:
-                        {
-                            hoverContent = HoverContentProvider.Property(property);
-
+                        toolTipContent = await projectDocumentToolTipProvider.ProvideToolTipContentAsync(location, projectDocument, cancellationToken);
+                        if (toolTipContent != null)
                             break;
-                        }
-                        case MSBuildUnusedProperty unusedProperty:
-                        {
-                            hoverContent = HoverContentProvider.UnusedProperty(unusedProperty);
-
-                            break;
-                        }
-                        case MSBuildItemGroup itemGroup:
-                        {
-                            hoverContent = contentProvider.ItemGroup(itemGroup);
-
-                            break;
-                        }
-                        case MSBuildUnusedItemGroup unusedItemGroup:
-                        {
-                            hoverContent = HoverContentProvider.UnusedItemGroup(unusedItemGroup);
-
-                            break;
-                        }
-                        case MSBuildTarget target:
-                        {
-                            // Currently (and this is a bug), an MSBuildTarget is returned by MSBuildLocator when the location being inspected
-                            // is actually on one of its child (task) elements.
-                            if (element.Path == WellKnownElementPaths.Target)
-                                hoverContent = HoverContentProvider.Target(target);
-
-                            break;
-                        }
-                        case MSBuildImport import:
-                        {
-                            hoverContent = HoverContentProvider.Import(import);
-
-                            break;
-                        }
-                        case MSBuildUnresolvedImport unresolvedImport:
-                        {
-                            hoverContent = contentProvider.UnresolvedImport(unresolvedImport);
-
-                            break;
-                        }
-                        default:
-                        {
-                            hoverContent = HoverContentProvider.Element(element);
-
-                            break;
-                        }
                     }
-                }
-                else if (location.IsElementText(out XSElementText text))
-                {
-                    msbuildObject = projectDocument.GetMSBuildObjectAtPosition(text.Element.Start);
-                    switch (msbuildObject)
+
+                    if (solutionDocument != null && toolTipProvider is IToolTipProvider<SolutionDocument> solutionDocumentToolTipProvider)
                     {
-                        case MSBuildProperty property:
-                        {
-                            hoverContent = HoverContentProvider.Property(property);
-
+                        toolTipContent = await solutionDocumentToolTipProvider.ProvideToolTipContentAsync(location, solutionDocument, cancellationToken);
+                        if (toolTipContent != null)
                             break;
-                        }
-                        case MSBuildUnusedProperty unusedProperty:
-                        {
-                            hoverContent = HoverContentProvider.UnusedProperty(unusedProperty);
-
-                            break;
-                        }
                     }
-                }
-                else if (location.IsAttribute(out XSAttribute attribute))
-                {
-                    msbuildObject = projectDocument.GetMSBuildObjectAtPosition(attribute.Start);
-                    switch (msbuildObject)
+
+                    if (toolTipProvider is IToolTipProvider<XmlDocument> xmlDocumentToolTipProvider)
                     {
-                        case MSBuildItemGroup itemGroup:
-                        {
-                            hoverContent = contentProvider.ItemGroupMetadata(itemGroup, attribute.Name);
-
+                        toolTipContent = await xmlDocumentToolTipProvider.ProvideToolTipContentAsync(location, xmlDocument, cancellationToken);
+                        if (toolTipContent != null)
                             break;
-                        }
-                        case MSBuildUnusedItemGroup unusedItemGroup:
-                        {
-                            hoverContent = contentProvider.UnusedItemGroupMetadata(unusedItemGroup, attribute.Name);
-
-                            break;
-                        }
-                        case MSBuildSdkImport sdkImport:
-                        {
-                            hoverContent = HoverContentProvider.SdkImport(sdkImport);
-
-                            break;
-                        }
-                        case MSBuildUnresolvedSdkImport unresolvedSdkImport:
-                        {
-                            hoverContent = contentProvider.UnresolvedSdkImport(unresolvedSdkImport);
-
-                            break;
-                        }
-                        case MSBuildImport import:
-                        {
-                            hoverContent = HoverContentProvider.Import(import);
-
-                            break;
-                        }
-                        default:
-                        {
-                            if (attribute.Name == "Condition")
-                                hoverContent = contentProvider.Condition(attribute.Element.Name, attribute.Value);
-
-                            break;
-                        }
                     }
                 }
 
-                if (hoverContent == null)
+                if (toolTipContent == null)
                 {
-                    Log.Debug("No hover content available for {Position} in {ProjectFile}.",
+                    Log.Debug("No tooltip content available for {Position} in {DocumentFile}.",
                         position,
-                        projectDocument.ProjectFile.FullName
+                        document.DocumentFile.FullName
                     );
 
                     return null;
@@ -283,7 +231,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
 
                 return new Hover
                 {
-                    Contents = new MarkedStringsOrMarkupContent(hoverContent),
+                    Contents = toolTipContent,
                     Range = location.Node.Range.ToLsp()
                 };
             }
@@ -298,7 +246,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         HoverRegistrationOptions IRegistration<HoverRegistrationOptions>.GetRegistrationOptions() => HoverRegistrationOptions;
 
         /// <summary>
-        ///     Handle a request for hover information.
+        ///     Handle a request for tooltip information.
         /// </summary>
         /// <param name="parameters">
         ///     The request parameters.
@@ -307,26 +255,26 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         ///     A <see cref="CancellationToken"/> that can be used to cancel the request.
         /// </param>
         /// <returns>
-        ///     A <see cref="Task"/> representing the operation whose result is the hover details or <c>null</c> if no hover details are provided.
+        ///     A <see cref="Task"/> representing the operation whose result is the tooltip details or <c>null</c> if no tooltip details are provided.
         /// </returns>
         async Task<Hover> IRequestHandler<HoverParams, Hover>.Handle(HoverParams parameters, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(parameters);
-
+            
             try
             {
-                return await OnHover(parameters, cancellationToken);
+                return await OnHover(parameters, cancellationToken) ?? new Hover();
             }
             catch (Exception unexpectedError)
             {
                 Log.Error(unexpectedError, "Unhandled exception in {Method:l}.", "OnHover");
 
-                return null;
+                return new Hover();
             }
         }
 
         /// <summary>
-        ///     Called to inform the handler of the language server's hover capabilities.
+        ///     Called to inform the handler of the language server's tooltip capabilities.
         /// </summary>
         /// <param name="capabilities">
         ///     A <see cref="HoverCapability"/> data structure representing the capabilities.

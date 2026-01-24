@@ -107,6 +107,38 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
         }
 
         [Fact]
+        public async Task HoverCsproj()
+        {
+            var testFilePath = Path.Combine(_workspaceRoot, "Test.csproj");
+            await File.WriteAllTextAsync(testFilePath,
+            """
+            <Project Sdk="Microsoft.NET.Sdk">
+                <PropertyGroup>
+                    <OutputType>Exe</OutputType>
+                    <TargetFramework>net6.0</TargetFramework>
+                </PropertyGroup>  
+            </Project>
+            """);
+
+            var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+            Hover hoverResult = await _fixture.Client.SendRequest(new HoverParams
+            {
+                TextDocument = new TextDocumentIdentifier
+                {
+                    Uri = DocumentUri.FromFileSystemPath(testFilePath)
+                },
+                Position = new Position(3, 9).ToLsp()
+            }, timeout.Token);
+
+            Assert.NotNull(hoverResult);
+            Assert.NotNull(hoverResult.Contents);
+            Assert.Equal(
+                "Property: `OutputType` Type of output to generate (WinExe, Exe, or Library) Value: `Exe`",
+                hoverResult.Contents.ToString()
+            );
+        }
+
+        [Fact]
         public async Task AutoCompleteSlnx()
         {
             var testFilePath = Path.Combine(_workspaceRoot, "Test.slnx");
