@@ -1,10 +1,12 @@
 using Microsoft.Build.Exceptions;
+using Microsoft.Build.Locator;
 using Microsoft.VisualStudio.SolutionPersistence.Model;
 using MSBuildProjectTools.LanguageServer.SemanticModel;
 using MSBuildProjectTools.LanguageServer.Utilities;
 using OmniSharp.Extensions.LanguageServer.Protocol;
 using Serilog;
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Text;
 using System.Threading;
@@ -74,7 +76,28 @@ namespace MSBuildProjectTools.LanguageServer.Documents
         /// <remarks>
         ///     If the current solution XML is invalid, the original solution model is retained, but <see cref="SolutionLocator"/> functionality will be unavailable (since source positions may no longer match up).
         /// </remarks>
+        [MemberNotNullWhen(false, nameof(SolutionLocator))]
         public bool IsSolutionCached { get; private set; }
+
+        /// <summary>
+        ///     Get the VS Solution object (if any) at the specified position in the project file.
+        /// </summary>
+        /// <param name="position">
+        ///     The target position.
+        /// </param>
+        /// <returns>
+        ///     The VS Solution object, or <c>null</c> no object was found at the specified position.
+        /// </returns>
+        public VsSolutionObject? GetVsSolutionObjectAtPosition(Position position)
+        {
+            if (!HasSolution)
+                throw new InvalidOperationException($"VS Solution '{SolutionFile.FullName}' is not loaded.");
+
+            if (IsSolutionCached)
+                throw new InvalidOperationException($"VS Solution '{SolutionFile.FullName}' is a cached (out-of-date) copy because the project XML is currently invalid; positional lookups can't work in this scenario.");
+
+            return SolutionLocator.Find(position);
+        }
 
         /// <summary>
         ///     Load and parse the solution.

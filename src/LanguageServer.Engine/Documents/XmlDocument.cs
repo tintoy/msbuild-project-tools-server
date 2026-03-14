@@ -6,6 +6,7 @@ using OmniSharp.Extensions.LanguageServer.Protocol;
 using Serilog;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -55,6 +56,7 @@ namespace MSBuildProjectTools.LanguageServer.Documents
         /// <summary>
         ///     Is the project XML currently loaded?
         /// </summary>
+        [MemberNotNullWhen(true, nameof(Xml), nameof(XmlPositions))]
         public bool HasXml => Xml != null && XmlPositions != null;
 
         /// <summary>
@@ -125,6 +127,41 @@ namespace MSBuildProjectTools.LanguageServer.Documents
             IsDirty = false;
 
             return ValueTask.CompletedTask;
+        }
+
+        /// <summary>
+        ///     Get the XML object (if any) at the specified position in the project file.
+        /// </summary>
+        /// <param name="position">
+        ///     The target position.
+        /// </param>
+        /// <returns>
+        ///     The object, or <c>null</c> if no object was found at the specified position.
+        /// </returns>
+        public SyntaxNode GetXmlAtPosition(Position position)
+        {
+            if (!HasXml)
+                throw new InvalidOperationException($"XML for project '{DocumentFile.FullName}' is not loaded.");
+
+            return Xml.FindNode(position, XmlPositions);
+        }
+
+        /// <summary>
+        ///     Get the XML object (if any) at the specified position in the project file.
+        /// </summary>
+        /// <typeparam name="TXml">
+        ///     The type of XML object to return.
+        /// </typeparam>
+        /// <param name="position">
+        ///     The target position.
+        /// </param>
+        /// <returns>
+        ///     The object, or <c>null</c> no object of the specified type was found at the specified position.
+        /// </returns>
+        public TXml GetXmlAtPosition<TXml>(Position position)
+            where TXml : SyntaxNode
+        {
+            return GetXmlAtPosition(position) as TXml;
         }
     }
 }

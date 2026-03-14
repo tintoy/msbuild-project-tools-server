@@ -6,28 +6,25 @@ using System.Threading.Tasks;
 
 #nullable enable
 
-using ToolTip = OmniSharp.Extensions.LanguageServer.Protocol.Models.Hover;
-
 namespace MSBuildProjectTools.LanguageServer.ToolTipProviders
 {
     using ContentProviders;
     using Documents;
     using SemanticModel;
-    using Utilities;
     
     /// <summary>
     ///     Tooltip provider for MSBuild <see cref="ProjectDocument"/>s.
     /// </summary>
-    public class MSBuildProjectToolTipProvider
+    public class ProjectDocumentToolTipProvider
         : ToolTipProvider<ProjectDocument>
     {
         /// <summary>
-        ///     Create a new <see cref="MSBuildProjectToolTipProvider"/>.
+        ///     Create a new <see cref="ProjectDocumentToolTipProvider"/>.
         /// </summary>
         /// <param name="logger">
         ///     The application logger.
         /// </param>
-        public MSBuildProjectToolTipProvider(ILogger logger)
+        public ProjectDocumentToolTipProvider(ILogger logger)
             : base(logger)
         {
         }

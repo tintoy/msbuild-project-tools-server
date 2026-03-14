@@ -531,41 +531,6 @@ namespace MSBuildProjectTools.LanguageServer.Documents
         }
 
         /// <summary>
-        ///     Get the XML object (if any) at the specified position in the project file.
-        /// </summary>
-        /// <param name="position">
-        ///     The target position.
-        /// </param>
-        /// <returns>
-        ///     The object, or <c>null</c> if no object was found at the specified position.
-        /// </returns>
-        public SyntaxNode GetXmlAtPosition(Position position)
-        {
-            if (!HasXml)
-                throw new InvalidOperationException($"XML for project '{ProjectFile.FullName}' is not loaded.");
-
-            return Xml.FindNode(position, XmlPositions);
-        }
-
-        /// <summary>
-        ///     Get the XML object (if any) at the specified position in the project file.
-        /// </summary>
-        /// <typeparam name="TXml">
-        ///     The type of XML object to return.
-        /// </typeparam>
-        /// <param name="position">
-        ///     The target position.
-        /// </param>
-        /// <returns>
-        ///     The object, or <c>null</c> no object of the specified type was found at the specified position.
-        /// </returns>
-        public TXml GetXmlAtPosition<TXml>(Position position)
-            where TXml : SyntaxNode
-        {
-            return GetXmlAtPosition(position) as TXml;
-        }
-
-        /// <summary>
         ///     Get the MSBuild object (if any) at the specified position in the project file.
         /// </summary>
         /// <param name="position">
