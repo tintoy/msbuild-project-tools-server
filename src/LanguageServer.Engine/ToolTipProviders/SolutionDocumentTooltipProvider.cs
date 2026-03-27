@@ -1,6 +1,7 @@
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using Serilog;
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -8,7 +9,6 @@ using System.Threading.Tasks;
 
 namespace MSBuildProjectTools.LanguageServer.ToolTipProviders
 {
-    using ContentProviders;
     using Documents;
     using SemanticModel;
 
@@ -66,25 +66,51 @@ namespace MSBuildProjectTools.LanguageServer.ToolTipProviders
                     {
                         case VsSolutionRoot solutionRoot:
                         {
-                            tooltipContent = null; // TODO: Provide content for the solution root.
+                            tooltipContent = new List<MarkedString>
+                            {
+                                $"Solution: `{solutionDocument.DocumentFile.Name}`"
+                            };
 
                             break;
                         }
                         case VsSolutionFolder folder:
                         {
-                            tooltipContent = null; // TODO: Provide content for the solution root.
+                            tooltipContent = new List<MarkedString>
+                            {
+                                $"Folder: `{folder.Name}`"
+                            };
+
+                            break;
+                        }
+                        case VsSolutionFile item:
+                        {
+                            tooltipContent = new List<MarkedString>
+                            {
+                                $"File: `{item.Name}`"
+                            };
 
                             break;
                         }
                         case VsSolutionProject project:
                         {
-                            tooltipContent = null; // TODO: Provide content for the project.
+                            tooltipContent = new List<MarkedString>
+                            {
+                                $"Project: `{project.Name}`"
+                            };
 
                             break;
                         }
                         default:
                         {
-                            tooltipContent = null; // TODO: Provide content for the element.
+                            if (vsSolutionObject != null)
+                            {
+                                tooltipContent = new List<MarkedString>
+                                {
+                                    $"Unknown {vsSolutionObject.GetType().Name.Replace("VsSolution", String.Empty)}: `{vsSolutionObject.Name}`"
+                                };
+                            }
+                            else
+                                tooltipContent = null;
 
                             break;
                         }
@@ -98,25 +124,51 @@ namespace MSBuildProjectTools.LanguageServer.ToolTipProviders
                     {
                         case VsSolutionRoot solutionRoot:
                         {
-                            tooltipContent = null; // TODO: Provide content for the solution root.
+                            tooltipContent = new List<MarkedString>
+                            {
+                                $"Solution: `{solutionDocument.DocumentFile.Name}`"
+                            };
 
                             break;
                         }
                         case VsSolutionFolder folder:
                         {
-                            tooltipContent = null; // TODO: Provide content for the solution root.
+                            tooltipContent = new List<MarkedString>
+                            {
+                                $"Folder: `{folder.Name}`"
+                            };
+
+                            break;
+                        }
+                        case VsSolutionFile item:
+                        {
+                            tooltipContent = new List<MarkedString>
+                            {
+                                $"File: `{item.Name}`"
+                            };
 
                             break;
                         }
                         case VsSolutionProject project:
                         {
-                            tooltipContent = null; // TODO: Provide content for the project.
+                            tooltipContent = new List<MarkedString>
+                            {
+                                $"Project: `{project.Name}`"
+                            };
 
                             break;
                         }
                         default:
                         {
-                            tooltipContent = null; // TODO: Provide content for the containing element.
+                            if (vsSolutionObject != null)
+                            {
+                                tooltipContent = new List<MarkedString>
+                                {
+                                    $"Unknown {vsSolutionObject.GetType().Name.Replace("VsSolution", String.Empty)}: `{vsSolutionObject.Name}`"
+                                };
+                            }
+                            else
+                                tooltipContent = null;
 
                             break;
                         }
@@ -130,25 +182,103 @@ namespace MSBuildProjectTools.LanguageServer.ToolTipProviders
                     {
                         case VsSolutionRoot solutionRoot:
                         {
-                            tooltipContent = null; // TODO: Provide content for the solution root.
+                            // We don't currently support tooltips for any specific attributes of the solution root element.
+                            tooltipContent = new List<MarkedString>
+                            {
+                                $"Solution: `{solutionDocument.DocumentFile.Name}`"
+                            };
 
                             break;
                         }
                         case VsSolutionFolder folder:
                         {
-                            tooltipContent = null; // TODO: Provide content for the solution root.
+                            switch (attribute.Name)
+                            {
+                                case "Name":
+                                {
+                                    tooltipContent = new List<MarkedString>
+                                    {
+                                        $"Folder.Name: `{folder.Name}`"
+                                    };
+
+                                    break;
+                                }
+                                default:
+                                {
+                                    tooltipContent = new List<MarkedString>
+                                    {
+                                        $"Folder: `{folder.Name}`"
+                                    };
+
+                                    break;
+                                }
+                            }
+
+                            break;
+                        }
+                        case VsSolutionFile file:
+                        {
+                            switch (attribute.Name)
+                            {
+                                case "Path":
+                                {
+                                    tooltipContent = new List<MarkedString>
+                                    {
+                                        $"File.Path: `{file.Name}`"
+                                    };
+
+                                    break;
+                                }
+                                default:
+                                {
+                                    tooltipContent = new List<MarkedString>
+                                    {
+                                        $"File: `{file.Name}`"
+                                    };
+
+                                    break;
+                                }
+                            }
 
                             break;
                         }
                         case VsSolutionProject project:
                         {
-                            tooltipContent = null; // TODO: Provide content for the project.
+                            switch (attribute.Name)
+                            {
+                                case "Path":
+                                {
+                                    tooltipContent = new List<MarkedString>
+                                    {
+                                        $"Project.Path: `{project.Name}`"
+                                    };
+
+                                    break;
+                                }
+                                default:
+                                {
+                                    tooltipContent = new List<MarkedString>
+                                    {
+                                        $"Project: `{project.Name}`"
+                                    };
+
+                                    break;
+                                }
+                            }
 
                             break;
                         }
                         default:
                         {
-                            tooltipContent = null; // TODO: Provide content for the attribute.
+                            if (vsSolutionObject != null)
+                            {
+                                tooltipContent = new List<MarkedString>
+                                {
+                                    $"Unknown {vsSolutionObject.GetType().Name.Replace("VsSolution", String.Empty)}: `{vsSolutionObject.Name}`"
+                                };
+                            }
+                            else
+                                tooltipContent = null;
 
                             break;
                         }

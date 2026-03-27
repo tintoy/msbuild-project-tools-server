@@ -60,7 +60,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         /// <summary>
         ///     The LSP document selector that describes documents the handler is interested in.
         /// </summary>
-        DocumentSelector DocumentSelector { get; } = new DocumentSelector(DocumentFilters.All);
+        DocumentSelector DocumentSelector { get; } = DocumentSelectors.All;
 
         /// <summary>
         ///     Registration options for handling completion-request events.

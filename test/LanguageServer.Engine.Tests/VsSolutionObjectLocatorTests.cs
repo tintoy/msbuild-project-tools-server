@@ -33,7 +33,9 @@ namespace MSBuildProjectTools.LanguageServer.Tests
         /// </param>
         [Theory(DisplayName = "Can determine the type of solution object at location ")]
         [InlineData("TestSolution1.slnx", 1, 1, VsSolutionObjectKind.Solution)]
+        [InlineData("TestSolution1.slnx", 7, 7, VsSolutionObjectKind.Folder)]
         [InlineData("TestSolution1.slnx", 7, 9, VsSolutionObjectKind.Folder)]
+        [InlineData("TestSolution1.slnx", 8, 10, VsSolutionObjectKind.File)]
         [InlineData("TestSolution1.slnx", 18, 4, VsSolutionObjectKind.Solution)]
         [InlineData("TestSolution1.slnx", 18, 5, VsSolutionObjectKind.Folder)]
         [InlineData("TestSolution1.slnx", 18, 14, VsSolutionObjectKind.Folder)]
@@ -48,6 +50,15 @@ namespace MSBuildProjectTools.LanguageServer.Tests
         public async Task Can_Determine_ObjectKind_At_Location(string solutionFileName, int line, int column, VsSolutionObjectKind expectedKind)
         {
             TestSolution testData = await LoadTestSolution("TestSolutions", solutionFileName);
+
+            foreach (VsSolutionObject vso in testData.ObjectLocations.AllObjects)
+            {
+                Log.Information("SolutionLocator: ({SolutionObjectRange}) -> {SolutionObjectKind} {SolutionObjectName}",
+                    vso.XmlRange,
+                    vso.Kind,
+                    vso.Name
+                );
+            }
 
             var targetPosition = new Position(line, column);
             VsSolutionObject? objectAtLocation = testData.ObjectLocations.Find(targetPosition);

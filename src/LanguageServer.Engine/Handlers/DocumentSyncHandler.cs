@@ -66,7 +66,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         /// <summary>
         ///     The document selector that describes documents to synchronize.
         /// </summary>
-        DocumentSelector DocumentSelector { get; } = new DocumentSelector(DocumentFilters.All);
+        DocumentSelector DocumentSelector { get; } = DocumentSelectors.All;
 
         /// <summary>
         ///     The document workspace.

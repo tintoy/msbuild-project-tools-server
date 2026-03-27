@@ -28,8 +28,8 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
         Project = 3,
 
         /// <summary>
-        ///     A solution item (<see cref="SolutionItemModel"/>) in a solution.
+        ///     A file in a folder (<see cref="SolutionFolderModel"/>) in a solution.
         /// </summary>
-        Item = 4,
+        File = 4,
     }
 }

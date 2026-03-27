@@ -63,7 +63,7 @@ namespace MSBuildProjectTools.LanguageServer.Documents
         /// <summary>
         ///     Is the underlying solution currently loaded?
         /// </summary>
-        public bool HasSolution => HasXml && Solution != null;
+        public bool HasSolution => HasXml && Solution.IsValid;
 
         /// <summary>
         ///     The solution object-lookup facility.
@@ -117,7 +117,7 @@ namespace MSBuildProjectTools.LanguageServer.Documents
 
             bool loaded = await TryLoadVsSolution(cancellationToken);
             if (loaded)
-                SolutionLocator = new VsSolutionObjectLocator(Solution, XmlLocator, XmlPositions);
+                SolutionLocator = new VsSolutionObjectLocator(Solution, XmlLocator, XmlPositions, Log);
             else
                 SolutionLocator = null;
 
@@ -147,7 +147,7 @@ namespace MSBuildProjectTools.LanguageServer.Documents
 
             bool loaded = await TryLoadVsSolution(cancellationToken);
             if (loaded)
-                SolutionLocator = new VsSolutionObjectLocator(Solution, XmlLocator, XmlPositions);
+                SolutionLocator = new VsSolutionObjectLocator(Solution, XmlLocator, XmlPositions, Log);
             else
                 SolutionLocator = null;
 
@@ -187,7 +187,11 @@ namespace MSBuildProjectTools.LanguageServer.Documents
             try
             {
                 if (HasSolution && !IsDirty)
+                {
+                    Log.Information("**ALREADY_LOADED_SOLUTION_FOLDER_COUNT**: {SolutionFolderCount}", Solution.Model.SolutionFolders.Count);
+
                     return true;
+                }
 
                 if (HasSolution && IsDirty)
                 {
@@ -202,6 +206,8 @@ namespace MSBuildProjectTools.LanguageServer.Documents
                 }
                 else
                     Solution = await VsSolution.Load(Solution.File, cancellationToken);
+
+                Log.Information("**LOADED_SOLUTION_FOLDER_COUNT**: {SolutionFolderCount}", Solution.Model.SolutionFolders.Count);
 
                 return true;
             }

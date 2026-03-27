@@ -179,6 +179,65 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
             );
         }
 
+        [Fact]
+        public async Task HoverSlnx()
+        {
+            var testFilePath = Path.Combine(_workspaceRoot, "Test.slnx");
+            await File.WriteAllTextAsync(testFilePath,
+            """
+            <Solution>
+                <Configurations>
+                    <Platform Name="Any CPU" />
+                    <Platform Name="x64" />
+                    <Platform Name="x86" />
+                </Configurations>
+                <Folder Name="/Solution Items/">
+                    <File Path=".editorconfig" />
+                    <File Path=".gitignore" />
+                    <File Path="Directory.Build.props" />
+                    <File Path="Directory.Build.targets" />
+                    <File Path="Directory.Packages.props" />
+                    <File Path="LICENSE" />
+                    <File Path="MSBuildProjectTools.ruleset" />
+                    <File Path="OSSREADME.json" />
+                    <File Path="README.md" />
+                </Folder>
+                <Folder Name="/src/">
+                    <Project Path="src/LanguageServer.Common/LanguageServer.Common.csproj" />
+                    <Project Path="src/LanguageServer.Engine/LanguageServer.Engine.csproj" />
+                    <Project Path="src/LanguageServer.SemanticModel.MSBuild/LanguageServer.SemanticModel.MSBuild.csproj" />
+                    <Project Path="src/LanguageServer.SemanticModel.Xml/LanguageServer.SemanticModel.Xml.csproj" />
+                    <Project Path="src/LanguageServer/LanguageServer.csproj" />
+                </Folder>
+                <Folder Name="/test/">
+                    <Project Path="test/LanguageServer.Engine.Tests/LanguageServer.Engine.Tests.csproj">
+                        <Platform Solution="Debug|Any CPU" Project="x64" />
+                    </Project>
+                    <Project Path="test/LanguageServer.IntegrationTests/LanguageServer.IntegrationTests.csproj">
+                        <Platform Project="x64" />
+                    </Project>
+                </Folder>
+            </Solution>
+            """);
+
+            var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+            Hover hoverResult = await _fixture.Client.SendRequest(new HoverParams
+            {
+                TextDocument = new TextDocumentIdentifier
+                {
+                    Uri = DocumentUri.FromFileSystemPath(testFilePath)
+                },
+                Position = new Position(7, 7).ToLsp()
+            }, timeout.Token);
+
+            Assert.NotNull(hoverResult);
+            Assert.NotNull(hoverResult.Contents);
+            Assert.Equal(
+                "Folder: `Solution Items`",
+                hoverResult.Contents.ToString()
+            );
+        }
+
         /// <summary>
         ///     Test that the language server does process textDocument/didOpen
         ///     notification by testing that the busy state notification (msbuild/busy)

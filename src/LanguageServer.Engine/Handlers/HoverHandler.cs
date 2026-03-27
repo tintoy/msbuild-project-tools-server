@@ -1,3 +1,4 @@
+using MediatR;
 using OmniSharp.Extensions.LanguageServer.Protocol;
 using OmniSharp.Extensions.LanguageServer.Protocol.Client.Capabilities;
 using OmniSharp.Extensions.LanguageServer.Protocol.Document;
@@ -5,6 +6,8 @@ using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using OmniSharp.Extensions.LanguageServer.Protocol.Server;
 using Serilog;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -12,13 +15,9 @@ using System.Threading.Tasks;
 
 namespace MSBuildProjectTools.LanguageServer.Handlers
 {
-    using ContentProviders;
     using Documents;
-    using MediatR;
-    using MSBuildProjectTools.LanguageServer.ToolTipProviders;
     using SemanticModel;
-    using System.Collections.Generic;
-    using System.Linq;
+    using ToolTipProviders;
     using Utilities;
 
     /// <summary>
@@ -65,7 +64,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         /// <summary>
         ///     The document selector that describes documents to synchronize.
         /// </summary>
-        DocumentSelector DocumentSelector { get; } = new DocumentSelector(DocumentFilters.All);
+        DocumentSelector DocumentSelector { get; } = DocumentSelectors.All;
 
         /// <summary>
         ///     Get registration options for handling document events.
@@ -94,6 +93,8 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         {
             if (Workspace.Configuration.Language.DisableFeature.Hover)
                 return null;
+
+            Log.Information("OnDebug!***");
 
             Document document = await Workspace.GetDocument(parameters.TextDocument.Uri, cancellationToken: cancellationToken);
 

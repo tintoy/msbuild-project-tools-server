@@ -1,149 +1,25 @@
-using System.Collections.Generic;
-using System.Linq;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 
 namespace MSBuildProjectTools.LanguageServer
 {
     /// <summary>
-    ///     Well-known document filters.
+    ///     Well-known document selectors.
     /// </summary>
-    public static class DocumentFilters
+    public static class DocumentSelectors
     {
         /// <summary>
-        ///     The identifier for the "file" scheme.
+        ///     A selector for all document types.
         /// </summary>
-        static readonly string FileSchemeIdentifier = "file";
+        public static DocumentSelector All => new DocumentSelector(DocumentFilters.All);
 
         /// <summary>
-        ///     Well-known MSBuild document filters.
+        ///     A selector for all MSBuild document types.
         /// </summary>
-        public static class MSBuild
-        {
-            /// <summary>
-            ///     The document filter for any file using the MSBuild language.
-            /// </summary>
-            public static DocumentFilter ByLanguage => new DocumentFilter
-            {
-                Pattern = "**/*.*",
-                Language = LanguageIdentifiers.MSBuild,
-                Scheme = FileSchemeIdentifier,
-            };
-
-            /// <summary>
-            ///     The document filter for all files using the MSBuild language.
-            /// </summary>
-            public static IEnumerable<DocumentFilter> All
-            {
-                get
-                {
-                    yield return ByLanguage;
-                }
-            }
-        }
+        public static DocumentSelector MSBuild => new DocumentSelector(DocumentFilters.MSBuild.All);
 
         /// <summary>
-        ///     Well-known XML document filters.
+        ///     A selector for all VS Solution XML (SLNX) document types.
         /// </summary>
-        public static class Xml
-        {
-            /// <summary>
-            ///     The document filter for MSBuild project files using the XML language.
-            /// </summary>
-            public static DocumentFilter MSBuildProjectFiles => new DocumentFilter
-            {
-                Pattern = "**/*.*proj",
-                Language = LanguageIdentifiers.Xml,
-                Scheme = FileSchemeIdentifier,
-            };
-
-            /// <summary>
-            ///     The document filter for MSBuild properties files using the XML language.
-            /// </summary>
-            public static DocumentFilter MSBuildPropertiesFiles => new DocumentFilter
-            {
-                Pattern = "**/*.props",
-                Language = LanguageIdentifiers.Xml,
-                Scheme = FileSchemeIdentifier,
-            };
-
-            /// <summary>
-            ///     The document filter for MSBuild target files using the XML language.
-            /// </summary>
-            public static DocumentFilter MSBuildTargetsFiles => new DocumentFilter
-            {
-                Pattern = "**/*.targets",
-                Language = LanguageIdentifiers.Xml,
-                Scheme = FileSchemeIdentifier,
-            };
-
-            /// <summary>
-            ///     The document filter for any file using the VS Solution XML language.
-            /// </summary>
-            public static readonly DocumentFilter SlnxFiles = new DocumentFilter
-            {
-                Pattern = "**/*.slnx",
-                Language = LanguageIdentifiers.Xml,
-                Scheme = FileSchemeIdentifier
-            };
-
-            /// <summary>
-            ///     The document filter for all MSBuild and VS Solution XML files using the XML language.
-            /// </summary>
-            public static IEnumerable<DocumentFilter> All
-            {
-                get
-                {
-                    yield return MSBuildProjectFiles;
-                    yield return MSBuildPropertiesFiles;
-                    yield return MSBuildTargetsFiles;
-                    yield return SlnxFiles;
-                }
-            }
-        }
-
-        /// <summary>
-        ///     Well-known VS Solution XML document filters.
-        /// </summary>
-        public static class VsSolutionXml
-        {
-            /// <summary>
-            ///     The document filter for any file using the VS Solution XML language.
-            /// </summary>
-            public static readonly DocumentFilter ByLanguage = new DocumentFilter
-            {
-                Pattern = "**/*.*",
-                Language = LanguageIdentifiers.VsSolutionXml,
-                Scheme = FileSchemeIdentifier
-            };
-
-            /// <summary>
-            ///     The document filter for any file using the VS Solution XML language.
-            /// </summary>
-            public static readonly DocumentFilter SlnxFiles = new DocumentFilter
-            {
-                Pattern = "**/*.slnx",
-                Language = LanguageIdentifiers.VsSolutionXml,
-                Scheme = FileSchemeIdentifier
-            };
-
-            /// <summary>
-            ///     The document filter for all VS Solution XML files using the XML language.
-            /// </summary>
-            public static IEnumerable<DocumentFilter> All
-            {
-                get
-                {
-                    yield return ByLanguage;
-
-                    yield return SlnxFiles;
-                }
-            }
-        }
-
-        /// <summary>
-        ///     The document filter for all supported file types and languages.
-        /// </summary>
-        public static IEnumerable<DocumentFilter> All => MSBuild.All.Concat(VsSolutionXml.All).Concat(Xml.All);
+        public static DocumentSelector VsSolutionXml => new DocumentSelector(DocumentFilters.VsSolutionXml.All);
     }
 }
-
