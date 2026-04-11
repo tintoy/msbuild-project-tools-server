@@ -166,10 +166,6 @@ namespace MSBuildProjectTools.LanguageServer.Documents
             SolutionLocator = null;
             IsSolutionCached = false;
 
-            Xml = null;
-            XmlPositions = null;
-            IsDirty = false;
-
             await base.Unload(cancellationToken);
         }
 

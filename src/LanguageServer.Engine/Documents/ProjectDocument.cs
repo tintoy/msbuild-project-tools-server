@@ -224,15 +224,11 @@ namespace MSBuildProjectTools.LanguageServer.Documents
         /// </param>
         public override async ValueTask Unload(CancellationToken cancellationToken = default)
         {
-            await base.Unload(cancellationToken);
-
             TryUnloadMSBuildProject();
             MSBuildLocator = null;
             IsMSBuildProjectCached = false;
 
-            Xml = null;
-            XmlPositions = null;
-            IsDirty = false;
+            await base.Unload(cancellationToken);
         }
 
         /// <summary>
