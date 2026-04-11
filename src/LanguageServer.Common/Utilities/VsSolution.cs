@@ -113,40 +113,20 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
             if (!IsValid)
                 throw new InvalidOperationException($"Cannot save the solution because its model is missing or invalid.");
 
-            if (solutionFile == File)
-            {
-                await Save(cancellationToken);
+            VsSolution solution = this;
 
-                return this;
+            if (solution.File != solutionFile)
+            {
+                solution = this with
+                {
+                    File = solutionFile,
+                    Format = VsSolutionHelper.GetSolutionFormat(solutionFile.Name),
+                };
             }
 
-            VsSolutionFormat format = VsSolutionHelper.GetSolutionFormat(solutionFile.Name);
+            await solution.Save(cancellationToken);
 
-            switch (format)
-            {
-                case VsSolutionFormat.Legacy:
-                {
-                    await SolutionSerializers.SlnFileV12.SaveAsync(solutionFile.FullName, Model, cancellationToken);
-
-                    break;
-                }
-                case VsSolutionFormat.Xml:
-                {
-                    await SolutionSerializers.SlnXml.SaveAsync(solutionFile.FullName, Model, cancellationToken);
-
-                    break;
-                }
-                default:
-                {
-                    throw new NotSupportedException($"Unsupported format '{format}' for solution file '{solutionFile}'.");
-                }
-            }
-
-            return this with
-            {
-                File = solutionFile,
-                Format = format,
-            };
+            return solution;
         }
 
         /// <summary>
@@ -172,27 +152,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
             if (solutionContent == null)
                 throw new ArgumentNullException(nameof(solutionContent));
 
-            SolutionModel solutionModel;
-
-            switch (Format)
-            {
-                case VsSolutionFormat.Legacy:
-                {
-                    solutionModel = await SolutionSerializers.SlnFileV12.OpenAsync(solutionContent, cancellationToken);
-
-                    break;
-                }
-                case VsSolutionFormat.Xml:
-                {
-                    solutionModel = await SolutionSerializers.SlnXml.OpenAsync(solutionContent, cancellationToken);
-
-                    break;
-                }
-                default:
-                {
-                    throw new ArgumentException($"Unsupported format for solution file '{File.Name}'.", nameof(solutionContent));
-                }
-            }
+            SolutionModel solutionModel = await LoadSolutionModel(solutionContent, Format, cancellationToken);
 
             return this with
             {
@@ -261,33 +221,11 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
             if (String.IsNullOrWhiteSpace(solutionFile.Extension))
                 throw new ArgumentException($"Cannot determine the solution file format (file name '{solutionFile.FullName}' has no extension).", nameof(solutionFile));
 
-            VsSolutionFormat format = VsSolutionHelper.GetSolutionFormat(solutionFile.Name);
-
-            SolutionModel solutionModel;
-
-            switch (format)
-            {
-                case VsSolutionFormat.Legacy:
-                {
-                    solutionModel = await SolutionSerializers.SlnFileV12.OpenAsync(solutionFile.FullName, cancellationToken);
-
-                    break;
-                }
-                case VsSolutionFormat.Xml:
-                {
-                    solutionModel = await SolutionSerializers.SlnXml.OpenAsync(solutionFile.FullName, cancellationToken);
-
-                    break;
-                }
-                default:
-                {
-                    throw new NotSupportedException($"Unsupported format for solution file '{solutionFile.FullName}'.");
-                }
-            }
+            (SolutionModel solutionModel, VsSolutionFormat solutionFormat) = await LoadSolutionModel(solutionFile, cancellationToken);
 
             return new VsSolution(
                 File: solutionFile,
-                Format: format,
+                Format: solutionFormat,
                 Model: solutionModel,
                 IsValid: true
             );
@@ -347,6 +285,83 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
                 return null;
 
             return solution.Model;
+        }
+
+        /// <summary>
+        ///     Load the VS solution model from a file.
+        /// </summary>
+        /// <param name="solutionFile">
+        ///     A <see cref="FileInfo"/> representing the target solution file.
+        /// </param>
+        /// <param name="cancellationToken">
+        ///     A <see cref="CancellationToken"/> that can be used to cancel the asynchronous operation.
+        /// </param>
+        /// <returns>
+        ///     A tuple containing the loaded solution model and a <see cref="VsSolutionFormat"/> value indicating the solution file format).
+        /// </returns>
+        static async Task<(SolutionModel SolutionModel, VsSolutionFormat SolutionFormat)> LoadSolutionModel(FileInfo solutionFile, CancellationToken cancellationToken)
+        {
+            if (solutionFile == null)
+                throw new ArgumentNullException(nameof(solutionFile));
+
+            if (String.IsNullOrWhiteSpace(solutionFile.Extension))
+                throw new ArgumentException($"Cannot determine the solution file format (file name '{solutionFile.FullName}' has no extension).", nameof(solutionFile));
+
+            VsSolutionFormat solutionFormat = VsSolutionHelper.GetSolutionFormat(solutionFile.Name);
+
+            SolutionModel solutionModel;
+
+            using (FileStream solutionContent = solutionFile.OpenRead())
+            {
+                solutionModel = await LoadSolutionModel(solutionContent, solutionFormat, cancellationToken);
+            }
+            
+            return (SolutionModel: solutionModel, SolutionFormat: solutionFormat);
+        }
+
+        /// <summary>
+        ///     Load the VS solution model from a file.
+        /// </summary>
+        /// <param name="solutionContent">
+        ///     A <see cref="Stream"/> containing the serialised solution model.
+        /// </param>
+        /// <param name="solutionFormat">
+        ///     A <see cref="Stream"/> containing the serialised solution model.
+        /// </param>
+        /// <param name="cancellationToken">
+        ///     A <see cref="CancellationToken"/> that can be used to cancel the asynchronous operation.
+        /// </param>
+        /// <returns>
+        ///     The loaded solution model.
+        /// </returns>
+        static async Task<SolutionModel> LoadSolutionModel(Stream solutionContent, VsSolutionFormat solutionFormat, CancellationToken cancellationToken)
+        {
+            if (solutionContent == null)
+                throw new ArgumentNullException(nameof(solutionContent));
+
+            SolutionModel solutionModel;
+
+            switch (solutionFormat)
+            {
+                case VsSolutionFormat.Legacy:
+                {
+                    solutionModel = await SolutionSerializers.SlnFileV12.OpenAsync(solutionContent, cancellationToken);
+
+                    break;
+                }
+                case VsSolutionFormat.Xml:
+                {
+                    solutionModel = await SolutionSerializers.SlnXml.OpenAsync(solutionContent, cancellationToken);
+
+                    break;
+                }
+                default:
+                {
+                    throw new NotSupportedException($"Unsupported solution format'{solutionFormat}'.");
+                }
+            }
+
+            return solutionModel;
         }
     }
 

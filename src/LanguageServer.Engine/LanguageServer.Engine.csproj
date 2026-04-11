@@ -32,8 +32,4 @@
     <ProjectReference Include="../LanguageServer.SemanticModel.VsSolutionXml/LanguageServer.SemanticModel.VsSolutionXml.csproj" />
     <ProjectReference Include="../LanguageServer.SemanticModel.Xml/LanguageServer.SemanticModel.Xml.csproj" />
   </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="ToolTipProviders\Project\" />
-  </ItemGroup>
 </Project>

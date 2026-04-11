@@ -1,5 +1,4 @@
 using Serilog;
-using System;
 
 namespace MSBuildProjectTools.LanguageServer.CompletionProviders.Project
 {
@@ -21,7 +20,6 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders.Project
         protected ProjectCompletionProvider(ILogger logger)
             : base(logger)
         {
-            ArgumentNullException.ThrowIfNull(logger);
         }
     }
 }

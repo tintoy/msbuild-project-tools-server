@@ -21,7 +21,6 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders.Solution
         protected SolutionCompletionProvider(ILogger logger)
             : base(logger)
         {
-            ArgumentNullException.ThrowIfNull(logger);
         }
     }
 }

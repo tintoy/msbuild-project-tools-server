@@ -112,9 +112,9 @@ namespace MSBuildProjectTools.LanguageServer.Documents
             // Unload sub-projects, if necessary.
             DocumentUri[] subProjectDocumentUris = SubProjects.Keys.ToArray();
             foreach (DocumentUri subProjectDocumentUri in subProjectDocumentUris)
-                await RemoveSubProject(subProjectDocumentUri);
+                await RemoveSubProject(subProjectDocumentUri, cancellationToken);
 
-            await base.Unload();
+            await base.Unload(cancellationToken);
         }
 
         /// <summary>

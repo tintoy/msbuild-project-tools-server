@@ -1,6 +1,4 @@
 using Microsoft.Build.Evaluation;
-using Microsoft.Language.Xml;
-using Nito.AsyncEx;
 using NuGet.Configuration;
 using NuGet.Protocol;
 using NuGet.Protocol.Core.Types;
@@ -13,8 +11,6 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-
-using LspModels = OmniSharp.Extensions.LanguageServer.Protocol.Models;
 
 namespace MSBuildProjectTools.LanguageServer.Documents
 {

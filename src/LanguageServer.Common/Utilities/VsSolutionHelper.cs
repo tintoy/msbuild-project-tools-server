@@ -91,35 +91,17 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
             if (String.IsNullOrWhiteSpace(solutionFile))
                 throw new ArgumentException("Argument cannot be null, empty, or entirely composed of whitespace: 'solutionFile'.", nameof(solutionFile));
 
-            string? solutionFileExtension = Path.GetExtension(solutionFile);
-            if (String.IsNullOrWhiteSpace(solutionFileExtension))
-                throw new ArgumentException($"Cannot determine the solution file format (file name '{solutionFile}' has no extension).", nameof(solutionFile));
+            ISolutionSerializer? serializer = SolutionSerializers.GetSerializerByMoniker(solutionFile);
+            if  (serializer == null)
+                throw new NotSupportedException($"Cannot determine the solution file format (file '{solutionFile}' does not have a recognised format).");
 
-            return solutionFileExtension?.ToLowerInvariant() switch
-            {
-                ".sln"  => VsSolutionFormat.Legacy,
-                ".slnx" => VsSolutionFormat.Xml,
-                _       => VsSolutionFormat.Unknown,
-            };
-        }
+            if (ReferenceEquals(serializer, SolutionSerializers.SlnFileV12))
+                return VsSolutionFormat.Legacy;
 
-        /// <summary>
-        ///     Get an a appropriate solution serialiser for the specified solution-file format.
-        /// </summary>
-        /// <param name="format">
-        ///     A <see cref="VsSolutionFormat"/> value indicating the solution-file format.
-        /// </param>
-        /// <returns>
-        ///     The <see cref="ISolutionSerializer"/>, or <c>null</c> if the <paramref name="format"/> is not supported.
-        /// </returns>
-        public static ISolutionSerializer? GetSolutionSerializer(VsSolutionFormat format)
-        {
-            return format switch
-            {
-                VsSolutionFormat.Legacy => SolutionSerializers.SlnFileV12,
-                VsSolutionFormat.Xml    => SolutionSerializers.SlnXml,
-                _                       => null,
-            };
+            if (ReferenceEquals(serializer, SolutionSerializers.SlnXml))
+                return VsSolutionFormat.Xml;
+
+            throw new NotSupportedException($"Unsupported solution file format (file '{solutionFile}' needs the '{serializer.GetType().FullName} serialiser, which is not supported by MSBuild Project Tools).");
         }
     }
 }
