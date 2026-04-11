@@ -63,7 +63,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests
         public void Dispose()
         {
             Dispose(true);
-            GC.SuppressFinalize(false);
+            GC.SuppressFinalize(this);
         }
 
         protected virtual void Dispose(bool disposing)
