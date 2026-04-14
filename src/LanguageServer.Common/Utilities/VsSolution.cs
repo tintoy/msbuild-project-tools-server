@@ -311,7 +311,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
 
             SolutionModel solutionModel;
 
-            using (FileStream solutionContent = solutionFile.OpenRead())
+            using (FileStream solutionContent = solutionFile.OpenAsyncRead())
             {
                 solutionModel = await LoadSolutionModel(solutionContent, solutionFormat, cancellationToken);
             }
