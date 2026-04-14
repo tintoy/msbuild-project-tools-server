@@ -19,7 +19,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders.Project
     ///     Completion provider for property expressions.
     /// </summary>
     public class PropertyExpressionCompletionProvider
-        : CompletionProvider<ProjectDocument>
+        : ProjectCompletionProvider
     {
         /// <summary>
         ///     Create a new <see cref="PropertyExpressionCompletionProvider"/>.

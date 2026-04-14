@@ -21,7 +21,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders.Project
     ///     Completion provider for attributes on Target elements that refer to the names of other targets.
     /// </summary>
     public class TargetNameCompletionProvider
-        : CompletionProvider<ProjectDocument>
+        : ProjectCompletionProvider
     {
         /// <summary>
         ///     Create a new <see cref="TargetNameCompletionProvider"/>.

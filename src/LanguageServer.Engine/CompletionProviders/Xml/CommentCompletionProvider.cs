@@ -17,7 +17,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders.Xml
     ///     Completion provider for XML comments.
     /// </summary>
     public class CommentCompletionProvider
-        : CompletionProvider<XmlDocument>
+        : XmlDocumentCompletionProvider
     {
         /// <summary>
         ///     Create a new <see cref="CommentCompletionProvider"/> provider.

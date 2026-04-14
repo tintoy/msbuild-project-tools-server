@@ -20,7 +20,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders.Project
     ///     Completion provider for item metadata expressions.
     /// </summary>
     public class ItemMetadataExpressionCompletionProvider
-        : CompletionProvider<ProjectDocument>
+        : ProjectCompletionProvider
     {
         /// <summary>
         ///     Create a new <see cref="ItemMetadataExpressionCompletionProvider"/>.

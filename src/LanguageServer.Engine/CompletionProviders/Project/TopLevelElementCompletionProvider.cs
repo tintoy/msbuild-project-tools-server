@@ -17,7 +17,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders.Project
     ///     Completion provider for the top-level elements (e.g. PropertyGroup, ItemGroup, Target, etc).
     /// </summary>
     public class TopLevelElementCompletionProvider
-        : CompletionProvider<ProjectDocument>
+        : ProjectCompletionProvider
     {
         /// <summary>
         ///     Create a new <see cref="TopLevelElementCompletionProvider"/>.

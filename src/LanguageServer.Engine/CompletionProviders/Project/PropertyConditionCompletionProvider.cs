@@ -17,7 +17,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders.Project
     ///     Completion provider the Condition attribute of a property element.
     /// </summary>
     public class PropertyConditionCompletionProvider
-        : CompletionProvider<ProjectDocument>
+        : ProjectCompletionProvider
     {
         /// <summary>
         ///     Create a new <see cref="PropertyConditionCompletionProvider"/>.

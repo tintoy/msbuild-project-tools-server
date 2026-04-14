@@ -18,7 +18,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders.Project
     ///     Completion provider for "PackageReference" and "DotNetCliToolReference" items.
     /// </summary>
     public class PackageReferenceCompletionProvider
-        : CompletionProvider<ProjectDocument>
+        : ProjectCompletionProvider
     {
         /// <summary>
         ///     The names of elements supported by the provider.

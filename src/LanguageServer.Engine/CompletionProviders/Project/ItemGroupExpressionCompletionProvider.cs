@@ -19,7 +19,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders.Project
     ///     Completion provider for item group expressions.
     /// </summary>
     public class ItemGroupExpressionCompletionProvider
-        : CompletionProvider<ProjectDocument>
+        : ProjectCompletionProvider
     {
         /// <summary>
         ///     Create a new <see cref="ItemGroupExpressionCompletionProvider"/>.

@@ -17,7 +17,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders.Project
     ///     Completion provider for attributes of items.
     /// </summary>
     public class ItemAttributeCompletionProvider
-        : CompletionProvider<ProjectDocument>
+        : ProjectCompletionProvider
     {
         /// <summary>
         ///     The names of well-known attributes for MSBuild item elements.

@@ -11,7 +11,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders.Project
     ///     Base class for MSBuild task completion providers.
     /// </summary>
     public abstract class TaskCompletionProvider
-        : CompletionProvider<ProjectDocument>
+        : ProjectCompletionProvider
     {
         /// <summary>
         ///     Create a new <see cref="TaskCompletionProvider"/>.

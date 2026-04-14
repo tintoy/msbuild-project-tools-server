@@ -6,6 +6,24 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders.Xml
     using Documents;
 
     /// <summary>
+    ///     The base class for completion providers that target <see cref="XmlDocument"/>s (documents in XML format).
+    /// </summary>
+    public abstract class XmlDocumentCompletionProvider
+        : XmlDocumentCompletionProvider<XmlDocument>
+    {
+        /// <summary>
+        ///     Create a new <see cref="XmlDocumentCompletionProvider{TDocument}"/>.
+        /// </summary>
+        /// <param name="logger">
+        ///     The application logger.
+        /// </param>
+        protected XmlDocumentCompletionProvider(ILogger logger)
+            : base(logger)
+        {
+        }
+    }
+
+    /// <summary>
     ///     The base class for completion providers that target documents in XML format.
     /// </summary>
     /// <typeparam name="TDocument">

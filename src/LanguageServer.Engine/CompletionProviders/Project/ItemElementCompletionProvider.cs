@@ -18,7 +18,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders.Project
     ///     Completion provider for the common item elements.
     /// </summary>
     public class ItemElementCompletionProvider
-        : CompletionProvider<ProjectDocument>
+        : ProjectCompletionProvider
     {
         /// <summary>
         ///     Create a new <see cref="ItemElementCompletionProvider"/>.

@@ -19,7 +19,7 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders.Project
     ///     Completion provider for the common property elements.
     /// </summary>
     public class PropertyElementCompletionProvider
-        : CompletionProvider<ProjectDocument>
+        : ProjectCompletionProvider
     {
         /// <summary>
         ///     Create a new <see cref="PropertyElementCompletionProvider"/>.
