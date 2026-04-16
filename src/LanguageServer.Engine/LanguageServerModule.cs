@@ -255,11 +255,6 @@ namespace MSBuildProjectTools.LanguageServer
                 )
                 .AsSelf()
                 .As<IToolTipProvider>()
-                .As<ToolTipProvider<Document>>()
-                .As<IToolTipProvider<Document>>()
-                .As<IToolTipProvider<XmlDocument>>()
-                .As<IToolTipProvider<ProjectDocument>>()
-                .As<IToolTipProvider<SolutionDocument>>()
                 .SingleInstance();
 
             Type xmlDocumentToolTipProviderType = typeof(ToolTipProvider<XmlDocument>);
