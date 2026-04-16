@@ -291,11 +291,6 @@ namespace MSBuildProjectTools.LanguageServer
                 )
                 .AsSelf()
                 .As<ICompletionProvider>()
-                .As<CompletionProvider<Document>>()
-                .As<ICompletionProvider<Document>>()
-                .As<ICompletionProvider<XmlDocument>>()
-                .As<ICompletionProvider<ProjectDocument>>()
-                .As<ICompletionProvider<SolutionDocument>>()
                 .SingleInstance();
 
             Type xmlDocumentCompletionProviderType = typeof(CompletionProvider<XmlDocument>);
