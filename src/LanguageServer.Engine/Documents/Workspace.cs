@@ -164,7 +164,7 @@ namespace MSBuildProjectTools.LanguageServer.Documents
         public async Task<Document> GetDocument(DocumentUri documentUri, bool reload = false, CancellationToken cancellationToken = default)
         {
             string documentFilePath = DocumentUri.GetFileSystemPath(documentUri);
-            DocumentKind documentKind = GetDocumentKind(documentFilePath);
+            DocumentKind documentKind = DocumentHelper.GetDocumentKind(documentFilePath);
 
             switch (documentKind)
             {
@@ -606,24 +606,6 @@ namespace MSBuildProjectTools.LanguageServer.Documents
                 DataDirectory.Create();
 
             TaskMetadataCache.Save(TaskMetadataCacheFile.FullName);
-        }
-
-        static DocumentKind GetDocumentKind(string documentPath)
-        {
-            if (string.IsNullOrWhiteSpace(documentPath))
-                throw new ArgumentException($"Argument cannot be null, empty, or entirely composed of whitespace: {nameof(documentPath)}.", nameof(documentPath));
-
-            string fileExension = Path.GetExtension(documentPath);
-            if (String.IsNullOrWhiteSpace(fileExension))
-                return DocumentKind.Unknown;
-
-            if (fileExension == ".slnx")
-                return DocumentKind.Solution;
-
-            if (fileExension.EndsWith("proj"))
-                return DocumentKind.Project;
-
-            return DocumentKind.Unknown;
         }
     }
 }

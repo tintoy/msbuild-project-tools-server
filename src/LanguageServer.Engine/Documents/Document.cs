@@ -1,11 +1,9 @@
-using Microsoft.Language.Xml;
 using Nito.AsyncEx;
 using OmniSharp.Extensions.LanguageServer.Protocol;
 using Serilog;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
