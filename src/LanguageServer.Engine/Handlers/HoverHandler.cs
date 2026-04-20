@@ -239,12 +239,14 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
             
             try
             {
+                // NOTE: We intentionally return an empty Hover rather than null here because the current OmniSharp LSP library version does not handle null hover responses correctly.
                 return await OnHover(parameters, cancellationToken) ?? new Hover();
             }
             catch (Exception unexpectedError)
             {
                 Log.Error(unexpectedError, "Unhandled exception in {Method:l}.", "OnHover");
 
+                // NOTE: Keep this consistent with the null-handling workaround above.
                 return new Hover();
             }
         }
