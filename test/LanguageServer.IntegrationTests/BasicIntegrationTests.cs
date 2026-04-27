@@ -4,6 +4,7 @@ using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using Serilog.Extensions.Logging;
 using System;
 using System.IO;
+using System.Linq;
 using System.Reactive.Disposables;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,7 +14,6 @@ using Xunit.Abstractions;
 namespace MSBuildProjectTools.LanguageServer.IntegrationTests
 {
     using CustomProtocol;
-    using System.Linq;
     using Utilities;
 
     public class BasicIntegrationTests(ITestOutputHelper testOutput) : IntegrationTestBase(testOutput), IAsyncLifetime
@@ -97,12 +97,15 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
             }
 
             Assert.NotEmpty(completionItems);
-            Assert.Collection(completionItems,
-                item => item.Label = "<PropertyGroup>",
-                item => item.Label = "<ItemGroup>",
-                item => item.Label = "<Target>",
-                item => item.Label = "<Import>",
-                item => item.Label = "<!-- -->"
+            Assert.Equal(
+                expected: [
+                    "<!-- -->",
+                    "<Import>",
+                    "<ItemGroup>",
+                    "<PropertyGroup>",
+                    "<Target>",
+                ],
+                actual: completionItems.Select(item => item.Label)
             );
         }
 
@@ -174,8 +177,12 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
             }
 
             Assert.NotEmpty(completionItems);
-            Assert.Collection(completionItems,
-                item => item.Label = "<!-- -->"
+
+            Assert.Equal(
+                expected: [
+                    "<!-- -->",
+                ],
+                actual: completionItems.Order().Select(item => item.Label)
             );
         }
 
