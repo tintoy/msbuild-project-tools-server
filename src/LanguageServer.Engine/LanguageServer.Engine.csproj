@@ -29,6 +29,7 @@
   <ItemGroup>
     <ProjectReference Include="../LanguageServer.Common/LanguageServer.Common.csproj" />
     <ProjectReference Include="../LanguageServer.SemanticModel.MSBuild/LanguageServer.SemanticModel.MSBuild.csproj" />
+    <ProjectReference Include="../LanguageServer.SemanticModel.VsSolutionXml/LanguageServer.SemanticModel.VsSolutionXml.csproj" />
     <ProjectReference Include="../LanguageServer.SemanticModel.Xml/LanguageServer.SemanticModel.Xml.csproj" />
   </ItemGroup>
 </Project>

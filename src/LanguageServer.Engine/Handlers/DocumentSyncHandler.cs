@@ -66,32 +66,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         /// <summary>
         ///     The document selector that describes documents to synchronize.
         /// </summary>
-        DocumentSelector DocumentSelector { get; } = new DocumentSelector(
-            new DocumentFilter
-            {
-                Pattern = "**/*.*",
-                Language = "msbuild",
-                Scheme = "file"
-            },
-            new DocumentFilter
-            {
-                Pattern = "**/*.*proj",
-                Language = "xml",
-                Scheme = "file"
-            },
-            new DocumentFilter
-            {
-                Pattern = "**/*.props",
-                Language = "xml",
-                Scheme = "file"
-            },
-            new DocumentFilter
-            {
-                Pattern = "**/*.targets",
-                Language = "xml",
-                Scheme = "file"
-            }
-        );
+        DocumentSelector DocumentSelector { get; } = DocumentSelectors.All;
 
         /// <summary>
         ///     The document workspace.
@@ -410,13 +385,17 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         {
             string documentFilePath = DocumentUri.GetFileSystemPath(documentUri);
             if (documentFilePath == null)
-                return new TextDocumentAttributes(documentUri, "plaintext");
+                return new TextDocumentAttributes(documentUri, LanguageIdentifiers.PlainText);
 
-            string extension = Path.GetExtension(documentFilePath).ToLower();
+            string extension = Path.GetExtension(documentFilePath).ToLowerInvariant();
             switch (extension)
             {
-                case "props":
-                case "targets":
+                case ".slnx":
+                {
+                    return new TextDocumentAttributes(documentUri, LanguageIdentifiers.VsSolutionXml);
+                }
+                case ".props":
+                case ".targets":
                 {
                     break;
                 }
@@ -425,11 +404,11 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
                     if (extension.EndsWith("proj"))
                         break;
 
-                    return new TextDocumentAttributes(documentUri, "plaintext");
+                    return new TextDocumentAttributes(documentUri, LanguageIdentifiers.PlainText);
                 }
             }
 
-            return new TextDocumentAttributes(documentUri, "msbuild");
+            return new TextDocumentAttributes(documentUri, LanguageIdentifiers.MSBuild);
         }
 
         /// <summary>

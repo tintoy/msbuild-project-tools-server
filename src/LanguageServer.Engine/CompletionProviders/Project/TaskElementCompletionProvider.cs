@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 using LspModels = OmniSharp.Extensions.LanguageServer.Protocol.Models;
 
-namespace MSBuildProjectTools.LanguageServer.CompletionProviders
+namespace MSBuildProjectTools.LanguageServer.CompletionProviders.Project
 {
     using Documents;
     using SemanticModel;

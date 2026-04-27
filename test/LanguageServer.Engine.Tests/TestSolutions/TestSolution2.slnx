@@ -1,0 +1,15 @@
+<Solution>
+    <Folder Name="/src/">
+        <Project Path="src/Project4/Project4.csproj" />
+    </Folder>
+    <Folder Name="/src/sub-folder-01/">
+        <Project Path="src/sub-folder-01/Project1/Project1.csproj" />
+    </Folder>
+    <Folder Name="/src/sub-folder-01/sub-folder-02/">
+        <Project Path="src/sub-folder-01/sub-folder-02/Project2/Project2.csproj" />
+    </Folder>
+    <Folder Name="/src/sub-folder-03/">
+        <Project Path="src/sub-folder-03/Project3/Project3.csproj" />
+    </Folder>
+    <Project Path="Project4/Project4.csproj" Id="7f754d12-ba47-45e5-b103-f118eff9e416" />
+</Solution>

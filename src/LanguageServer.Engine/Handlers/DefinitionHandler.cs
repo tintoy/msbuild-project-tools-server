@@ -50,32 +50,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         /// <summary>
         ///     The document selector that describes documents to synchronize.
         /// </summary>
-        DocumentSelector DocumentSelector { get; } = new DocumentSelector(
-            new DocumentFilter
-            {
-                Pattern = "**/*.*",
-                Language = "msbuild",
-                Scheme = "file"
-            },
-            new DocumentFilter
-            {
-                Pattern = "**/*.*proj",
-                Language = "xml",
-                Scheme = "file"
-            },
-            new DocumentFilter
-            {
-                Pattern = "**/*.props",
-                Language = "xml",
-                Scheme = "file"
-            },
-            new DocumentFilter
-            {
-                Pattern = "**/*.targets",
-                Language = "xml",
-                Scheme = "file"
-            }
-        );
+        DocumentSelector DocumentSelector { get; } = DocumentSelectors.All;
 
         /// <summary>
         ///     Get registration options for handling document events.

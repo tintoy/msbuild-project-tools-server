@@ -15,7 +15,7 @@ namespace MSBuildProjectTools.LanguageServer.Tests
     /// </param>
     [Collection(MSBuildEngineFixture.CollectionName)]
     public class MSBuildObjectLocatorTests(ITestOutputHelper testOutput)
-        : TestBase(testOutput), IDisposable
+        : TestBase(testOutput)
     {
         /// <summary>
         ///     The project collection for any projects loaded by the current test.
@@ -25,12 +25,15 @@ namespace MSBuildProjectTools.LanguageServer.Tests
         /// <summary>
         ///     Dispose of resources being used by the test.
         /// </summary>
-        public void Dispose()
+        protected override void Dispose(bool disposing)
         {
-            if (_projectCollection != null)
+            if (disposing)
             {
-                _projectCollection.Dispose();
-                _projectCollection = null;
+                if (_projectCollection != null)
+                {
+                    _projectCollection.Dispose();
+                    _projectCollection = null;
+                }
             }
         }
 

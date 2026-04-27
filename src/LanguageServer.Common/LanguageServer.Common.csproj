@@ -8,6 +8,7 @@
     <PackageReference Include="Autofac" />
     <PackageReference Include="Microsoft.Build" ExcludeAssets="runtime" />
     <PackageReference Include="Microsoft.Build.Locator" />
+    <PackageReference Include="Microsoft.VisualStudio.SolutionPersistence" />
     <PackageReference Include="NuGet.Protocol" />
     <PackageReference Include="Serilog" />
   </ItemGroup>
