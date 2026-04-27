@@ -183,11 +183,7 @@ namespace MSBuildProjectTools.LanguageServer.Documents
             try
             {
                 if (HasSolution && !IsDirty)
-                {
-                    Log.Information("**ALREADY_LOADED_SOLUTION_FOLDER_COUNT**: {SolutionFolderCount}", Solution.Model.SolutionFolders.Count);
-
                     return true;
-                }
 
                 if (HasSolution && IsDirty)
                 {
@@ -202,8 +198,6 @@ namespace MSBuildProjectTools.LanguageServer.Documents
                 }
                 else
                     Solution = await VsSolution.Load(Solution.File, cancellationToken);
-
-                Log.Information("**LOADED_SOLUTION_FOLDER_COUNT**: {SolutionFolderCount}", Solution.Model.SolutionFolders.Count);
 
                 return true;
             }

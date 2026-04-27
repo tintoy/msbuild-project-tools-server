@@ -94,8 +94,6 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
             if (Workspace.Configuration.Language.DisableFeature.Hover)
                 return null;
 
-            Log.Information("OnDebug!***");
-
             Document document = await Workspace.GetDocument(parameters.TextDocument.Uri, cancellationToken: cancellationToken);
 
             using (await document.Lock.ReaderLockAsync(cancellationToken))
