@@ -387,15 +387,15 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
             if (documentFilePath == null)
                 return new TextDocumentAttributes(documentUri, LanguageIdentifiers.PlainText);
 
-            string extension = Path.GetExtension(documentFilePath).ToLower();
+            string extension = Path.GetExtension(documentFilePath).ToLowerInvariant();
             switch (extension)
             {
-                case "slnx":
+                case ".slnx":
                 {
                     return new TextDocumentAttributes(documentUri, LanguageIdentifiers.VsSolutionXml);
                 }
-                case "props":
-                case "targets":
+                case ".props":
+                case ".targets":
                 {
                     break;
                 }
