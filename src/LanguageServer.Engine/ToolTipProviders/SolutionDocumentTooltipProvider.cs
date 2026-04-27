@@ -118,7 +118,7 @@ namespace MSBuildProjectTools.LanguageServer.ToolTipProviders
                 }
                 else if (location.IsElementText(out XSElementText text))
                 {
-                    vsSolutionObject = solutionDocument.GetVsSolutionObjectAtPosition(element.Start);
+                    vsSolutionObject = solutionDocument.GetVsSolutionObjectAtPosition(text.Element.Start);
 
                     switch (vsSolutionObject)
                     {
@@ -176,7 +176,7 @@ namespace MSBuildProjectTools.LanguageServer.ToolTipProviders
                 }
                 else if (location.IsAttribute(out XSAttribute attribute))
                 {
-                    vsSolutionObject = solutionDocument.GetVsSolutionObjectAtPosition(element.Start);
+                    vsSolutionObject = solutionDocument.GetVsSolutionObjectAtPosition(attribute.Element.Start);
 
                     switch (vsSolutionObject)
                     {
