@@ -6,7 +6,7 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
     /// <summary>
     ///     Extension methods for MSBuild-related exceptions.
     /// </summary>
-    public static class MSBuildExceptionExtensions
+    public static class VsSolutionExceptionExtensions
     {
         /// <summary>
         ///     Get the <see cref="Range"/> represented by the <see cref="SolutionException"/>.
