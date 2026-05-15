@@ -84,7 +84,7 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
                 throw new InvalidOperationException("Language server is already started.");
 
             _logger = loggerProvider?.CreateLogger("LanguageServerFixture");
-
+            
             // Find the language server executable
             string serverExecutable = FindServerExecutable();
             if (string.IsNullOrEmpty(serverExecutable))
@@ -105,7 +105,8 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
                 UseShellExecute = false,
                 CreateNoWindow = true,
                 Environment = {
-                     ["MSBUILD_PROJECT_TOOLS_VERBOSE_LOGGING"] = "1",
+                    ["MSBUILD_PROJECT_TOOLS_LOGGING_TO_STDERR"] = "2", // Using "2" instead of 1 will cause the language server to produce logs in a format that can be displayed, inline, with other (local) logs.
+                    ["MSBUILD_PROJECT_TOOLS_VERBOSE_LOGGING"] = "1",
                 }
             };
 
@@ -141,13 +142,13 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
                     switch (message.Type)
                     {
                         case MessageType.Error:
-                            _logger?.LogError("[SRV] {Msg}", message.Message); break;
+                            _logger?.LogError("[SRV/LSP/{Lvl}] {Msg}", nameof(LogLevel.Error), message.Message); break;
                         case MessageType.Warning:
-                            _logger?.LogWarning("[SRV] {Msg}", message.Message); break;
+                            _logger?.LogWarning("[SRV/LSP/{Lvl:l}] {Msg}", nameof(LogLevel.Warning), message.Message); break;
                         case MessageType.Info:
-                            _logger?.LogInformation("[SRV] {Msg}", message.Message); break;
+                            _logger?.LogInformation("[SRV/LSP/{Lvl:l}] {Msg}", nameof(LogLevel.Information), message.Message); break;
                         case MessageType.Log:
-                            _logger?.LogDebug("[SRV] {Msg}", message.Message); break;
+                            _logger?.LogDebug("[SRV/LSP/{Lvl:l}] {Msg}", nameof(LogLevel.Debug), message.Message); break;
                     }
                 });
                 if (!_dynamicRegistration)
@@ -206,7 +207,7 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
         private void ServerProcess_ErrorDataReceived(object sender, DataReceivedEventArgs e)
         {
             if (e.Data is not null)
-                _logger.LogError("[SRV] STDERR: {Line}", e.Data);
+                _logger.LogInformation("[SRV] {StdErrorLine}", e.Data);
         }
 
         private void ServerProcess_Exit(object sender, EventArgs e)

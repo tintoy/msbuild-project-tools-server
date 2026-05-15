@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <IsPackable>false</IsPackable>
     <RootNamespace>MSBuildProjectTools.LanguageServer.Tests</RootNamespace>
@@ -22,11 +22,13 @@
     <ProjectReference Include="../../src/LanguageServer.Common/LanguageServer.Common.csproj" />
     <ProjectReference Include="../../src/LanguageServer.Engine/LanguageServer.Engine.csproj" />
     <ProjectReference Include="../../src/LanguageServer.SemanticModel.MSBuild/LanguageServer.SemanticModel.MSBuild.csproj" />
+    <ProjectReference Include="../../src/LanguageServer.SemanticModel.VsSolutionXml/LanguageServer.SemanticModel.VsSolutionXml.csproj" />
     <ProjectReference Include="../../src/LanguageServer.SemanticModel.Xml/LanguageServer.SemanticModel.Xml.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <Content Include="TestFiles/**/*.xml" CopyToOutputDirectory="Always" CopyToPublishDirectory="Always" />
     <Content Include="TestProjects/**/*.csproj" CopyToOutputDirectory="Always" CopyToPublishDirectory="Always" />
+    <Content Include="TestSolutions/**/*.slnx" CopyToOutputDirectory="Always" CopyToPublishDirectory="Always" />
   </ItemGroup>
 </Project>

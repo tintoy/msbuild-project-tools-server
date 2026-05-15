@@ -17,11 +17,13 @@ namespace MSBuildProjectTools.LanguageServer
 {
     using CompletionProviders;
     using CustomProtocol;
+    using Documents;
     using Diagnostics;
     using Handlers;
     using Utilities;
 
     using LanguageServer = OmniSharp.Extensions.LanguageServer.Server.LanguageServer;
+    using MSBuildProjectTools.LanguageServer.ToolTipProviders;
 
     /// <summary>
     ///     Registration logic for language server components.
@@ -121,8 +123,11 @@ namespace MSBuildProjectTools.LanguageServer
                             // Register all handlers.
                             addRegistrations(services, currentScope, true, typeof(Handler));
 
+                            // Register all tooltip providers.
+                            addRegistrations(services, currentScope, false, typeof(IToolTipProvider));
+
                             // Register all completion providers.
-                            addRegistrations(services, currentScope, false, typeof(ICompletionProvider), typeof(CompletionProvider));
+                            addRegistrations(services, currentScope, false, typeof(ICompletionProvider));
                         })
                         .OnInitialize((languageServer, initializationParameters, cancellationToken) =>
                         {
@@ -221,12 +226,12 @@ namespace MSBuildProjectTools.LanguageServer
                 .As<IPublishDiagnostics>()
                 .InstancePerDependency();
 
-            builder.RegisterType<Documents.Workspace>()
+            builder.RegisterType<Workspace>()
                 .AsSelf()
                 .SingleInstance()
                 .OnActivated(activated =>
                 {
-                    Documents.Workspace workspace = activated.Instance;
+                    Workspace workspace = activated.Instance;
                     workspace.RestoreTaskMetadataCache();
                 });
 
@@ -243,13 +248,75 @@ namespace MSBuildProjectTools.LanguageServer
                 .As<Handler>()
                 .SingleInstance();
 
-            Type completionProviderType = typeof(CompletionProvider);
+            Type documentToolTipProviderType = typeof(ToolTipProvider<Document>);
             builder.RegisterAssemblyTypes(ThisAssembly)
                 .Where(
-                    type => type.IsSubclassOf(completionProviderType) && !type.IsAbstract
+                    type => type.IsSubclassOf(documentToolTipProviderType) && !type.IsAbstract
                 )
                 .AsSelf()
-                .As<CompletionProvider>()
+                .As<IToolTipProvider>()
+                .SingleInstance();
+
+            Type xmlDocumentToolTipProviderType = typeof(ToolTipProvider<XmlDocument>);
+            builder.RegisterAssemblyTypes(ThisAssembly)
+                .Where(
+                    type => type.IsSubclassOf(xmlDocumentToolTipProviderType) && !type.IsAbstract
+                )
+                .AsSelf()
+                .As<IToolTipProvider>()
+                .SingleInstance();
+
+            Type projectDocumentToolTipProviderType = typeof(ToolTipProvider<ProjectDocument>);
+            builder.RegisterAssemblyTypes(ThisAssembly)
+                .Where(
+                    type => type.IsSubclassOf(projectDocumentToolTipProviderType) && !type.IsAbstract
+                )
+                .AsSelf()
+                .As<IToolTipProvider>()
+                .SingleInstance();
+
+            Type solutionDocumentToolTipProviderType = typeof(ToolTipProvider<SolutionDocument>);
+            builder.RegisterAssemblyTypes(ThisAssembly)
+                .Where(
+                    type => type.IsSubclassOf(solutionDocumentToolTipProviderType) && !type.IsAbstract
+                )
+                .AsSelf()
+                .As<IToolTipProvider>()
+                .SingleInstance();
+
+            Type documentCompletionProviderType = typeof(CompletionProvider<Document>);
+            builder.RegisterAssemblyTypes(ThisAssembly)
+                .Where(
+                    type => type.IsSubclassOf(documentCompletionProviderType) && !type.IsAbstract
+                )
+                .AsSelf()
+                .As<ICompletionProvider>()
+                .SingleInstance();
+
+            Type xmlDocumentCompletionProviderType = typeof(CompletionProvider<XmlDocument>);
+            builder.RegisterAssemblyTypes(ThisAssembly)
+                .Where(
+                    type => type.IsSubclassOf(xmlDocumentCompletionProviderType) && !type.IsAbstract
+                )
+                .AsSelf()
+                .As<ICompletionProvider>()
+                .SingleInstance();
+
+            Type projectDocumentCompletionProviderType = typeof(CompletionProvider<ProjectDocument>);
+            builder.RegisterAssemblyTypes(ThisAssembly)
+                .Where(
+                    type => type.IsSubclassOf(projectDocumentCompletionProviderType) && !type.IsAbstract
+                )
+                .AsSelf()
+                .As<ICompletionProvider>()
+                .SingleInstance();
+
+            Type solutionDocumentCompletionProviderType = typeof(CompletionProvider<SolutionDocument>);
+            builder.RegisterAssemblyTypes(ThisAssembly)
+                .Where(
+                    type => type.IsSubclassOf(solutionDocumentCompletionProviderType) && !type.IsAbstract
+                )
+                .AsSelf()
                 .As<ICompletionProvider>()
                 .SingleInstance();
         }

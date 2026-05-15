@@ -1,11 +1,11 @@
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace MSBuildProjectTools.LanguageServer.CompletionProviders
 {
     using Documents;
     using SemanticModel;
-    using System.Threading;
 
     /// <summary>
     ///     Represents a source for completions.
@@ -13,12 +13,25 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
     public interface ICompletionProvider
     {
         /// <summary>
+        ///     The sort priority for the provider's completion items.
+        /// </summary>
+        int Priority { get; }
+    }
+
+    /// <summary>
+    ///     Represents a source for completions.
+    /// </summary>
+    public interface ICompletionProvider<in TDocument>
+        : ICompletionProvider
+        where TDocument : Document
+    {
+        /// <summary>
         ///     Provide completions for the specified location.
         /// </summary>
         /// <param name="location">
         ///     The <see cref="XmlLocation"/> where completions are requested.
         /// </param>
-        /// <param name="projectDocument">
+        /// <param name="document">
         ///     The <see cref="ProjectDocument"/> that contains the <paramref name="location"/>.
         /// </param>
         /// <param name="triggerCharacters">
@@ -30,6 +43,6 @@ namespace MSBuildProjectTools.LanguageServer.CompletionProviders
         /// <returns>
         ///     A <see cref="Task{TResult}"/> that resolves either a list of <see cref="CompletionItem"/>s, or <c>null</c> if no completions are provided.
         /// </returns>
-        Task<CompletionList> ProvideCompletionsAsync(XmlLocation location, ProjectDocument projectDocument, string triggerCharacters, CancellationToken cancellationToken);
+        Task<CompletionList> ProvideCompletionsAsync(XmlLocation location, TDocument document, string triggerCharacters, CancellationToken cancellationToken);
     }
 }
