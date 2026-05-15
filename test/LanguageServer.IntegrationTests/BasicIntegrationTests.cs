@@ -181,7 +181,7 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
             Assert.Equal(
                 expected: [
                     "<!-- -->",
-                ,
+                ],
                 actual: completionItems.Select(item => item.Label)
             );
         }
