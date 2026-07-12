@@ -167,7 +167,7 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
                 {
                     Uri = DocumentUri.FromFileSystemPath(testFilePath)
                 },
-                Position = new Position(1, 14).ToLsp()
+                Position = new Position(1, 15).ToLsp()
             }, timeout.Token);
 
             Assert.NotNull(definitionResult);
