@@ -157,7 +157,7 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
             </Project>
             """);
 
-            MSBuildEngineInstance compatibleMSBuild = MSBuildHelper.FindMSBuildEngineForTargetFrameworkVersion(_fixture.TargetFrameworkVersion, logger: Log);
+            MSBuildEngineInstance compatibleMSBuild = MSBuildHelper.FindEngineForTargetFrameworkVersion(_fixture.TargetFrameworkVersion, logger: Log);
             Assert.NotNull(compatibleMSBuild);
 
             var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(5));

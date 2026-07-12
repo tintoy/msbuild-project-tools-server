@@ -133,11 +133,11 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         /// <returns>
         ///     A <see cref="MSBuildEngineInstance"/> representing the discovered version of the MSBuild engine, or <c>null</c> if no compatible version was found.
         /// </returns>
-        public static MSBuildEngineInstance FindMSBuildEngineForTargetFrameworkVersion(Version targetFrameworkVersion, ILogger logger)
+        public static MSBuildEngineInstance FindEngineForTargetFrameworkVersion(Version targetFrameworkVersion, ILogger logger = null)
         {
-            var allInstances = MSBuildLocator.QueryVisualStudioInstances();
+            logger ??= Serilog.Core.Logger.None;
 
-            string stv = string.Join(", ", allInstances.Select(instance => $"{instance.Version} ({instance.Name})"));
+            VisualStudioInstance[] allInstances = MSBuildLocator.QueryVisualStudioInstances().ToArray();
 
             VisualStudioInstance firstCompatibleInstance = allInstances
                 .OrderBy(instance => instance.Version)
