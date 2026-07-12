@@ -157,7 +157,7 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
             </Project>
             """);
 
-            VisualStudioInstance compatibleMSBuild = MSBuildHelper.FindMSBuildEngineForTargetFrameworkVersion(_fixture.TargetFrameworkVersion, logger: Log);
+            MSBuildEngineInstance compatibleMSBuild = MSBuildHelper.FindMSBuildEngineForTargetFrameworkVersion(_fixture.TargetFrameworkVersion, logger: Log);
             Assert.NotNull(compatibleMSBuild);
 
             var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(5));
@@ -178,10 +178,7 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
                     {
                         Uri = DocumentUri.FromFileSystemPath(
                             Path.Combine(
-                                compatibleMSBuild.MSBuildPath,
-                                "Sdks",
-                                "Microsoft.NET.SDK",
-                                "Sdk",
+                                compatibleMSBuild.GetSdkImportDirectory("Microsoft.NET.SDK"),
                                 "Sdk.props"
                             )
                         ),
@@ -196,10 +193,7 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
                     {
                         Uri = DocumentUri.FromFileSystemPath(
                             Path.Combine(
-                                compatibleMSBuild.MSBuildPath,
-                                "Sdks",
-                                "Microsoft.NET.SDK",
-                                "Sdk",
+                                compatibleMSBuild.GetSdkImportDirectory("Microsoft.NET.SDK"),
                                 "Sdk.targets"
                             )
                         ),

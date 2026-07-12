@@ -131,9 +131,9 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         ///     An optional <see cref="ILogger"/> to use for diagnostic purposes (if not specified, the static <see cref="Log.Logger"/> will be used).
         /// </param>
         /// <returns>
-        ///     A <see cref="VisualStudioInstance"/> representing the discovered version of the MSBuild engine, or <c>null</c> if no compatible version was found.
+        ///     A <see cref="MSBuildEngineInstance"/> representing the discovered version of the MSBuild engine, or <c>null</c> if no compatible version was found.
         /// </returns>
-        public static VisualStudioInstance FindMSBuildEngineForTargetFrameworkVersion(Version targetFrameworkVersion, ILogger logger)
+        public static MSBuildEngineInstance FindMSBuildEngineForTargetFrameworkVersion(Version targetFrameworkVersion, ILogger logger)
         {
             var allInstances = MSBuildLocator.QueryVisualStudioInstances();
 
@@ -161,9 +161,11 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
                     targetFrameworkVersion,
                     String.Join(", ", foundVersions)
                 );
+
+                return null;
             }
 
-            return firstCompatibleInstance;
+            return new MSBuildEngineInstance(Version: firstCompatibleInstance.Version, BaseDirectory: firstCompatibleInstance.MSBuildPath);
         }
 
         /// <summary>
@@ -538,4 +540,33 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
             public static readonly string ProjectAssetsFile = "ProjectAssetsFile";
         }
     }
+
+    /// <summary>
+    ///     Information about an instance of the MSBuild engine.
+    /// </summary>
+    /// <param name="Version">
+    ///     The MSBuild engine version.
+    /// </param>
+    /// <param name="BaseDirectory">
+    ///     The MSBuild engine's base directory.
+    /// </param>
+    public record class MSBuildEngineInstance(Version Version, string BaseDirectory)
+    {
+        /// <summary>
+        ///     Get the full path to the SDK import directory for the specified SDK.
+        /// </summary>
+        /// <param name="sdkName">
+        ///     The name of the target SDK (e.g. "Microsoft.NET.SDK").
+        /// </param>
+        /// <returns>
+        ///     The SDK import directory (e.g. the directory containing "SDK.props" and/or "SDK.targets").
+        /// </returns>
+        public string GetSdkImportDirectory(string sdkName)
+        {
+            if (string.IsNullOrWhiteSpace(sdkName))
+                throw new ArgumentException($"Argument cannot be null, empty, or entirely composed of whitespace: {nameof(sdkName)}.", nameof(sdkName));
+
+            return Path.Combine(BaseDirectory, "Sdks", sdkName, "Sdk");
+        }
+    };
 }
