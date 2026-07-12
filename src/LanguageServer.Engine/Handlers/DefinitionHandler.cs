@@ -140,11 +140,11 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
                     case SolutionDocument solutionDocument:
                     {
                         if (!solutionDocument.HasSolution || solutionDocument.IsSolutionCached)
-                            return new LocationOrLocationLinks(); // Due to an OnmiSharp bug, we must return an empty result rather than null (TODO: fix this when we move to the current version of OmniSharp LSP).
+                            return new LocationOrLocationLinks(); // Due to an OmniSharp bug, we must return an empty result rather than null (TODO: fix this when we move to the current version of OmniSharp LSP).
 
                         VsSolutionObject solutionObjectAtPosition = solutionDocument.GetVsSolutionObjectAtPosition(position);
                         if (solutionObjectAtPosition == null)
-                            return new LocationOrLocationLinks(); // Due to an OnmiSharp bug, we must return an empty result rather than null (TODO: fix this when we move to the current version of OmniSharp LSP).
+                            return new LocationOrLocationLinks(); // Due to an OmniSharp bug, we must return an empty result rather than null (TODO: fix this when we move to the current version of OmniSharp LSP).
 
 
                         // TODO: Determine which types of solution objects (if  any) we want to support go-to-definition for.
