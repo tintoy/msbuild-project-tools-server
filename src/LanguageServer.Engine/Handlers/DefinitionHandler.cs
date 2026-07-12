@@ -154,7 +154,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
                 }
             }
 
-            return new LocationOrLocationLinks(); // Due to an OnmiSharp bug, we must return an empty result rather than null (TODO: fix this when we move to the current version of OmniSharp LSP).
+            return new LocationOrLocationLinks(); // Due to an OmniSharp bug, we must return an empty result rather than null (TODO: fix this when we move to the current version of OmniSharp LSP).
         }
 
         /// <summary>
