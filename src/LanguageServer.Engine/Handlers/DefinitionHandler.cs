@@ -77,50 +77,84 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         /// </returns>
         async Task<LocationOrLocationLinks> OnDefinition(TextDocumentPositionParams parameters, CancellationToken cancellationToken)
         {
-            ProjectDocument projectDocument = await Workspace.GetProjectDocument(parameters.TextDocument.Uri, cancellationToken: cancellationToken);
+            Document document = await Workspace.GetDocument(parameters.TextDocument.Uri, cancellationToken: cancellationToken);
 
-            using (await projectDocument.Lock.ReaderLockAsync(cancellationToken))
+            using (await document.Lock.ReaderLockAsync(cancellationToken))
             {
-                if (!projectDocument.HasMSBuildProject || projectDocument.IsMSBuildProjectCached)
-                    return null;
-
                 Position position = parameters.Position.ToNative();
-                MSBuildObject msbuildObjectAtPosition = projectDocument.GetMSBuildObjectAtPosition(position);
-                if (msbuildObjectAtPosition == null)
-                    return null;
 
-                if (msbuildObjectAtPosition is MSBuildSdkImport sdkImportAtPosition)
+                switch (document)
                 {
-                    // TODO: Parse imported project and determine location of root element (use that range instead).
-                    LocationOrLocationLink[] locations =
-                        sdkImportAtPosition.ImportedProjectRoots.Select(
-                            importedProjectRoot => new LocationOrLocationLink(
-                                new Location
-                                {
-                                    Range = Range.Empty.ToLsp(),
-                                    Uri = VSCodeDocumentUri.FromFileSystemPath(importedProjectRoot.Location.File)
-                                })
-                        )
-                        .ToArray();
+                    case ProjectDocument projectDocument:
+                    {
+                        if (!projectDocument.HasMSBuildProject || projectDocument.IsMSBuildProjectCached)
+                            return new LocationOrLocationLinks(); // Due to an OnmiSharp bug, we must return an empty result rather than null (TODO: fix this when we move to the current version of OmniSharp LSP).
 
-                    return new LocationOrLocationLinks(locations);
-                }
-                else if (msbuildObjectAtPosition is MSBuildImport importAtPosition)
-                {
-                    // TODO: Parse imported project and determine location of root element (use that range instead).
-                    return new LocationOrLocationLinks(
-                        importAtPosition.ImportedProjectRoots.Select(
-                            importedProjectRoot => new LocationOrLocationLink(
-                                new Location
-                                {
-                                    Range = Range.Empty.ToLsp(),
-                                    Uri = VSCodeDocumentUri.FromFileSystemPath(importedProjectRoot.Location.File)
-                                })
-                    ));
+                        MSBuildObject msbuildObjectAtPosition = projectDocument.GetMSBuildObjectAtPosition(position);
+                        if (msbuildObjectAtPosition == null)
+                            return new LocationOrLocationLinks(); // Due to an OnmiSharp bug, we must return an empty result rather than null (TODO: fix this when we move to the current version of OmniSharp LSP).
+
+                        if (msbuildObjectAtPosition is MSBuildSdkImport sdkImportAtPosition)
+                        {
+                            // TODO: Parse imported project and determine location of root element (use that range instead).
+
+                            LocationOrLocationLink[] locations =
+                                sdkImportAtPosition.ImportedProjectRoots
+                                    .DistinctBy(importedProjectRoot => importedProjectRoot.Location.File)
+                                    .Select(
+                                        importedProjectRoot => new LocationOrLocationLink(
+                                            new Location
+                                            {
+                                                Range = Range.Empty.ToLsp(),
+                                                Uri = VSCodeDocumentUri.FromFileSystemPath(importedProjectRoot.Location.File),
+                                            }
+                                        )
+                                    )
+                                    .ToArray();
+
+                            return new LocationOrLocationLinks(locations);
+                        }
+                        else if (msbuildObjectAtPosition is MSBuildImport importAtPosition)
+                        {
+                            // TODO: Parse imported project and determine location of root element (use that range instead).
+
+                            LocationOrLocationLink[] locations =
+                                importAtPosition.ImportedProjectRoots
+                                    .DistinctBy(importedProjectRoot => importedProjectRoot.Location.File)
+                                    .Select(
+                                        importedProjectRoot => new LocationOrLocationLink(
+                                            new Location
+                                            {
+                                                Range = Range.Empty.ToLsp(),
+                                                Uri = VSCodeDocumentUri.FromFileSystemPath(importedProjectRoot.Location.File),
+                                            }
+                                        )
+                                    )
+                                    .ToArray();
+
+                            return new LocationOrLocationLinks(locations);
+                        }
+
+                        break;
+                    }
+                    case SolutionDocument solutionDocument:
+                    {
+                        if (!solutionDocument.HasSolution || solutionDocument.IsSolutionCached)
+                            return new LocationOrLocationLinks(); // Due to an OnmiSharp bug, we must return an empty result rather than null (TODO: fix this when we move to the current version of OmniSharp LSP).
+
+                        VsSolutionObject solutionObjectAtPosition = solutionDocument.GetVsSolutionObjectAtPosition(position);
+                        if (solutionObjectAtPosition == null)
+                            return new LocationOrLocationLinks(); // Due to an OnmiSharp bug, we must return an empty result rather than null (TODO: fix this when we move to the current version of OmniSharp LSP).
+
+
+                        // TODO: Determine which types of solution objects (if  any) we want to support go-to-definition for.
+
+                        break;
+                    }
                 }
             }
 
-            return null;
+            return new LocationOrLocationLinks(); // Due to an OnmiSharp bug, we must return an empty result rather than null (TODO: fix this when we move to the current version of OmniSharp LSP).
         }
 
         /// <summary>

@@ -122,6 +122,51 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         }
 
         /// <summary>
+        ///     Find the earliest version of the MSBuild engine compatible with the specified target-framework version.
+        /// </summary>
+        /// <param name="targetFrameworkVersion">
+        ///     The target framework version to match.
+        /// </param>
+        /// <param name="logger">
+        ///     An optional <see cref="ILogger"/> to use for diagnostic purposes (if not specified, the static <see cref="Log.Logger"/> will be used).
+        /// </param>
+        /// <returns>
+        ///     A <see cref="VisualStudioInstance"/> representing the discovered version of the MSBuild engine, or <c>null</c> if no compatible version was found.
+        /// </returns>
+        public static VisualStudioInstance FindMSBuildEngineForTargetFrameworkVersion(Version targetFrameworkVersion, ILogger logger)
+        {
+            var allInstances = MSBuildLocator.QueryVisualStudioInstances();
+
+            string stv = string.Join(", ", allInstances.Select(instance => $"{instance.Version} ({instance.Name})"));
+
+            VisualStudioInstance firstCompatibleInstance = allInstances
+                .OrderBy(instance => instance.Version)
+                .FirstOrDefault(instance =>
+                    instance.Version.Major == targetFrameworkVersion.Major
+                    &&
+                    instance.Version.Minor == targetFrameworkVersion.Minor
+                    &&
+                    (
+                        targetFrameworkVersion.Build == -1 // Only match if specified.
+                        ||
+                        instance.Version.Build == targetFrameworkVersion.Build
+                    )
+                );
+
+            if (firstCompatibleInstance == null)
+            {
+                string foundVersions = string.Join(", ", allInstances.Select(instance => instance.Version));
+
+                logger.Error("Cannot locate MSBuild engine for .NET SDK v{TargetSdkVersion}. This probably means that MSBuild Project Tools cannot find the MSBuild for the current project instance. It did find the following version(s), though: [{FoundVersions}].",
+                    targetFrameworkVersion,
+                    String.Join(", ", foundVersions)
+                );
+            }
+
+            return firstCompatibleInstance;
+        }
+
+        /// <summary>
         ///     Create an MSBuild project collection.
         /// </summary>
         /// <param name="solutionDirectory">

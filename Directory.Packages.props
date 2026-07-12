@@ -21,7 +21,7 @@
 
     <!-- Microsoft.Build -->
     <PackageVersion Include="Microsoft.Build" Version="17.11.48" />
-    <PackageVersion Include="Microsoft.Build.Locator" Version="1.10.2" />
+    <PackageVersion Include="Microsoft.Build.Locator" Version="1.11.2" />
 
     <!-- Microsoft.VisualStudio -->
     <PackageVersion Include="Microsoft.VisualStudio.SolutionPersistence" Version="1.0.52" />
@@ -34,6 +34,7 @@
     <PackageVersion Include="Nito.AsyncEx.Coordination" Version="1.0.1" />
     
     <!-- NuGet -->
+    <PackageVersion Include="NuGet.Frameworks" Version="6.14.0" />
     <PackageVersion Include="NuGet.PackageManagement" Version="6.14.0" />
     <PackageVersion Include="NuGet.Protocol" Version="6.14.0" />
     
