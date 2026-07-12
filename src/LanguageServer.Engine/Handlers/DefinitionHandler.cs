@@ -147,7 +147,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
                             return new LocationOrLocationLinks(); // Due to an OmniSharp bug, we must return an empty result rather than null (TODO: fix this when we move to the current version of OmniSharp LSP).
 
 
-                        // TODO: Determine which types of solution objects (if  any) we want to support go-to-definition for.
+                        // TODO: Determine which types of solution objects (if any) we want to support go-to-definition for.
 
                         break;
                     }
