@@ -178,7 +178,7 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
                     {
                         Uri = DocumentUri.FromFileSystemPath(
                             Path.Combine(
-                                compatibleMSBuild.GetSdkImportDirectory("Microsoft.NET.SDK"),
+                                compatibleMSBuild.GetSdkImportDirectory("Microsoft.NET.Sdk"),
                                 "Sdk.props"
                             )
                         ),
@@ -193,7 +193,7 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
                     {
                         Uri = DocumentUri.FromFileSystemPath(
                             Path.Combine(
-                                compatibleMSBuild.GetSdkImportDirectory("Microsoft.NET.SDK"),
+                                compatibleMSBuild.GetSdkImportDirectory("Microsoft.NET.Sdk"),
                                 "Sdk.targets"
                             )
                         ),
