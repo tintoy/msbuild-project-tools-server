@@ -135,7 +135,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         /// </returns>
         public static MSBuildEngineInstance FindEngineForTargetFrameworkVersion(Version targetFrameworkVersion, ILogger logger = null)
         {
-            logger ??= Serilog.Core.Logger.None;
+            logger ??= Log.Logger;
 
             VisualStudioInstance[] allInstances = MSBuildLocator.QueryVisualStudioInstances().ToArray();
 
