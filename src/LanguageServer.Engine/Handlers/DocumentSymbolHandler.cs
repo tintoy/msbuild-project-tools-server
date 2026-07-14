@@ -65,7 +65,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         }
 
         /// <summary>
-        ///     Called when completions are requested.
+        ///     Called when document symbol are requested.
         /// </summary>
         /// <param name="parameters">
         ///     The request parameters.
@@ -74,89 +74,104 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         ///     A <see cref="CancellationToken"/> that can be used to cancel the request.
         /// </param>
         /// <returns>
-        ///     A <see cref="Task"/> representing the operation whose result is the completion list or <c>null</c> if no completions are provided.
+        ///     A <see cref="Task"/> representing the operation whose result is the document symbol container, or <c>null</c> if no completions are provided.
         /// </returns>
+        /// <remarks>
+        ///     Due to an OmniSharp LSP library bug, this method currently has to return an empty <see cref="SymbolInformationOrDocumentSymbolContainer"/> value, rather than <c>null</c> (the version of OmniSharp LSP that we are currently using cannot correctly deal with <c>null</c> return values from handlers).
+        ///     
+        ///     <para>TODO: fix this when we move to the current version of OmniSharp LSP</para>
+        /// </remarks>
         async Task<SymbolInformationOrDocumentSymbolContainer> OnDocumentSymbols(DocumentSymbolParams parameters, CancellationToken cancellationToken)
         {
-            ProjectDocument projectDocument = await Workspace.GetProjectDocument(parameters.TextDocument.Uri, cancellationToken: cancellationToken);
+
+            Document document = await Workspace.GetDocument(parameters.TextDocument.Uri, cancellationToken: cancellationToken);
 
             var symbols = new List<SymbolInformationOrDocumentSymbol>();
-            using (await projectDocument.Lock.ReaderLockAsync(cancellationToken))
+            using (await document.Lock.ReaderLockAsync(cancellationToken))
             {
-                // We need a valid MSBuild project with up-to-date positional information.
-                if (!projectDocument.HasMSBuildProject || projectDocument.IsMSBuildProjectCached)
-                    return null;
-
-                foreach (MSBuildObject msbuildObject in projectDocument.MSBuildObjects)
+                switch (document)
                 {
-                    // Special case for item groups, which can contribute multiple symbols from a single item group.
-                    if (msbuildObject is MSBuildItemGroup itemGroup)
+                    case ProjectDocument projectDocument:
                     {
-                        symbols.AddRange(itemGroup.Includes.Select(include =>
+                        // We need a valid MSBuild project with up-to-date positional information.
+                        if (!projectDocument.HasMSBuildProject || projectDocument.IsMSBuildProjectCached)
+                            return null;
+
+                        foreach (MSBuildObject msbuildObject in projectDocument.MSBuildObjects)
                         {
-                            string trimmedInclude = string.Join(";",
-                                include.Split(
-                                    new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries
-                                )
-                                .Select(includedItem => includedItem.Trim())
-                            );
-
-
-                            return new SymbolInformationOrDocumentSymbol(
-                                new SymbolInformation
+                            // Special case for item groups, which can contribute multiple symbols from a single item group.
+                            if (msbuildObject is MSBuildItemGroup itemGroup)
+                            {
+                                symbols.AddRange(itemGroup.Includes.Select(include =>
                                 {
-                                    Name = $"{itemGroup.Name} ({trimmedInclude})",
-                                    Kind = SymbolKind.Array,
-                                    ContainerName = "Item",
-                                    Location = new Location
-                                    {
-                                        Uri = projectDocument.DocumentUri,
-                                        Range = msbuildObject.XmlRange.ToLsp()
-                                    }
-                                });
-                        }));
+                                    string trimmedInclude = string.Join(";",
+                                        include.Split(
+                                            separator: [';'],
+                                            options: StringSplitOptions.RemoveEmptyEntries
+                                        )
+                                        .Select(includedItem => includedItem.Trim())
+                                    );
 
-                        continue;
-                    }
 
-                    var symbol = new SymbolInformation
-                    {
-                        Name = msbuildObject.Name,
-                        Location = new Location
-                        {
-                            Uri = projectDocument.DocumentUri,
-                            Range = msbuildObject.XmlRange.ToLsp()
+                                    return new SymbolInformationOrDocumentSymbol(
+                                        new SymbolInformation
+                                        {
+                                            Name = $"{itemGroup.Name} ({trimmedInclude})",
+                                            Kind = SymbolKind.Array,
+                                            ContainerName = "Item",
+                                            Location = new Location
+                                            {
+                                                Uri = projectDocument.DocumentUri,
+                                                Range = msbuildObject.XmlRange.ToLsp()
+                                            }
+                                        });
+                                }));
+
+                                continue;
+                            }
+
+                            var symbol = new SymbolInformation
+                            {
+                                Name = msbuildObject.Name,
+                                Location = new Location
+                                {
+                                    Uri = projectDocument.DocumentUri,
+                                    Range = msbuildObject.XmlRange.ToLsp()
+                                }
+                            };
+                            if (msbuildObject is MSBuildTarget)
+                            {
+                                symbol.ContainerName = "Target";
+                                symbol.Kind = SymbolKind.Function;
+                            }
+                            else if (msbuildObject is MSBuildProperty)
+                            {
+                                symbol.ContainerName = "Property";
+                                symbol.Kind = SymbolKind.Property;
+                            }
+                            else if (msbuildObject is MSBuildImport)
+                            {
+                                symbol.ContainerName = "Import";
+                                symbol.Kind = SymbolKind.Package;
+                            }
+                            else if (msbuildObject is MSBuildSdkImport)
+                            {
+                                symbol.ContainerName = "Import (SDK)";
+                                symbol.Kind = SymbolKind.Package;
+                            }
+                            else
+                                continue;
+
+                            symbols.Add(symbol);
                         }
-                    };
-                    if (msbuildObject is MSBuildTarget)
-                    {
-                        symbol.ContainerName = "Target";
-                        symbol.Kind = SymbolKind.Function;
-                    }
-                    else if (msbuildObject is MSBuildProperty)
-                    {
-                        symbol.ContainerName = "Property";
-                        symbol.Kind = SymbolKind.Property;
-                    }
-                    else if (msbuildObject is MSBuildImport)
-                    {
-                        symbol.ContainerName = "Import";
-                        symbol.Kind = SymbolKind.Package;
-                    }
-                    else if (msbuildObject is MSBuildSdkImport)
-                    {
-                        symbol.ContainerName = "Import (SDK)";
-                        symbol.Kind = SymbolKind.Package;
-                    }
-                    else
-                        continue;
 
-                    symbols.Add(symbol);
+                        break;
+                    }
                 }
             }
 
             if (symbols.Count == 0)
-                return null;
+                return new SymbolInformationOrDocumentSymbolContainer();
 
             return new SymbolInformationOrDocumentSymbolContainer(
                 symbols.OrderBy(symbol => symbol.SymbolInformation.Name)
