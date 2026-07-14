@@ -75,6 +75,11 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         /// <returns>
         ///     A <see cref="Task"/> representing the operation whose result is the definition location or <c>null</c> if no definition is provided.
         /// </returns>
+        /// <remarks>
+        ///     Due to an OmniSharp LSP library bug, this method currently has to return an empty <see cref="LocationOrLocationLinks"/> value, rather than <c>null</c> (the version of OmniSharp LSP that we are currently using cannot handle <c>null</c> return values from callers).
+        ///     
+        ///     <para>TODO: fix this when we move to the current version of OmniSharp LSP</para>
+        /// </remarks>
         async Task<LocationOrLocationLinks> OnDefinition(TextDocumentPositionParams parameters, CancellationToken cancellationToken)
         {
             Document document = await Workspace.GetDocument(parameters.TextDocument.Uri, cancellationToken: cancellationToken);
