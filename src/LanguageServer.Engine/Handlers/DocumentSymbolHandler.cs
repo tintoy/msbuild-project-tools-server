@@ -95,7 +95,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
                     {
                         // We need a valid MSBuild project with up-to-date positional information.
                         if (!projectDocument.HasMSBuildProject || projectDocument.IsMSBuildProjectCached)
-                            return null;
+                            return new SymbolInformationOrDocumentSymbolContainer();
 
                         foreach (MSBuildObject msbuildObject in projectDocument.MSBuildObjects)
                         {
