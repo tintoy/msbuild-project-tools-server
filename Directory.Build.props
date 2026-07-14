@@ -1,5 +1,10 @@
 <Project>
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
+
+    <!--
+      Disable MSBuild reference check (not applicable to our scenario; see https://github.com/microsoft/MSBuildLocator/blob/55ff263d5a99f91a215c9ca5fbba8ccfa3371fe5/docs/diagnostics/MSBL001.md for details).
+    -->
+    <DisableMSBuildAssemblyCopyCheck>true</DisableMSBuildAssemblyCopyCheck>
   </PropertyGroup>
 </Project>

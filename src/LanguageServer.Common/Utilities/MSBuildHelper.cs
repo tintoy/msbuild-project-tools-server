@@ -122,6 +122,53 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         }
 
         /// <summary>
+        ///     Find the earliest version of the MSBuild engine compatible with the specified target-framework version.
+        /// </summary>
+        /// <param name="targetFrameworkVersion">
+        ///     The target framework version to match.
+        /// </param>
+        /// <param name="logger">
+        ///     An optional <see cref="ILogger"/> to use for diagnostic purposes (if not specified, the static <see cref="Log.Logger"/> will be used).
+        /// </param>
+        /// <returns>
+        ///     A <see cref="MSBuildEngineInstance"/> representing the discovered version of the MSBuild engine, or <c>null</c> if no compatible version was found.
+        /// </returns>
+        public static MSBuildEngineInstance FindEngineForTargetFrameworkVersion(Version targetFrameworkVersion, ILogger logger = null)
+        {
+            logger ??= Log.Logger;
+
+            VisualStudioInstance[] allInstances = MSBuildLocator.QueryVisualStudioInstances().ToArray();
+
+            VisualStudioInstance firstCompatibleInstance = allInstances
+                .OrderBy(instance => instance.Version)
+                .FirstOrDefault(instance =>
+                    instance.Version.Major == targetFrameworkVersion.Major
+                    &&
+                    instance.Version.Minor == targetFrameworkVersion.Minor
+                    &&
+                    (
+                        targetFrameworkVersion.Build == -1 // Only match if specified.
+                        ||
+                        instance.Version.Build == targetFrameworkVersion.Build
+                    )
+                );
+
+            if (firstCompatibleInstance == null)
+            {
+                string foundVersions = string.Join(", ", allInstances.Select(instance => instance.Version));
+
+                logger.Error("Cannot locate MSBuild engine for .NET SDK v{TargetSdkVersion}. This probably means that MSBuild Project Tools cannot find the MSBuild for the current project instance. It did find the following version(s), though: [{FoundVersions}].",
+                    targetFrameworkVersion,
+                    foundVersions
+                );
+
+                return null;
+            }
+
+            return new MSBuildEngineInstance(Version: firstCompatibleInstance.Version, BaseDirectory: firstCompatibleInstance.MSBuildPath);
+        }
+
+        /// <summary>
         ///     Create an MSBuild project collection.
         /// </summary>
         /// <param name="solutionDirectory">
@@ -493,4 +540,33 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
             public static readonly string ProjectAssetsFile = "ProjectAssetsFile";
         }
     }
+
+    /// <summary>
+    ///     Information about an instance of the MSBuild engine.
+    /// </summary>
+    /// <param name="Version">
+    ///     The MSBuild engine version.
+    /// </param>
+    /// <param name="BaseDirectory">
+    ///     The MSBuild engine's base directory.
+    /// </param>
+    public record class MSBuildEngineInstance(Version Version, string BaseDirectory)
+    {
+        /// <summary>
+        ///     Get the full path to the SDK import directory for the specified SDK.
+        /// </summary>
+        /// <param name="sdkName">
+        ///     The name of the target SDK (e.g. "Microsoft.NET.SDK").
+        /// </param>
+        /// <returns>
+        ///     The SDK import directory (e.g. the directory containing "SDK.props" and/or "SDK.targets").
+        /// </returns>
+        public string GetSdkImportDirectory(string sdkName)
+        {
+            if (string.IsNullOrWhiteSpace(sdkName))
+                throw new ArgumentException($"Argument cannot be null, empty, or entirely composed of whitespace: {nameof(sdkName)}.", nameof(sdkName));
+
+            return Path.Combine(BaseDirectory, "Sdks", sdkName, "Sdk");
+        }
+    };
 }

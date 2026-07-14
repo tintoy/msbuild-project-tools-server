@@ -1,3 +1,4 @@
+using Newtonsoft.Json;
 using OmniSharp.Extensions.JsonRpc;
 using OmniSharp.Extensions.LanguageServer.Protocol;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
@@ -139,6 +140,79 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
                 "Property: `OutputType` Type of output to generate (WinExe, Exe, or Library) Value: `Exe`",
                 hoverResult.Contents.ToString()
             );
+        }
+
+        [Fact]
+        public async Task DefinitionCsproj()
+        {
+            var testFilePath = Path.Combine(_workspaceRoot, "Test.csproj");
+            await File.WriteAllTextAsync(testFilePath,
+            """
+            <Project Sdk="Microsoft.NET.Sdk">
+                <PropertyGroup>
+                    <OutputType>Exe</OutputType>
+                    <TargetFramework>net6.0</TargetFramework>
+                </PropertyGroup>  
+            </Project>
+            """);
+
+            MSBuildEngineInstance compatibleMSBuild = MSBuildHelper.FindEngineForTargetFrameworkVersion(_fixture.TargetFrameworkVersion, logger: Log);
+            Assert.NotNull(compatibleMSBuild);
+
+            var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+            LocationOrLocationLinks definitionResult = await _fixture.Client.SendRequest(new DefinitionParams
+            {
+                TextDocument = new TextDocumentIdentifier
+                {
+                    Uri = DocumentUri.FromFileSystemPath(testFilePath)
+                },
+                Position = new Position(1, 15).ToLsp()
+            }, timeout.Token);
+
+            Assert.NotNull(definitionResult);
+
+            LocationOrLocationLink[] expectedDefinitions = [
+                new LocationOrLocationLink(
+                    new Location
+                    {
+                        Uri = DocumentUri.FromFileSystemPath(
+                            Path.Combine(
+                                compatibleMSBuild.GetSdkImportDirectory("Microsoft.NET.Sdk"),
+                                "Sdk.props"
+                            )
+                        ),
+                        Range = new Range(
+                            start: new Position(1, 1),
+                            end: new Position(1, 1)
+                        ).ToLsp()
+                    }
+                ),
+                new LocationOrLocationLink(
+                    new Location
+                    {
+                        Uri = DocumentUri.FromFileSystemPath(
+                            Path.Combine(
+                                compatibleMSBuild.GetSdkImportDirectory("Microsoft.NET.Sdk"),
+                                "Sdk.targets"
+                            )
+                        ),
+                        Range = new Range(
+                            start: new Position(1, 1),
+                            end: new Position(1, 1)
+                        ).ToLsp()
+                    }
+                ),
+            ];
+            Log.Information("Expected definitions: {DefinitionJson:l}",
+                JsonConvert.SerializeObject(expectedDefinitions, Formatting.Indented)
+            );
+
+            LocationOrLocationLink[] actualDefinitions = definitionResult.ToArray();
+            Log.Information("Actual definitions: {DefinitionJson:l}",
+                JsonConvert.SerializeObject(actualDefinitions, Formatting.Indented)
+            );
+            
+            Assert.Equal(expectedDefinitions, actualDefinitions);
         }
 
         [Fact]

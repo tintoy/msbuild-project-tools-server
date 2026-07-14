@@ -24,14 +24,16 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
     /// <summary>
     /// Fixture for managing the language server process and client connection.
     /// </summary>
-    public class LanguageServerFixture(bool dynamicRegistration = true) : IAsyncDisposable
+    public class LanguageServerFixture : IAsyncDisposable
     {
         const string ServerDllName = "MSBuildProjectTools.LanguageServer.Host.dll";
+
+        static readonly Assembly ThisAssembly = typeof(LanguageServerFixture).Assembly;
 
         /// <summary>
         ///  Controls dynamic registration support of the language client.
         /// </summary>
-        readonly bool _dynamicRegistration = dynamicRegistration;
+        readonly bool _dynamicRegistration;
 
         /// <summary>
         /// The logger.
@@ -57,6 +59,34 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
         /// The language client.
         /// </summary>
         ILanguageClient _client;
+
+        public LanguageServerFixture(bool dynamicRegistration = true)
+        {
+            _dynamicRegistration = dynamicRegistration;
+
+            TargetFrameworkName = ThisAssembly.GetCustomAttribute<TargetFrameworkAttribute>()?.FrameworkName;
+            TargetFrameworkVersion = new Version(0, 0, 0);
+
+            if (TargetFrameworkName == null)
+                return;
+
+            const string versionPrefix = "Version=v";
+
+            string[] targetFrameworkNameComponents = TargetFrameworkName.Split(',');
+            string targetFrameworkVersionComponent = targetFrameworkNameComponents.FirstOrDefault(
+                component => component.StartsWith(versionPrefix)
+            );
+            if (targetFrameworkVersionComponent == null)
+                return;
+
+            targetFrameworkVersionComponent = targetFrameworkVersionComponent.Substring(versionPrefix.Length);
+            if (Version.TryParse(targetFrameworkVersionComponent, out Version targetFrameworkVersion))
+                TargetFrameworkVersion = targetFrameworkVersion;
+        }
+
+        public string TargetFrameworkName { get; }
+
+        public Version TargetFrameworkVersion { get; }
 
         /// <summary>
         /// The language client.

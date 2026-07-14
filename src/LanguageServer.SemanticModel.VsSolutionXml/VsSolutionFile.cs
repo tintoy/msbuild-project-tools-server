@@ -2,8 +2,6 @@ using Microsoft.VisualStudio.SolutionPersistence.Model;
 using MSBuildProjectTools.LanguageServer.Utilities;
 using System;
 using System.IO;
-using System.Linq;
-using static NuGet.Packaging.PackagingConstants;
 
 namespace MSBuildProjectTools.LanguageServer.SemanticModel
 {
@@ -13,6 +11,21 @@ namespace MSBuildProjectTools.LanguageServer.SemanticModel
     public class VsSolutionFile
         : VsSolutionObject<SolutionFolderModel>
     {
+        /// <summary>
+        ///     Create a new <see cref="VsSolutionFile"/>.
+        /// </summary>
+        /// <param name="solution">
+        ///     The <see cref="VsSolution"/> that contains the underlying object.
+        /// </param>
+        /// <param name="folder">
+        ///     The underlying <see cref="SolutionFolderModel"/> containing the file represented by the <see cref="VsSolutionFile"/>.
+        /// </param>
+        /// <param name="relativePath">
+        ///     The path of the file, relative to the parent folder.
+        /// </param>
+        /// <param name="declaringXml">
+        ///     An <see cref="XSNode"/> representing the object's declaring XML.
+        /// </param>
         public VsSolutionFile(VsSolution solution, SolutionFolderModel folder, string relativePath, XSNode declaringXml)
             : base(solution, folder, declaringXml)
         {
