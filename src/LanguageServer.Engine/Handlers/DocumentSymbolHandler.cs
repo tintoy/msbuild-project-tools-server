@@ -112,7 +112,6 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
                                         .Select(includedItem => includedItem.Trim())
                                     );
 
-
                                     return new SymbolInformationOrDocumentSymbol(
                                         new SymbolInformation
                                         {

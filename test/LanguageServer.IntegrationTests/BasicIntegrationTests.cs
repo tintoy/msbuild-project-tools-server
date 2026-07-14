@@ -16,7 +16,6 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
 {
     using CustomProtocol;
     using Newtonsoft.Json.Converters;
-    using System.Xml.Linq;
     using Utilities;
 
     public class BasicIntegrationTests(ITestOutputHelper testOutput) : IntegrationTestBase(testOutput), IAsyncLifetime
