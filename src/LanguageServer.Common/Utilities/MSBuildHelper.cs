@@ -135,7 +135,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         /// </returns>
         public static MSBuildEngineInstance FindEngineForTargetFrameworkVersion(Version targetFrameworkVersion, ILogger logger = null)
         {
-            logger ??= Serilog.Core.Logger.None;
+            logger ??= Log.Logger;
 
             VisualStudioInstance[] allInstances = MSBuildLocator.QueryVisualStudioInstances().ToArray();
 
@@ -159,7 +159,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
 
                 logger.Error("Cannot locate MSBuild engine for .NET SDK v{TargetSdkVersion}. This probably means that MSBuild Project Tools cannot find the MSBuild for the current project instance. It did find the following version(s), though: [{FoundVersions}].",
                     targetFrameworkVersion,
-                    String.Join(", ", foundVersions)
+                    foundVersions
                 );
 
                 return null;
