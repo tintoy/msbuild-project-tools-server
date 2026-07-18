@@ -6,6 +6,7 @@ using MSBuildProjectTools.LanguageServer.Utilities;
 using OmniSharp.Extensions.LanguageServer.Protocol;
 using Serilog;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Text;
@@ -69,6 +70,26 @@ namespace MSBuildProjectTools.LanguageServer.Documents
         ///     The solution object-lookup facility.
         /// </summary>
         protected VsSolutionObjectLocator? SolutionLocator { get; private set; }
+
+        /// <summary>
+        ///     Solution objects in the project that correspond to locations in the file.
+        /// </summary>
+        /// <exception cref="InvalidOperationException">
+        ///     The solution is cached or not loaded.
+        /// </exception>
+        public IEnumerable<VsSolutionObject> SolutionObjects
+        {
+            get
+            {
+                if (!HasSolution)
+                    throw new InvalidOperationException($"MSBuild project '{SolutionFile.FullName}' is not loaded.");
+
+                if (IsSolutionCached)
+                    throw new InvalidOperationException($"MSBuild project '{SolutionFile.FullName}' is a cached (out-of-date) copy because the solution XML is currently invalid; positional lookups can't work in this scenario.");
+
+                return SolutionLocator.AllObjects;
+            }
+        }
 
         /// <summary>
         ///     Is the underlying solution cached (i.e. out-of-date with respect to the source text)?
