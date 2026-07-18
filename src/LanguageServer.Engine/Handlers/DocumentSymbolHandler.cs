@@ -106,7 +106,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
                                 {
                                     string trimmedInclude = string.Join(";",
                                         include.Split(
-                                            separator: [';'],
+                                            separator: new char[] { ';' },
                                             options: StringSplitOptions.RemoveEmptyEntries
                                         )
                                         .Select(includedItem => includedItem.Trim())
