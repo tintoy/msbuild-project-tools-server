@@ -15,10 +15,20 @@ using Xunit.Abstractions;
 namespace MSBuildProjectTools.LanguageServer.IntegrationTests
 {
     using CustomProtocol;
+    using Newtonsoft.Json.Converters;
     using Utilities;
 
     public class BasicIntegrationTests(ITestOutputHelper testOutput) : IntegrationTestBase(testOutput), IAsyncLifetime
     {
+        static readonly JsonSerializerSettings DumpSerializerSettings = new JsonSerializerSettings
+        {
+            Converters =
+            {
+                new StringEnumConverter(),
+            },
+            Formatting = Formatting.Indented,
+        };
+
         private readonly LanguageServerFixture _fixture = new(false);
         private readonly TempDirectory _workspaceRoot = new();
 
@@ -87,7 +97,7 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
             Assert.NotNull(completionList.Items);
 
             CompletionItem[] completionItems = completionList.Items.OrderBy(item => item.SortText ?? item.Label).ToArray();
-            
+
             Log.Information("Received {CompletionCount} completions from the language server.", completionItems.Length);
             for (int itemIndex = 0; itemIndex < completionItems.Length; itemIndex++)
             {
@@ -204,15 +214,148 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
                 ),
             ];
             Log.Information("Expected definitions: {DefinitionJson:l}",
-                JsonConvert.SerializeObject(expectedDefinitions, Formatting.Indented)
+                JsonConvert.SerializeObject(expectedDefinitions, DumpSerializerSettings)
             );
 
             LocationOrLocationLink[] actualDefinitions = definitionResult.ToArray();
             Log.Information("Actual definitions: {DefinitionJson:l}",
-                JsonConvert.SerializeObject(actualDefinitions, Formatting.Indented)
+                JsonConvert.SerializeObject(actualDefinitions, DumpSerializerSettings)
             );
-            
+
             Assert.Equal(expectedDefinitions, actualDefinitions);
+        }
+
+        [Fact]
+        public async Task SymbolsCsproj()
+        {
+            var testFilePath = Path.Combine(
+                Path.GetFullPath(_workspaceRoot),
+                "Test.csproj"
+            );
+            await File.WriteAllTextAsync(testFilePath,
+            """
+            <Project Sdk="Microsoft.NET.Sdk">
+                <PropertyGroup>
+                    <OutputType>Exe</OutputType>
+                    <TargetFramework>net6.0</TargetFramework>
+                </PropertyGroup>  
+            </Project>
+            """);
+
+            MSBuildEngineInstance compatibleMSBuild = MSBuildHelper.FindEngineForTargetFrameworkVersion(_fixture.TargetFrameworkVersion, logger: Log);
+            Assert.NotNull(compatibleMSBuild);
+
+            var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+            SymbolInformationOrDocumentSymbolContainer documentSymbolResult = await _fixture.Client.SendRequest(new DocumentSymbolParams
+            {
+                TextDocument = new TextDocumentIdentifier
+                {
+                    Uri = DocumentUri.FromFileSystemPath(testFilePath),
+                },
+            }, timeout.Token);
+
+            Assert.NotNull(documentSymbolResult);
+
+            SymbolInformation[] expectedSymbols = [
+                new SymbolInformation
+                {
+                    Name = "Microsoft.NET.Sdk",
+                    ContainerName = "Import (SDK)",
+                    Kind = SymbolKind.Package,
+                    Location = new Location
+                    {
+                        Uri = DocumentUri.FromFileSystemPath(testFilePath),
+                        Range = new Range(
+                            start: new Position(1, 10),
+                            end: new Position(1, 33)
+                        ).ToLsp(),
+                    },
+                },
+                new SymbolInformation
+                {
+                    Name = "OutputType",
+                    ContainerName = "Property",
+                    Kind = SymbolKind.Property,
+                    Location = new Location
+                    {
+                        Uri = DocumentUri.FromFileSystemPath(testFilePath),
+                        Range = new Range(
+                            start: new Position(3, 9),
+                            end: new Position(3, 37)
+                        ).ToLsp(),
+                    },
+                },
+                new SymbolInformation
+                {
+                    Name = "TargetFramework",
+                    ContainerName = "Property",
+                    Kind = SymbolKind.Property,
+                    Location = new Location
+                    {
+                        Uri = DocumentUri.FromFileSystemPath(testFilePath),
+                        Range = new Range(
+                            start: new Position(4, 9),
+                            end: new Position(4, 50)
+                        ).ToLsp(),
+                    },
+                },
+            ];
+            Log.Information("Expected symbols: {SymbolJson:l}",
+                JsonConvert.SerializeObject(expectedSymbols, DumpSerializerSettings)
+            );
+
+            SymbolInformation[] actualSymbols = documentSymbolResult.Select(symbol => symbol.SymbolInformation).ToArray();
+            Log.Information("Actual symbols: {SymbolJson:l}",
+                JsonConvert.SerializeObject(actualSymbols, DumpSerializerSettings)
+            );
+
+            Assert.Collection(actualSymbols,
+                symbol01 =>
+                {
+                    Assert.Equal("Microsoft.NET.Sdk", symbol01.Name);
+                    Assert.Equal(SymbolKind.Package, symbol01.Kind);
+                    Assert.Equal("Import (SDK)", symbol01.ContainerName);
+
+                    Assert.Equal(testFilePath, symbol01.Location.Uri.GetFileSystemPath(), ignoreCase: true);
+                    Assert.Equal(
+                        new Range(
+                            start: new Position(1, 10),
+                            end: new Position(1, 33)
+                        ),
+                        symbol01.Location.Range.ToNative()
+                    );
+                },
+                symbol02 =>
+                {
+                    Assert.Equal("OutputType", symbol02.Name);
+                    Assert.Equal(SymbolKind.Property, symbol02.Kind);
+                    Assert.Equal("Property", symbol02.ContainerName);
+
+                    Assert.Equal(testFilePath, symbol02.Location.Uri.GetFileSystemPath(), ignoreCase: true);
+                    Assert.Equal(
+                        new Range(
+                            start: new Position(3, 9),
+                            end: new Position(3, 37)
+                        ),
+                        symbol02.Location.Range.ToNative()
+                    );
+                },
+                symbol03 =>
+                {
+                    Assert.Equal("TargetFramework", symbol03.Name);
+                    Assert.Equal(SymbolKind.Property, symbol03.Kind);
+                    Assert.Equal("Property", symbol03.ContainerName);
+
+                    Assert.Equal(testFilePath, symbol03.Location.Uri.GetFileSystemPath(), ignoreCase: true);
+                    Assert.Equal(
+                        new Range(
+                            start: new Position(4, 9),
+                            end: new Position(4, 50)
+                        ),
+                        symbol03.Location.Range.ToNative()
+                    );
+                }
+            );
         }
 
         [Fact]
