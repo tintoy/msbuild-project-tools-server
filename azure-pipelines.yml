@@ -34,14 +34,17 @@ steps:
   displayName: 'Dump pipeline configuration'
 
   env:
-      AGENT_JOB_NAME: ${{ variables['Agent.JobName'] }}
-      UPDATE_GITHUB_RELEASE: ${{ variables['updateGitHubRelease'] }}
+      AGENT_JOB_NAME: $[ variables['Agent.JobName'] ]
+      UPDATE_GITHUB_RELEASE: $[ variables['updateGitHubRelease'] ]
 
   inputs:
     targetType: inline
     script: |
       echo "Agent.JobName = '$AGENT_JOB_NAME'"
       echo "updateGitHubRelease = '$UPDATE_GITHUB_RELEASE'"
+      echo "======="
+      env | sort
+      echo "======="
 
 - task: gitversion/setup@0
   displayName: 'Install GitVersion'
