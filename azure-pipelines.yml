@@ -17,11 +17,9 @@ strategy:
     linux:
       vmImage: 'ubuntu-latest'
       osName: 'Linux'
-      updateGitHubRelease: 'true'
     windows:
       vmImage: 'windows-latest'
       osName: 'Windows'
-      updateGitHubRelease: 'false'
 
 pool:
   vmImage: $(vmImage)
@@ -30,22 +28,6 @@ variables:
   buildConfiguration: 'Release'
 
 steps:
-- task: Bash@3
-  displayName: 'Dump pipeline configuration'
-
-  env:
-      AGENT_JOB_NAME: $[ variables['Agent.JobName'] ]
-      UPDATE_GITHUB_RELEASE: $[ variables['updateGitHubRelease'] ]
-
-  inputs:
-    targetType: inline
-    script: |
-      echo "Agent.JobName = '$AGENT_JOB_NAME'"
-      echo "updateGitHubRelease = '$UPDATE_GITHUB_RELEASE'"
-      echo "======="
-      env | sort
-      echo "======="
-
 - task: gitversion/setup@0
   displayName: 'Install GitVersion'
 
@@ -120,7 +102,7 @@ steps:
 - task: GitHubRelease@1
   displayName: 'Update GitHub release'
 
-  condition: and( contains( variables['Build.SourceBranch'], 'refs/tags/v' ), eq( variables['updateGitHubRelease'], 'true' ) )
+  condition: and( contains( variables['Build.SourceBranch'], 'refs/tags/v' ), eq( variables['Agent.JobName'], 'Job linux' ) )
   
   inputs:
     gitHubConnection: 'github.com_tintoy'
