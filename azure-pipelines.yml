@@ -102,15 +102,12 @@ steps:
 - task: GitHubRelease@1
   displayName: 'Create GitHub release from tag'
 
-  condition: contains(variables['Build.SourceBranch'], 'refs/tags/v')
+  condition: and( contains( variables['Build.SourceBranch'], 'refs/tags/v' ), eq( variables['Agent.JobName'], 'linux' ) )
   
   inputs:
     gitHubConnection: 'github.com_tintoy'
     repositoryName: '$(Build.Repository.Name)'
-    action: 'create'
+    action: 'edit'
     target: '$(Build.SourceVersion)'
-    tagSource: 'gitTag'
-    tagPattern: '^v\d+\.\d+.\d+(-[A-Za-z0-9%\.]+)?$'
-    addChangeLog: true
     assets: '$(Build.ArtifactStagingDirectory)/*.zip'
     assetUploadMode: replace
