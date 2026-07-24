@@ -109,5 +109,6 @@ steps:
     repositoryName: '$(Build.Repository.Name)'
     action: 'edit'
     target: '$(Build.SourceVersion)'
+    tag: '$(Build.SourceBranchName)'
     assets: '$(Build.ArtifactStagingDirectory)/*.zip'
     assetUploadMode: replace
