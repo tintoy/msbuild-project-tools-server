@@ -31,10 +31,13 @@ steps:
 - task: Bash@3
   displayName: 'Dump pipeline configuration'
 
+  env:
+      AGENT_JOB_NAME: ${{ variables['Agent.JobName'] }}
+
   inputs:
     targetType: inline
     script: |
-      echo "Agent.JobName = '${{ variables['Agent.JobName'] }}'"
+      echo "Agent.JobName = '${AGENT_JOB_NAME}'"
 
 - task: gitversion/setup@0
   displayName: 'Install GitVersion'
