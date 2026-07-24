@@ -17,9 +17,11 @@ strategy:
     linux:
       vmImage: 'ubuntu-latest'
       osName: 'Linux'
+      updateGitHubRelease: 'true'
     windows:
       vmImage: 'windows-latest'
       osName: 'Windows'
+      updateGitHubRelease: 'false'
 
 pool:
   vmImage: $(vmImage)
@@ -33,11 +35,13 @@ steps:
 
   env:
       AGENT_JOB_NAME: ${{ variables['Agent.JobName'] }}
+      UPDATE_GITHUB_RELEASE: ${{ variables['updateGitHubRelease'] }}
 
   inputs:
     targetType: inline
     script: |
-      echo "Agent.JobName = '${AGENT_JOB_NAME}'"
+      echo "Agent.JobName = '$AGENT_JOB_NAME'"
+      echo "updateGitHubRelease = '$UPDATE_GITHUB_RELEASE'"
 
 - task: gitversion/setup@0
   displayName: 'Install GitVersion'
@@ -111,9 +115,9 @@ steps:
     publishLocation: 'Container'
 
 - task: GitHubRelease@1
-  displayName: 'Create GitHub release from tag'
+  displayName: 'Update GitHub release'
 
-  condition: and( contains( variables['Build.SourceBranch'], 'refs/tags/v' ), contains( variables['Agent.JobName'], 'linux' ) )
+  condition: and( contains( variables['Build.SourceBranch'], 'refs/tags/v' ), eq( variables['updateGitHubRelease'], 'true' ) )
   
   inputs:
     gitHubConnection: 'github.com_tintoy'
