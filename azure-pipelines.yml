@@ -28,6 +28,14 @@ variables:
   buildConfiguration: 'Release'
 
 steps:
+- task: Bash@3
+  displayName: 'Dump pipeline configuration'
+
+  inputs:
+    targetType: inline
+    script: |
+      echo "Agent.JobName = '${{ variables['Agent.JobName'] }}'"
+
 - task: gitversion/setup@0
   displayName: 'Install GitVersion'
 
@@ -102,7 +110,7 @@ steps:
 - task: GitHubRelease@1
   displayName: 'Create GitHub release from tag'
 
-  condition: and( contains( variables['Build.SourceBranch'], 'refs/tags/v' ), eq( variables['Agent.JobName'], 'linux' ) )
+  condition: and( contains( variables['Build.SourceBranch'], 'refs/tags/v' ), contains( variables['Agent.JobName'], 'linux' ) )
   
   inputs:
     gitHubConnection: 'github.com_tintoy'
