@@ -1,3 +1,4 @@
+using MediatR;
 using NuGet.Configuration;
 using OmniSharp.Extensions.LanguageServer.Protocol;
 using OmniSharp.Extensions.LanguageServer.Protocol.Client.Capabilities;
@@ -11,16 +12,14 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace MSBuildProjectTools.LanguageServer.Handlers
 {
-    using System.Threading;
     using CustomProtocol;
     using Documents;
-    using MediatR;
     using SemanticModel;
-    using Utilities;
 
     /// <summary>
     ///     The handler for language server document synchronization.
@@ -124,86 +123,95 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         /// </returns>
         async Task OnDidOpenTextDocument(DidOpenTextDocumentParams parameters, CancellationToken cancellationToken)
         {
-            Server.NotifyBusy("Loading project...");
+            Server.NotifyBusy("Loading...");
 
-            ProjectDocument projectDocument = await Workspace.GetProjectDocument(parameters.TextDocument.Uri, cancellationToken: cancellationToken);
-            Workspace.PublishDiagnostics(projectDocument);
+            Document document = await Workspace.GetDocument(parameters.TextDocument.Uri, cancellationToken: cancellationToken);
+            Workspace.PublishDiagnostics(document);
 
-            // Only enable expression-related language service facilities if they're using our custom "MSBuild" language type (rather than "XML").
-            projectDocument.EnableExpressions = parameters.TextDocument.LanguageId == "msbuild";
-
-            Server.ClearBusy("Project loaded.");
-
-            if (!projectDocument.HasXml)
+            switch (document)
             {
-                Log.Warning("Failed to load project file {ProjectFilePath}.", projectDocument.ProjectFile.FullName);
-
-                return;
-            }
-
-            switch (projectDocument)
-            {
-                case MasterProjectDocument masterProjectDocument:
+                case ProjectDocument projectDocument:
                 {
-                    if (masterProjectDocument.HasMSBuildProject)
-                        Log.Information("Successfully loaded project {ProjectFilePath}.", projectDocument.ProjectFile.FullName);
+                    // Only enable expression-related language service facilities if they're using our custom "MSBuild" language type (rather than "XML").
+                    projectDocument.EnableExpressions = parameters.TextDocument.LanguageId == "msbuild";
 
-                    break;
-                }
-                case SubProjectDocument subProjectDocument:
-                {
-                    if (subProjectDocument.HasMSBuildProject)
+                    if (!projectDocument.HasXml)
                     {
-                        Log.Information("Successfully loaded project {ProjectFilePath} as a sub-project of {MasterProjectFileName}.",
-                            projectDocument.ProjectFile.FullName,
-                            subProjectDocument.MasterProjectDocument.ProjectFile.Name
-                        );
+                        Log.Warning("Failed to load project file {ProjectFilePath}.", projectDocument.ProjectFile.FullName);
+                        
+                        Server.ClearBusy($"Failed to load project file {projectDocument.ProjectFile.FullName}.");
+
+                        return;
                     }
 
-                    break;
-                }
-            }
+                    Server.ClearBusy("Project loaded.");
 
-            if (Log.IsEnabled(LogEventLevel.Verbose))
-            {
-                Log.Verbose("===========================");
-                foreach (PackageSource packageSource in projectDocument.ConfiguredPackageSources)
-                {
-                    Log.Verbose(" - Project uses package source {PackageSourceName} ({PackageSourceUrl})",
-                        packageSource.Name,
-                        packageSource.Source
-                    );
-                }
-
-                Log.Verbose("===========================");
-                if (projectDocument.HasMSBuildProject)
-                {
-                    Log.Verbose("Scanning task definitions for project {ProjectName}...", projectDocument.ProjectFile.Name);
-                    List<MSBuildTaskAssemblyMetadata> taskAssemblies = projectDocument.GetMSBuildProjectTaskAssemblies();
-                    Log.Verbose("Scan complete for task definitions of project {ProjectName} ({AssemblyCount} assemblies scanned).", projectDocument.ProjectFile.Name, taskAssemblies.Count);
-
-                    Log.Verbose("===========================");
-
-                    if (!projectDocument.IsMSBuildProjectCached)
+                    switch (projectDocument)
                     {
-                        MSBuildObject[] msbuildObjects = projectDocument.MSBuildObjects.ToArray();
-                        Log.Verbose("MSBuild project loaded ({MSBuildObjectCount} MSBuild objects).", msbuildObjects.Length);
-
-                        foreach (MSBuildObject msbuildObject in msbuildObjects)
+                        case MasterProjectDocument masterProjectDocument:
                         {
-                            Log.Verbose("{Type:l}: {Kind} {Name} spanning {XmlRange}",
-                                msbuildObject.GetType().Name,
-                                msbuildObject.Kind,
-                                msbuildObject.Name,
-                                msbuildObject.XmlRange
-                            );
+                            if (masterProjectDocument.HasMSBuildProject)
+                                Log.Information("Successfully loaded project {ProjectFilePath}.", projectDocument.ProjectFile.FullName);
+
+                            break;
+                        }
+                        case SubProjectDocument subProjectDocument:
+                        {
+                            if (subProjectDocument.HasMSBuildProject)
+                            {
+                                Log.Information("Successfully loaded project {ProjectFilePath} as a sub-project of {MasterProjectFileName}.",
+                                    projectDocument.ProjectFile.FullName,
+                                    subProjectDocument.MasterProjectDocument.ProjectFile.Name
+                                );
+                            }
+
+                            break;
                         }
                     }
-                    else
-                        Log.Verbose("MSBuild project not loaded; will used cached project state (as long as positional lookups are not required).");
+
+                    if (Log.IsEnabled(LogEventLevel.Verbose))
+                    {
+                        Log.Verbose("===========================");
+
+                        foreach (PackageSource packageSource in projectDocument.ConfiguredPackageSources)
+                        {
+                            Log.Verbose(" - Project uses package source {PackageSourceName} ({PackageSourceUrl})",
+                                packageSource.Name,
+                                packageSource.Source
+                            );
+                        }
+
+                        if (projectDocument.HasMSBuildProject)
+                        {
+                            Log.Verbose("===========================");
+
+                            Log.Verbose("Scanning task definitions for project {ProjectName}...", projectDocument.ProjectFile.Name);
+                            List<MSBuildTaskAssemblyMetadata> taskAssemblies = projectDocument.GetMSBuildProjectTaskAssemblies();
+                            Log.Verbose("Scan complete for task definitions of project {ProjectName} ({AssemblyCount} assemblies scanned).", projectDocument.ProjectFile.Name, taskAssemblies.Count);
+                        }
+
+                        LogLoadedDocumentState(projectDocument);
+                    }
+
+                    break;
                 }
-                else
-                    Log.Verbose("MSBuild project not loaded.");
+                case SolutionDocument solutionDocument:
+                {
+                    if (!solutionDocument.HasXml)
+                    {
+                        Log.Warning("Failed to load solution file {ProjectFilePath}.", solutionDocument.SolutionFile.FullName);
+                        
+                        Server.ClearBusy($"Failed to load solution file {solutionDocument.SolutionFile.FullName}.");
+
+                        return;
+                    }
+                    
+                    Server.ClearBusy("Solution loaded.");
+
+                    LogLoadedDocumentState(solutionDocument);
+
+                    break;
+                }
             }
         }
 
@@ -230,35 +238,10 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
                 return;
 
             string updatedDocumentText = mostRecentChange.Text;
-            ProjectDocument projectDocument = await Workspace.TryUpdateProjectDocument(parameters.TextDocument.Uri, updatedDocumentText, cancellationToken);
-            Workspace.PublishDiagnostics(projectDocument);
+            Document document = await Workspace.TryUpdateDocument(parameters.TextDocument.Uri, updatedDocumentText, cancellationToken);
+            Workspace.PublishDiagnostics(document);
 
-            if (Log.IsEnabled(LogEventLevel.Verbose))
-            {
-                Log.Verbose("===========================");
-                if (projectDocument.HasMSBuildProject)
-                {
-                    if (!projectDocument.IsMSBuildProjectCached)
-                    {
-                        MSBuildObject[] msbuildObjects = projectDocument.MSBuildObjects.ToArray();
-                        Log.Verbose("MSBuild project loaded ({MSBuildObjectCount} MSBuild objects).", msbuildObjects.Length);
-
-                        foreach (MSBuildObject msbuildObject in msbuildObjects)
-                        {
-                            Log.Verbose("{Type:l}: {Kind} {Name} spanning {XmlRange}",
-                                msbuildObject.GetType().Name,
-                                msbuildObject.Kind,
-                                msbuildObject.Name,
-                                msbuildObject.XmlRange
-                            );
-                        }
-                    }
-                    else
-                        Log.Verbose("MSBuild project not loaded; will used cached project state (as long as positional lookups are not required).");
-                }
-                else
-                    Log.Verbose("MSBuild project not loaded.");
-            }
+            LogLoadedDocumentState(document);
         }
 
         /// <summary>
@@ -279,24 +262,52 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
                 DocumentUri.GetFileSystemPath(parameters.TextDocument.Uri)
             );
 
-            ProjectDocument projectDocument = await Workspace.GetProjectDocument(parameters.TextDocument.Uri, reload: true, cancellationToken: cancellationToken);
-            Workspace.PublishDiagnostics(projectDocument);
+            Document document = await Workspace.GetDocument(parameters.TextDocument.Uri, reload: true, cancellationToken: cancellationToken);
+            Workspace.PublishDiagnostics(document);
 
-            if (!projectDocument.HasXml)
+            switch (document)
             {
-                Log.Warning("Failed to reload project file {ProjectFilePath} (XML is invalid).", projectDocument.ProjectFile.FullName);
+                case ProjectDocument projectDocument:
+                {
+                    if (!projectDocument.HasXml)
+                    {
+                        Log.Warning("Failed to reload project file {ProjectFilePath} (XML is invalid).", projectDocument.ProjectFile.FullName);
 
-                return;
+                        return;
+                    }
+
+                    if (!projectDocument.HasMSBuildProject)
+                    {
+                        Log.Warning("Reloaded project file {ProjectFilePath} (XML is valid, but MSBuild project is not).", projectDocument.ProjectFile.FullName);
+
+                        return;
+                    }
+
+                    Log.Information("Successfully reloaded project {ProjectFilePath}.", projectDocument.ProjectFile.FullName);
+
+                    break;
+                }
+                case SolutionDocument solutionDocument:
+                {
+                    if (!solutionDocument.HasXml)
+                    {
+                        Log.Warning("Failed to reload project file {ProjectFilePath} (XML is invalid).", solutionDocument.SolutionFile.FullName);
+
+                        return;
+                    }
+
+                    if (!solutionDocument.HasSolution)
+                    {
+                        Log.Warning("Reloaded project file {ProjectFilePath} (XML is valid, but VS Solution model is not).", solutionDocument.SolutionFile.FullName);
+
+                        return;
+                    }
+
+                    Log.Information("Successfully reloaded project {ProjectFilePath}.", solutionDocument.SolutionFile.FullName);
+
+                    break;
+                }
             }
-
-            if (!projectDocument.HasMSBuildProject)
-            {
-                Log.Warning("Reloaded project file {ProjectFilePath} (XML is valid, but MSBuild project is not).", projectDocument.ProjectFile.FullName);
-
-                return;
-            }
-
-            Log.Information("Successfully reloaded project {ProjectFilePath}.", projectDocument.ProjectFile.FullName);
         }
 
         /// <summary>
@@ -370,6 +381,77 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
             //var textEdits = new List<TextEdit>();
             //return new TextEditContainer(textEdits);
             return Task.FromResult<TextEditContainer>(null);
+        }
+
+        void LogLoadedDocumentState(Document document)
+        {
+            if (document == null)
+                throw new ArgumentNullException(nameof(document));
+
+            if (!Log.IsEnabled(LogEventLevel.Verbose))
+                return;
+
+            Log.Verbose("===========================");
+
+            switch (document)
+            {
+                case ProjectDocument projectDocument:
+                {
+                    Log.Verbose("===========================");
+
+                    if (projectDocument.HasMSBuildProject)
+                    {
+                        if (!projectDocument.IsMSBuildProjectCached)
+                        {
+                            MSBuildObject[] msbuildObjects = projectDocument.MSBuildObjects.ToArray();
+                            Log.Verbose("MSBuild project loaded ({MSBuildObjectCount} MSBuild objects).", msbuildObjects.Length);
+
+                            foreach (MSBuildObject msbuildObject in msbuildObjects)
+                            {
+                                Log.Verbose("{Type:l}: {Kind} {Name} spanning {XmlRange}",
+                                    msbuildObject.GetType().Name,
+                                    msbuildObject.Kind,
+                                    msbuildObject.Name,
+                                    msbuildObject.XmlRange
+                                );
+                            }
+                        }
+                        else
+                            Log.Verbose("MSBuild project not loaded; will used cached project state (as long as positional lookups are not required).");
+                    }
+                    else
+                        Log.Verbose("MSBuild project not loaded.");
+
+                    break;
+                }
+                case SolutionDocument solutionDocument:
+                {
+                    if (solutionDocument.HasSolution)
+                    {
+                        if (!solutionDocument.IsSolutionCached)
+                        {
+                            VsSolutionObject[] solutionObjects = solutionDocument.SolutionObjects.ToArray();
+                            Log.Verbose("Solution loaded ({SolutionObjectCount} solution objects).", solutionObjects.Length);
+
+                            foreach (VsSolutionObject solutionObject in solutionObjects)
+                            {
+                                Log.Verbose("{Type:l}: {Kind} {Name} spanning {XmlRange}",
+                                    solutionObject.GetType().Name,
+                                    solutionObject.Kind,
+                                    solutionObject.Name,
+                                    solutionObject.XmlRange
+                                );
+                            }
+                        }
+                        else
+                            Log.Verbose("Solution not loaded; will used cached project state (as long as positional lookups are not required).");
+                    }
+                    else
+                        Log.Verbose("Solution not loaded.");
+
+                    break;
+                }
+            }
         }
 
         /// <summary>

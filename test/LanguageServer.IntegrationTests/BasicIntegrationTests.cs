@@ -1,9 +1,11 @@
 using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 using OmniSharp.Extensions.JsonRpc;
 using OmniSharp.Extensions.LanguageServer.Protocol;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using Serilog.Extensions.Logging;
 using System;
+using System.Collections.Concurrent;
 using System.IO;
 using System.Linq;
 using System.Reactive.Disposables;
@@ -15,7 +17,6 @@ using Xunit.Abstractions;
 namespace MSBuildProjectTools.LanguageServer.IntegrationTests
 {
     using CustomProtocol;
-    using Newtonsoft.Json.Converters;
     using Utilities;
 
     public class BasicIntegrationTests(ITestOutputHelper testOutput) : IntegrationTestBase(testOutput), IAsyncLifetime
@@ -67,6 +68,64 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
             Assert.NotNull(_fixture.Client!.ServerSettings?.Capabilities?.CompletionProvider);
             Assert.DoesNotContain(_fixture.Client!.RegistrationManager?.CurrentRegistrations,
                 reg => reg.Method == TextDocumentNames.Completion);
+        }
+
+        [Fact]
+        public async Task DocumentSyncCsproj()
+        {
+            var testFilePath = Path.Combine(_workspaceRoot, "Test.csproj");
+            await File.WriteAllTextAsync(testFilePath,
+            """
+            <Project Sdk="Microsoft.NET.Sdk">
+                <PropertyGroup>
+                    <OutputType>Exe</OutputType>
+                    <TargetFramework>net6.0</TargetFramework>
+                </PropertyGroup>  
+            </Project>
+            """);
+
+            var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+
+            var busyNotificationBuffer = new ConcurrentQueue<BusyNotificationParams>();
+            using var receivedNotification = new ManualResetEventSlim(initialState: false);
+
+            using IDisposable notificationHandlerRegistration = _fixture.Client.Register(registry =>
+            {
+                registry.OnNotification<BusyNotificationParams>("msbuild/busy", notification =>
+                {
+                    busyNotificationBuffer.Enqueue(notification);
+                    receivedNotification.Set();
+                });
+            });
+
+            await _fixture.Client.SendRequest(new DidOpenTextDocumentParams
+            {
+                TextDocument = new TextDocumentItem
+                {
+                    Uri = DocumentUri.FromFileSystemPath(testFilePath),
+                },
+            }, timeout.Token);
+
+
+            receivedNotification.Wait(timeout.Token);
+
+            BusyNotificationParams[] actualBusyNotifications = busyNotificationBuffer.ToArray();
+            Log.Information("Actual busy-notifications: {NotificationJson:l}",
+                JsonConvert.SerializeObject(actualBusyNotifications, DumpSerializerSettings)
+            );
+
+            Assert.Collection(actualBusyNotifications,
+                notification1 =>
+                {
+                    Assert.True(notification1.IsBusy);
+                    Assert.Equal("Loading...", notification1.Message);
+                },
+                notification2 =>
+                {
+                    Assert.False(notification2.IsBusy);
+                    Assert.Equal("Project loaded.", notification2.Message);
+                }
+            );
         }
 
         [Fact]
@@ -354,6 +413,61 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
                         ),
                         symbol03.Location.Range.ToNative()
                     );
+                }
+            );
+        }
+
+        [Fact]
+        public async Task DocumentSyncSlnx()
+        {
+            var testFilePath = Path.Combine(_workspaceRoot, "Test.slnx");
+            await File.WriteAllTextAsync(testFilePath,
+            """
+            <Solution>
+
+            </Solution>
+            """);
+
+            var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+
+            var busyNotificationBuffer = new ConcurrentQueue<BusyNotificationParams>();
+            using var receivedNotification = new ManualResetEventSlim(false);
+
+            using IDisposable notificationHandlerRegistration = _fixture.Client.Register(registry =>
+            {
+                registry.OnNotification<BusyNotificationParams>("msbuild/busy", notification =>
+                {
+                    busyNotificationBuffer.Enqueue(notification);
+                    receivedNotification.Set();
+                });
+            });
+
+            await _fixture.Client.SendRequest(new DidOpenTextDocumentParams
+            {
+                TextDocument = new TextDocumentItem
+                {
+                    Uri = DocumentUri.FromFileSystemPath(testFilePath),
+                },
+            }, timeout.Token);
+
+
+            receivedNotification.Wait();
+
+            BusyNotificationParams[] actualBusyNotifications = busyNotificationBuffer.ToArray();
+            Log.Information("Actual busy-notifications: {NotificationJson:l}",
+                JsonConvert.SerializeObject(actualBusyNotifications, DumpSerializerSettings)
+            );
+
+            Assert.Collection(actualBusyNotifications,
+                notification1 =>
+                {
+                    Assert.True(notification1.IsBusy);
+                    Assert.Equal("Loading...", notification1.Message);
+                },
+                notification2 =>
+                {
+                    Assert.False(notification2.IsBusy);
+                    Assert.Equal("Solution loaded.", notification2.Message);
                 }
             );
         }
