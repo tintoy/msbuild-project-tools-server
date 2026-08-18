@@ -125,9 +125,19 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         {
             Server.NotifyBusy("Loading...");
 
-            Document document = await Workspace.GetDocument(parameters.TextDocument.Uri, cancellationToken: cancellationToken);
-            Workspace.PublishDiagnostics(document);
+            Document document;
+            try
+            {
+                document = await Workspace.GetDocument(parameters.TextDocument.Uri, cancellationToken: cancellationToken);
+            }
+            catch (Exception loadError)
+            {
+                Log.Error(loadError, "Failed to load document {DocumentUri}.", parameters.TextDocument.Uri);
+                Server.ClearBusy("Failed to load document.");
+                return;
+            }
 
+            Workspace.PublishDiagnostics(document);
             switch (document)
             {
                 case ProjectDocument projectDocument:
