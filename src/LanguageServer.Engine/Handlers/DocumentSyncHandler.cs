@@ -303,7 +303,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
                         return;
                     }
 
-                    Log.Information("Successfully reloaded project {ProjectFilePath}.", solutionDocument.SolutionFile.FullName);
+                    Log.Information("Successfully reloaded solution file {SolutionFilePath}.", solutionDocument.SolutionFile.FullName);
 
                     break;
                 }
