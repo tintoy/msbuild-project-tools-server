@@ -72,7 +72,7 @@ namespace MSBuildProjectTools.LanguageServer.Documents
         protected VsSolutionObjectLocator? SolutionLocator { get; private set; }
 
         /// <summary>
-        ///     Solution objects in the project that correspond to locations in the file.
+        ///     Solution objects in the solution that correspond to locations in the file.
         /// </summary>
         /// <exception cref="InvalidOperationException">
         ///     The solution is cached or not loaded.
