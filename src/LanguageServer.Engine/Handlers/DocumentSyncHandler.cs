@@ -444,7 +444,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
                             }
                         }
                         else
-                            Log.Verbose("Solution not loaded; will used cached project state (as long as positional lookups are not required).");
+                            Log.Verbose("Solution not loaded; will use cached solution state (as long as positional lookups are not required).");
                     }
                     else
                         Log.Verbose("Solution not loaded.");
