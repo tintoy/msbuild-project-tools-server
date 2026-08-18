@@ -30,6 +30,22 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
             Formatting = Formatting.Indented,
         };
 
+        const string CsprojFileContent =
+            """
+            <Project Sdk="Microsoft.NET.Sdk">
+                <PropertyGroup>
+                    <OutputType>Exe</OutputType>
+                    <TargetFramework>net6.0</TargetFramework>
+                </PropertyGroup>  
+            </Project>
+            """;
+        const string SlnxFileContent =
+            """
+            <Solution>
+
+            </Solution>
+            """;
+
         private readonly LanguageServerFixture _fixture = new(false);
         private readonly TempDirectory _workspaceRoot = new();
 
@@ -73,59 +89,9 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
         [Fact]
         public async Task DocumentSyncCsproj()
         {
-            var testFilePath = Path.Combine(_workspaceRoot, "Test.csproj");
-            await File.WriteAllTextAsync(testFilePath,
-            """
-            <Project Sdk="Microsoft.NET.Sdk">
-                <PropertyGroup>
-                    <OutputType>Exe</OutputType>
-                    <TargetFramework>net6.0</TargetFramework>
-                </PropertyGroup>  
-            </Project>
-            """);
+            await OpenDocumentFile("Test.csproj", CsprojFileContent, "Project loaded.");
 
-            var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(5));
-
-            var busyNotificationBuffer = new ConcurrentQueue<BusyNotificationParams>();
-            using var receivedNotification = new ManualResetEventSlim(initialState: false);
-
-            using IDisposable notificationHandlerRegistration = _fixture.Client.Register(registry =>
-            {
-                registry.OnNotification<BusyNotificationParams>("msbuild/busy", notification =>
-                {
-                    busyNotificationBuffer.Enqueue(notification);
-                    receivedNotification.Set();
-                });
-            });
-
-            await _fixture.Client.SendRequest(new DidOpenTextDocumentParams
-            {
-                TextDocument = new TextDocumentItem
-                {
-                    Uri = DocumentUri.FromFileSystemPath(testFilePath),
-                },
-            }, timeout.Token);
-
-
-            receivedNotification.Wait(timeout.Token);
-
-            BusyNotificationParams[] actualBusyNotifications = busyNotificationBuffer.ToArray();
-            Log.Information("Actual busy-notifications: {NotificationJson:l}",
-                JsonConvert.SerializeObject(actualBusyNotifications, DumpSerializerSettings)
-            );
-
-            Assert.Collection(actualBusyNotifications,
-                notification1 =>
-                {
-                    Assert.True(notification1.IsBusy);
-                    Assert.Equal("Loading...", notification1.Message);
-                },
-                notification2 =>
-                {
-                    Assert.False(notification2.IsBusy);
-                    Assert.Equal("Project loaded.", notification2.Message);
-                }
-            );
+            //TODO: Do more checks related to "document sync"
         }
 
         [Fact]
@@ -420,56 +386,9 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
         [Fact]
         public async Task DocumentSyncSlnx()
         {
-            var testFilePath = Path.Combine(_workspaceRoot, "Test.slnx");
-            await File.WriteAllTextAsync(testFilePath,
-            """
-            <Solution>
+            await OpenDocumentFile("Test.slnx", SlnxFileContent, "Solution loaded.");
 
-            </Solution>
-            """);
-
-            var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(5));
-
-            var busyNotificationBuffer = new ConcurrentQueue<BusyNotificationParams>();
-            using var receivedNotification = new ManualResetEventSlim(false);
-
-            using IDisposable notificationHandlerRegistration = _fixture.Client.Register(registry =>
-            {
-                registry.OnNotification<BusyNotificationParams>("msbuild/busy", notification =>
-                {
-                    busyNotificationBuffer.Enqueue(notification);
-                    receivedNotification.Set();
-                });
-            });
-
-            await _fixture.Client.SendRequest(new DidOpenTextDocumentParams
-            {
-                TextDocument = new TextDocumentItem
-                {
-                    Uri = DocumentUri.FromFileSystemPath(testFilePath),
-                },
-            }, timeout.Token);
-
-
-            receivedNotification.Wait();
-
-            BusyNotificationParams[] actualBusyNotifications = busyNotificationBuffer.ToArray();
-            Log.Information("Actual busy-notifications: {NotificationJson:l}",
-                JsonConvert.SerializeObject(actualBusyNotifications, DumpSerializerSettings)
-            );
-
-            Assert.Collection(actualBusyNotifications,
-                notification1 =>
-                {
-                    Assert.True(notification1.IsBusy);
-                    Assert.Equal("Loading...", notification1.Message);
-                },
-                notification2 =>
-                {
-                    Assert.False(notification2.IsBusy);
-                    Assert.Equal("Solution loaded.", notification2.Message);
-                }
-            );
+            //TODO: Do more checks related to "document sync"
         }
 
         [Fact]
@@ -579,24 +498,19 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
         /// <summary>
         ///     Test that the language server does process textDocument/didOpen
         ///     notification by testing that the busy state notification (msbuild/busy)
-        ///     reaches the client.
+        ///     reaches the client twice.
         /// </summary>
-        [Fact]
-        public async Task OpenCsproj()
+        [Theory]
+        [InlineData("Test.csproj", CsprojFileContent, "Project loaded.")]
+        [InlineData("Test.slnx", SlnxFileContent, "Solution loaded.")]
+        public async Task OpenDocumentFile(string fileName, string fileContent, string expectedNotBusyMsg)
         {
-            var testFilePath = Path.Combine(_workspaceRoot, "Test.csproj");
-            await File.WriteAllTextAsync(testFilePath,
-            """
-            <Project Sdk="Microsoft.NET.Sdk">
-                <PropertyGroup>
-                    <OutputType>Exe</OutputType>
-                    <TargetFramework>net6.0</TargetFramework>
-                </PropertyGroup>  
-            </Project>
-            """);
+            var testFilePath = Path.Combine(_workspaceRoot, fileName);
+            await File.WriteAllTextAsync(testFilePath, fileContent);
 
             IDisposable handlerRegistration = null;
             var tcsBusy = new TaskCompletionSource();
+            BusyNotificationParams firstBusyRaised = null;
 
             Action<Action<BusyNotificationParams>> attach =
                 handler =>
@@ -604,9 +518,13 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
                     var assertHandler = handler;
                     handler = @params =>
                     {
-                        assertHandler(@params);
-                        if (!@params.IsBusy)
+                        if (firstBusyRaised is null)
+                            firstBusyRaised = @params;
+                        else
+                        {
+                            assertHandler(@params);
                             tcsBusy.TrySetResult();
+                        }
                     };
                     var cancelReg = tcsBusy.CancelAfter(TimeSpan.FromSeconds(5));
                     var handlerReg = _fixture.Client.Register(
@@ -618,7 +536,7 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
             Action<Action<BusyNotificationParams>> detach =
                 handler => handlerRegistration?.Dispose();
 
-            var raisedBusy = await Assert.RaisesAsync(
+            var lastBusyRaised = (await Assert.RaisesAsync(
                 attach, detach,
                 () =>
                 {
@@ -632,10 +550,17 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
                     });
                     return tcsBusy.Task;
                 }
+            )).Arguments;
+
+            Log.Information("Actual busy-notifications: {NotificationJson:l}",
+                JsonConvert.SerializeObject(new[] { firstBusyRaised, lastBusyRaised }, DumpSerializerSettings)
             );
 
-            Assert.False(raisedBusy.Arguments.IsBusy);
-            Assert.Equal("Project loaded.", raisedBusy.Arguments.Message);
+            Assert.True(firstBusyRaised.IsBusy);
+            Assert.Equal("Loading...", firstBusyRaised.Message);
+
+            Assert.False(lastBusyRaised.IsBusy);
+            Assert.Equal(expectedNotBusyMsg, lastBusyRaised.Message);
         }
     }
 }
