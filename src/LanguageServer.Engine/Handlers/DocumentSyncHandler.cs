@@ -417,7 +417,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
                             }
                         }
                         else
-                            Log.Verbose("MSBuild project not loaded; will used cached project state (as long as positional lookups are not required).");
+                            Log.Verbose("MSBuild project not loaded; will use cached project state (as long as positional lookups are not required).");
                     }
                     else
                         Log.Verbose("MSBuild project not loaded.");
