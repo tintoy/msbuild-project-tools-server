@@ -82,10 +82,10 @@ namespace MSBuildProjectTools.LanguageServer.Documents
             get
             {
                 if (!HasSolution)
-                    throw new InvalidOperationException($"MSBuild project '{SolutionFile.FullName}' is not loaded.");
+                    throw new InvalidOperationException($"Solution '{SolutionFile.FullName}' is not loaded.");
 
                 if (IsSolutionCached)
-                    throw new InvalidOperationException($"MSBuild project '{SolutionFile.FullName}' is a cached (out-of-date) copy because the solution XML is currently invalid; positional lookups can't work in this scenario.");
+                    throw new InvalidOperationException($"Solution '{SolutionFile.FullName}' is a cached (out-of-date) copy because the solution XML is currently invalid; positional lookups can't work in this scenario.");
 
                 return SolutionLocator.AllObjects;
             }
