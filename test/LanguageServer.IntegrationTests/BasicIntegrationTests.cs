@@ -1,9 +1,12 @@
 using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
+using NuGet.Versioning;
 using OmniSharp.Extensions.JsonRpc;
 using OmniSharp.Extensions.LanguageServer.Protocol;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using Serilog.Extensions.Logging;
 using System;
+using System.Collections.Concurrent;
 using System.IO;
 using System.Linq;
 using System.Reactive.Disposables;
@@ -15,7 +18,6 @@ using Xunit.Abstractions;
 namespace MSBuildProjectTools.LanguageServer.IntegrationTests
 {
     using CustomProtocol;
-    using Newtonsoft.Json.Converters;
     using Utilities;
 
     public class BasicIntegrationTests(ITestOutputHelper testOutput) : IntegrationTestBase(testOutput), IAsyncLifetime
@@ -28,6 +30,22 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
             },
             Formatting = Formatting.Indented,
         };
+
+        const string CsprojFileContent =
+            """
+            <Project Sdk="Microsoft.NET.Sdk">
+                <PropertyGroup>
+                    <OutputType>Exe</OutputType>
+                    <TargetFramework>net6.0</TargetFramework>
+                </PropertyGroup>  
+            </Project>
+            """;
+        const string SlnxFileContent =
+            """
+            <Solution>
+
+            </Solution>
+            """;
 
         private readonly LanguageServerFixture _fixture = new(false);
         private readonly TempDirectory _workspaceRoot = new();
@@ -67,6 +85,14 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
             Assert.NotNull(_fixture.Client!.ServerSettings?.Capabilities?.CompletionProvider);
             Assert.DoesNotContain(_fixture.Client!.RegistrationManager?.CurrentRegistrations,
                 reg => reg.Method == TextDocumentNames.Completion);
+        }
+
+        [Fact]
+        public async Task DocumentSyncCsproj()
+        {
+            await OpenDocumentFile("Test.csproj", CsprojFileContent, "Project loaded.");
+
+            //TODO: Do more checks related to "document sync"
         }
 
         [Fact]
@@ -117,6 +143,90 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
                     "<Target>",
                 ],
                 actual: completionItems.Select(item => item.Label)
+            );
+        }
+
+        [Fact]
+        public async Task AutoCompletePackageReference()
+        {
+            var testFilePath = Path.Combine(_workspaceRoot, "Test.csproj");
+            await File.WriteAllTextAsync(testFilePath,
+            """
+            <Project Sdk="Microsoft.NET.Sdk">
+                <PropertyGroup>
+                    <OutputType>Exe</OutputType>
+                    <TargetFramework>net6.0</TargetFramework>
+                </PropertyGroup>
+                <ItemGroup>
+                    <PackageReference Include="Microsoft.Build" Version="" />
+                </ItemGroup>
+            </Project>
+            """);
+
+            var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+            CompletionList completionList = await _fixture.Client.SendRequest(new CompletionParams
+            {
+                TextDocument = new TextDocumentIdentifier
+                {
+                    Uri = DocumentUri.FromFileSystemPath(testFilePath)
+                },
+                Position = new(6, 61)
+            }, timeout.Token);
+
+            Assert.NotNull(completionList);
+            Assert.NotNull(completionList.Items);
+
+            CompletionItem[] completionItems = completionList.Items.OrderBy(item => item.SortText ?? item.Label).ToArray();
+
+            Log.Information("Received {CompletionCount} completions from the language server.", completionItems.Length);
+            for (int itemIndex = 0; itemIndex < completionItems.Length; itemIndex++)
+            {
+                Log.Information("\tCompletionItems[{ItemIndex}] = {@CompletionItem}",
+                    itemIndex,
+                    completionItems[itemIndex]
+                );
+            }
+
+            Assert.NotEmpty(completionItems);
+            Assert.All(completionItems, item =>
+            {
+                Assert.Equal("Package Version", item.Detail);
+                Assert.True(SemanticVersion.TryParse(item.Label, out var actualSemVer), "item.Label can convert to semver");
+            });
+        }
+
+        [Fact]
+        public async Task HoverPackageReference()
+        {
+            var testFilePath = Path.Combine(_workspaceRoot, "Test.csproj");
+            await File.WriteAllTextAsync(testFilePath,
+            """
+            <Project Sdk="Microsoft.NET.Sdk">
+                <PropertyGroup>
+                    <OutputType>Exe</OutputType>
+                    <TargetFramework>net6.0</TargetFramework>
+                </PropertyGroup>  
+                <ItemGroup>
+                    <PackageReference Include="Microsoft.Build" Version="17.11.48" />
+                </ItemGroup>
+            </Project>
+            """);
+
+            var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+            Hover hoverResult = await _fixture.Client.SendRequest(new HoverParams
+            {
+                TextDocument = new TextDocumentIdentifier
+                {
+                    Uri = DocumentUri.FromFileSystemPath(testFilePath)
+                },
+                Position = new Position(7, 10).ToLsp()
+            }, timeout.Token);
+
+            Assert.NotNull(hoverResult);
+            Assert.NotNull(hoverResult.Contents);
+            Assert.Equal(
+                "NuGet Package: Microsoft.Build Requested Version: `17.11.48` State: Not restored",
+                hoverResult.Contents.ToString()
             );
         }
 
@@ -359,6 +469,14 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
         }
 
         [Fact]
+        public async Task DocumentSyncSlnx()
+        {
+            await OpenDocumentFile("Test.slnx", SlnxFileContent, "Solution loaded.");
+
+            //TODO: Do more checks related to "document sync"
+        }
+
+        [Fact]
         public async Task AutoCompleteSlnx()
         {
             var testFilePath = Path.Combine(_workspaceRoot, "Test.slnx");
@@ -465,24 +583,19 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
         /// <summary>
         ///     Test that the language server does process textDocument/didOpen
         ///     notification by testing that the busy state notification (msbuild/busy)
-        ///     reaches the client.
+        ///     reaches the client twice.
         /// </summary>
-        [Fact]
-        public async Task OpenCsproj()
+        [Theory]
+        [InlineData("Test.csproj", CsprojFileContent, "Project loaded.")]
+        [InlineData("Test.slnx", SlnxFileContent, "Solution loaded.")]
+        public async Task OpenDocumentFile(string fileName, string fileContent, string expectedNotBusyMsg)
         {
-            var testFilePath = Path.Combine(_workspaceRoot, "Test.csproj");
-            await File.WriteAllTextAsync(testFilePath,
-            """
-            <Project Sdk="Microsoft.NET.Sdk">
-                <PropertyGroup>
-                    <OutputType>Exe</OutputType>
-                    <TargetFramework>net6.0</TargetFramework>
-                </PropertyGroup>  
-            </Project>
-            """);
+            var testFilePath = Path.Combine(_workspaceRoot, fileName);
+            await File.WriteAllTextAsync(testFilePath, fileContent);
 
             IDisposable handlerRegistration = null;
             var tcsBusy = new TaskCompletionSource();
+            BusyNotificationParams firstBusyRaised = null;
 
             Action<Action<BusyNotificationParams>> attach =
                 handler =>
@@ -490,9 +603,13 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
                     var assertHandler = handler;
                     handler = @params =>
                     {
-                        assertHandler(@params);
-                        if (!@params.IsBusy)
+                        if (firstBusyRaised is null)
+                            firstBusyRaised = @params;
+                        else
+                        {
+                            assertHandler(@params);
                             tcsBusy.TrySetResult();
+                        }
                     };
                     var cancelReg = tcsBusy.CancelAfter(TimeSpan.FromSeconds(5));
                     var handlerReg = _fixture.Client.Register(
@@ -504,7 +621,7 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
             Action<Action<BusyNotificationParams>> detach =
                 handler => handlerRegistration?.Dispose();
 
-            var raisedBusy = await Assert.RaisesAsync(
+            var lastBusyRaised = (await Assert.RaisesAsync(
                 attach, detach,
                 () =>
                 {
@@ -518,10 +635,17 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
                     });
                     return tcsBusy.Task;
                 }
+            )).Arguments;
+
+            Log.Information("Actual busy-notifications: {NotificationJson:l}",
+                JsonConvert.SerializeObject(new[] { firstBusyRaised, lastBusyRaised }, DumpSerializerSettings)
             );
 
-            Assert.False(raisedBusy.Arguments.IsBusy);
-            Assert.Equal("Project loaded.", raisedBusy.Arguments.Message);
+            Assert.True(firstBusyRaised.IsBusy);
+            Assert.Equal("Loading...", firstBusyRaised.Message);
+
+            Assert.False(lastBusyRaised.IsBusy);
+            Assert.Equal(expectedNotBusyMsg, lastBusyRaised.Message);
         }
     }
 }

@@ -24,7 +24,8 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
                 .Enrich.With<LoggingModule.SourceComponentLogEnricher>()
                 .Enrich.With<ComputedLogLevelPrefixEnricher>()
                 .WriteTo.TestOutput(TestOutput, outputTemplate: "{ComputedLogLevelPrefix:l}{Message:lj}{NewLine}{Exception}")
-                .CreateLogger();
+                .CreateLogger()
+                .ForContext(GetType());
         }
 
         protected ITestOutputHelper TestOutput { get; }
