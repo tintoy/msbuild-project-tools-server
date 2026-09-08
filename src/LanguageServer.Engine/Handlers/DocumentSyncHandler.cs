@@ -209,7 +209,7 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
                 {
                     if (!solutionDocument.HasXml)
                     {
-                        Log.Warning("Failed to load solution file {ProjectFilePath}.", solutionDocument.SolutionFile.FullName);
+                        Log.Warning("Failed to load solution file {SolutionFilePath}.", solutionDocument.SolutionFile.FullName);
                         
                         Server.ClearBusy($"Failed to load solution file {solutionDocument.SolutionFile.FullName}.");
 
