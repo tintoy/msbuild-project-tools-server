@@ -1,5 +1,6 @@
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
+using NuGet.Versioning;
 using OmniSharp.Extensions.JsonRpc;
 using OmniSharp.Extensions.LanguageServer.Protocol;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
@@ -142,6 +143,90 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
                     "<Target>",
                 ],
                 actual: completionItems.Select(item => item.Label)
+            );
+        }
+
+        [Fact]
+        public async Task AutoCompletePackageReference()
+        {
+            var testFilePath = Path.Combine(_workspaceRoot, "Test.csproj");
+            await File.WriteAllTextAsync(testFilePath,
+            """
+            <Project Sdk="Microsoft.NET.Sdk">
+                <PropertyGroup>
+                    <OutputType>Exe</OutputType>
+                    <TargetFramework>net6.0</TargetFramework>
+                </PropertyGroup>
+                <ItemGroup>
+                    <PackageReference Include="Microsoft.Build" Version="" />
+                </ItemGroup>
+            </Project>
+            """);
+
+            var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+            CompletionList completionList = await _fixture.Client.SendRequest(new CompletionParams
+            {
+                TextDocument = new TextDocumentIdentifier
+                {
+                    Uri = DocumentUri.FromFileSystemPath(testFilePath)
+                },
+                Position = new(6, 61)
+            }, timeout.Token);
+
+            Assert.NotNull(completionList);
+            Assert.NotNull(completionList.Items);
+
+            CompletionItem[] completionItems = completionList.Items.OrderBy(item => item.SortText ?? item.Label).ToArray();
+
+            Log.Information("Received {CompletionCount} completions from the language server.", completionItems.Length);
+            for (int itemIndex = 0; itemIndex < completionItems.Length; itemIndex++)
+            {
+                Log.Information("\tCompletionItems[{ItemIndex}] = {@CompletionItem}",
+                    itemIndex,
+                    completionItems[itemIndex]
+                );
+            }
+
+            Assert.NotEmpty(completionItems);
+            Assert.All(completionItems, item =>
+            {
+                Assert.Equal("Package Version", item.Detail);
+                Assert.True(SemanticVersion.TryParse(item.Label, out var actualSemVer), "item.Label can convert to semver");
+            });
+        }
+
+        [Fact]
+        public async Task HoverPackageReference()
+        {
+            var testFilePath = Path.Combine(_workspaceRoot, "Test.csproj");
+            await File.WriteAllTextAsync(testFilePath,
+            """
+            <Project Sdk="Microsoft.NET.Sdk">
+                <PropertyGroup>
+                    <OutputType>Exe</OutputType>
+                    <TargetFramework>net6.0</TargetFramework>
+                </PropertyGroup>  
+                <ItemGroup>
+                    <PackageReference Include="Microsoft.Build" Version="17.11.48" />
+                </ItemGroup>
+            </Project>
+            """);
+
+            var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+            Hover hoverResult = await _fixture.Client.SendRequest(new HoverParams
+            {
+                TextDocument = new TextDocumentIdentifier
+                {
+                    Uri = DocumentUri.FromFileSystemPath(testFilePath)
+                },
+                Position = new Position(7, 10).ToLsp()
+            }, timeout.Token);
+
+            Assert.NotNull(hoverResult);
+            Assert.NotNull(hoverResult.Contents);
+            Assert.Equal(
+                "NuGet Package: Microsoft.Build Requested Version: `17.11.48` State: Not restored",
+                hoverResult.Contents.ToString()
             );
         }
 
