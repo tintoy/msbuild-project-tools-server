@@ -20,6 +20,7 @@
     <PackageReference Include="GuiLabs.Language.Xml" />
     <PackageReference Include="Nito.AsyncEx.Tasks" />
     <PackageReference Include="Nito.AsyncEx.Coordination" />
+    <PackageReference Include="NuGet.Frameworks" ExcludeAssets="runtime" PrivateAssets="all" />
     <PackageReference Include="NuGet.PackageManagement" />
     <PackageReference Include="Serilog" />
     <PackageReference Include="Serilog.Extensions.Logging" />

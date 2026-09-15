@@ -177,7 +177,7 @@ namespace MSBuildProjectTools.LanguageServer.ContentProviders
                 {
                     return new Container<MarkedString>(
                         $"NuGet Package: {itemGroup.FirstInclude}",
-                        $"Requested Version: {packageRequestedVersion}`",
+                        $"Requested Version: `{packageRequestedVersion}`",
                         "State: Not restored"
                     );
                 }

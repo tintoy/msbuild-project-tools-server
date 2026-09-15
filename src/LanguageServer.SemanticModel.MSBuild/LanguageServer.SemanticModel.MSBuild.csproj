@@ -9,6 +9,7 @@
     <PackageReference Include="Microsoft.Build" ExcludeAssets="runtime" />
     <PackageReference Include="Nito.AsyncEx.Tasks" />
     <PackageReference Include="Nito.AsyncEx.Coordination" />
+    <PackageReference Include="NuGet.Frameworks" ExcludeAssets="runtime" PrivateAssets="all" />
     <PackageReference Include="NuGet.PackageManagement" />
     <PackageReference Include="Serilog" />
     <PackageReference Include="Superpower" />
@@ -23,8 +24,8 @@
   <ItemGroup>
     <!-- Copy `help` folder from solution root to output and publish directories -->
     <Content Include="..\..\help\**" LinkBase="help">
-        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </Content>
   </ItemGroup>
 </Project>

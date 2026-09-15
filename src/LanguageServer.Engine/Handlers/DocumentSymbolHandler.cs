@@ -83,7 +83,6 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
         /// </remarks>
         async Task<SymbolInformationOrDocumentSymbolContainer> OnDocumentSymbols(DocumentSymbolParams parameters, CancellationToken cancellationToken)
         {
-
             Document document = await Workspace.GetDocument(parameters.TextDocument.Uri, cancellationToken: cancellationToken);
 
             var symbols = new List<SymbolInformationOrDocumentSymbol>();
