@@ -301,14 +301,14 @@ namespace MSBuildProjectTools.LanguageServer.Handlers
                 {
                     if (!solutionDocument.HasXml)
                     {
-                        Log.Warning("Failed to reload project file {ProjectFilePath} (XML is invalid).", solutionDocument.SolutionFile.FullName);
+                        Log.Warning("Failed to reload solution file {ProjectFilePath} (XML is invalid).", solutionDocument.SolutionFile.FullName);
 
                         return;
                     }
 
                     if (!solutionDocument.HasSolution)
                     {
-                        Log.Warning("Reloaded project file {ProjectFilePath} (XML is valid, but VS Solution model is not).", solutionDocument.SolutionFile.FullName);
+                        Log.Warning("Reloaded solution file {ProjectFilePath} (XML is valid, but VS Solution model is not).", solutionDocument.SolutionFile.FullName);
 
                         return;
                     }
