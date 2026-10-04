@@ -30,7 +30,7 @@ variables:
   - template: ./azure-pipelines-variables-common.yml
 
 steps:
-- ${{ each integrationTestSdkVersion in split(integrationTestSdkVersions, ',') }}:
+- ${{ each integrationTestSdkVersion in split(variables.integrationTestSdkVersions, ',') }}:
   - task: UseDotNet@2
     displayName: "Install .NET v${{ integrationTestSdkVersion }} SDK (for integration tests)"
     inputs:
