@@ -20,6 +20,7 @@ strategy:
     windows:
       vmImage: 'windows-latest'
       osName: 'Windows'
+  maxParallel: 2
 
 pool:
   vmImage: $(vmImage)
