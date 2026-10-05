@@ -38,7 +38,7 @@ steps:
       packageType: sdk
       version: "${{ integrationTestSdkVersion }}"
   
-# The SDK matching global.json *must* be the the last SDK installed.
+# The SDK matching global.json *must* be the last SDK installed.
 - task: UseDotNet@2
   displayName: "Use .NET SDK from global.json"
   inputs:
