@@ -20,14 +20,31 @@ strategy:
     windows:
       vmImage: 'windows-latest'
       osName: 'Windows'
+  maxParallel: 2
 
 pool:
   vmImage: $(vmImage)
 
 variables:
-  buildConfiguration: 'Release'
+  - name: buildConfiguration
+    value: 'Release'
+  - template: ./azure-pipelines-variables-common.yml
 
 steps:
+- ${{ each integrationTestSdkVersion in split(variables.integrationTestSdkVersions, ',') }}:
+  - task: UseDotNet@2
+    displayName: "Install .NET v${{ integrationTestSdkVersion }} SDK (for integration tests)"
+    inputs:
+      packageType: sdk
+      version: "${{ integrationTestSdkVersion }}"
+  
+# The SDK matching global.json *must* be the last SDK installed.
+- task: UseDotNet@2
+  displayName: "Use .NET SDK from global.json"
+  inputs:
+    packageType: sdk
+    useGlobalJson: true
+
 - task: gitversion/setup@0
   displayName: 'Install GitVersion'
 
