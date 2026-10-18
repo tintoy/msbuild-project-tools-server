@@ -18,9 +18,6 @@ using Xunit.Abstractions;
 namespace MSBuildProjectTools.LanguageServer.IntegrationTests
 {
     using CustomProtocol;
-    using Microsoft.Extensions.DependencyInjection;
-    using OmniSharp.Extensions.LanguageServer.Protocol.Window;
-    using System.Collections.Generic;
     using Utilities;
 
     public class BasicIntegrationTests(ITestOutputHelper testOutput) : IntegrationTestBase(testOutput), IAsyncLifetime
