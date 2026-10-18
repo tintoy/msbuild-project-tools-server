@@ -18,6 +18,9 @@ using Xunit.Abstractions;
 namespace MSBuildProjectTools.LanguageServer.IntegrationTests
 {
     using CustomProtocol;
+    using Microsoft.Extensions.DependencyInjection;
+    using OmniSharp.Extensions.LanguageServer.Protocol.Window;
+    using System.Collections.Generic;
     using Utilities;
 
     public class BasicIntegrationTests(ITestOutputHelper testOutput) : IntegrationTestBase(testOutput), IAsyncLifetime
@@ -49,17 +52,17 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
 
         private readonly LanguageServerFixture _fixture = new(false);
         private readonly TempDirectory _workspaceRoot = new();
+        private readonly List<LogMessageParams> _loggedMessages = new List<LogMessageParams>();
 
         public async Task InitializeAsync()
         {
-            var loggerProvider = new SerilogLoggerProvider(
-                Log.ForContext(GetType())
-            );
-            await _fixture.StartAsync(_workspaceRoot, loggerProvider);
+            // Language server is started by each test, since the test may need to configure a specific SDK version.
         }
 
         public async Task DisposeAsync()
         {
+            _fixture.MessageLogged -= OnLanguageServerMessageLogged;
+
             await _fixture.StopAsync();
             _workspaceRoot.Dispose();
         }
@@ -68,8 +71,10 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
         ///     Test that the language server can respond to server capabilities request.
         /// </summary>
         [Fact]
-        public void ServerProvidesCapabilities()
+        public async Task ServerProvidesCapabilities()
         {
+            await StartLanguageServerAsync();
+
             Assert.NotNull(_fixture.Client);
             Assert.NotNull(_fixture.Client.ServerSettings);
             Assert.NotNull(_fixture.Client.ServerSettings.Capabilities);
@@ -79,18 +84,33 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
         ///     Test that a specific server capability (CompletionProvider) is available.
         /// </summary>
         [Fact]
-        public void ServerProvidesStaticCompletionHandler()
+        public async Task ServerProvidesStaticCompletionHandler()
         {
+            await StartLanguageServerAsync();
+
             Assert.NotNull(_fixture.Client);
             Assert.NotNull(_fixture.Client!.ServerSettings?.Capabilities?.CompletionProvider);
             Assert.DoesNotContain(_fixture.Client!.RegistrationManager?.CurrentRegistrations,
                 reg => reg.Method == TextDocumentNames.Completion);
         }
 
-        [Fact]
-        public async Task DocumentSyncCsproj()
+        [Theory]
+        [InlineData(SdkVersions.Net8_0_100, true)]
+        [InlineData(SdkVersions.Net9_0_100, true)]
+        [InlineData(SdkVersions.Net10_0_100, true)]
+        [InlineData(SdkVersions.Net20_0_100, false)]
+        public async Task DocumentSyncCsproj(string targetSdkVersion, bool expectSuccess)
         {
+            await StartLanguageServerAsync(targetSdkVersion);
+
+            _loggedMessages.Clear();
+
             await OpenDocumentFile("Test.csproj", CsprojFileContent, "Project loaded.");
+
+            if (expectSuccess)
+                EnsureLanguageServerLoggedNoErrors();
+            else
+                EnsureLanguageServerLoggedAnError();
 
             //TODO: Do more checks related to "document sync"
         }
@@ -98,6 +118,8 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
         [Fact]
         public async Task AutoCompleteCsproj()
         {
+            await StartLanguageServerAsync();
+
             var testFilePath = Path.Combine(_workspaceRoot, "Test.csproj");
             await File.WriteAllTextAsync(testFilePath,
             """
@@ -149,6 +171,8 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
         [Fact]
         public async Task AutoCompletePackageReference()
         {
+            await StartLanguageServerAsync();
+
             var testFilePath = Path.Combine(_workspaceRoot, "Test.csproj");
             await File.WriteAllTextAsync(testFilePath,
             """
@@ -198,6 +222,8 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
         [Fact]
         public async Task HoverPackageReference()
         {
+            await StartLanguageServerAsync();
+
             var testFilePath = Path.Combine(_workspaceRoot, "Test.csproj");
             await File.WriteAllTextAsync(testFilePath,
             """
@@ -233,6 +259,8 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
         [Fact]
         public async Task HoverCsproj()
         {
+            await StartLanguageServerAsync();
+
             var testFilePath = Path.Combine(_workspaceRoot, "Test.csproj");
             await File.WriteAllTextAsync(testFilePath,
             """
@@ -265,6 +293,8 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
         [Fact]
         public async Task DefinitionCsproj()
         {
+            await StartLanguageServerAsync();
+
             var testFilePath = Path.Combine(_workspaceRoot, "Test.csproj");
             await File.WriteAllTextAsync(testFilePath,
             """
@@ -338,6 +368,8 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
         [Fact]
         public async Task SymbolsCsproj()
         {
+            await StartLanguageServerAsync();
+
             var testFilePath = Path.Combine(
                 Path.GetFullPath(_workspaceRoot),
                 "Test.csproj"
@@ -471,6 +503,8 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
         [Fact]
         public async Task DocumentSyncSlnx()
         {
+            await StartLanguageServerAsync();
+
             await OpenDocumentFile("Test.slnx", SlnxFileContent, "Solution loaded.");
 
             //TODO: Do more checks related to "document sync"
@@ -479,6 +513,8 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
         [Fact]
         public async Task AutoCompleteSlnx()
         {
+            await StartLanguageServerAsync();
+
             var testFilePath = Path.Combine(_workspaceRoot, "Test.slnx");
             await File.WriteAllTextAsync(testFilePath,
             """
@@ -524,6 +560,8 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
         [Fact]
         public async Task HoverSlnx()
         {
+            await StartLanguageServerAsync();
+
             var testFilePath = Path.Combine(_workspaceRoot, "Test.slnx");
             await File.WriteAllTextAsync(testFilePath,
             """
@@ -590,6 +628,9 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
         [InlineData("Test.slnx", SlnxFileContent, "Solution loaded.")]
         public async Task OpenDocumentFile(string fileName, string fileContent, string expectedNotBusyMsg)
         {
+            if (!_fixture.IsRunning)
+                await StartLanguageServerAsync();
+
             var testFilePath = Path.Combine(_workspaceRoot, fileName);
             await File.WriteAllTextAsync(testFilePath, fileContent);
 
@@ -646,6 +687,78 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
 
             Assert.False(lastBusyRaised.IsBusy);
             Assert.Equal(expectedNotBusyMsg, lastBusyRaised.Message);
+        }
+
+        async Task StartLanguageServerAsync(string targetSdkVersion = SdkVersions.Default, string sdkRollForwardPolicy = LanguageServerFixture.DefaultSdkRollForwardPolicy)
+        {
+            if (string.IsNullOrWhiteSpace(targetSdkVersion))
+                throw new ArgumentException($"Argument cannot be null, empty, or entirely composed of whitespace: {nameof(targetSdkVersion)}.", nameof(targetSdkVersion));
+
+            if (string.IsNullOrWhiteSpace(sdkRollForwardPolicy))
+                throw new ArgumentException($"Argument cannot be null, empty, or entirely composed of whitespace: {nameof(sdkRollForwardPolicy)}.", nameof(sdkRollForwardPolicy));
+
+            _fixture.ConfigureTargetSdkForWorkspace(
+                workspaceRoot: _workspaceRoot.Path,
+                targetSdkVersion: targetSdkVersion,
+                sdkRollForwardPolicy: sdkRollForwardPolicy
+            );
+
+            _fixture.MessageLogged += OnLanguageServerMessageLogged;
+
+            var loggerProvider = new SerilogLoggerProvider(
+                Log.ForContext(GetType())
+            );
+            await _fixture.StartAsync(_workspaceRoot, loggerProvider);
+        }
+
+        /// <summary>
+        ///     Ensure that the language server has not logged any errors during the test run.
+        /// </summary>
+        void EnsureLanguageServerLoggedNoErrors()
+        {
+            var loggedErrors = _loggedMessages.Where(loggedMessage => loggedMessage.Type == MessageType.Error).ToList();
+            if (loggedErrors.Count > 0)
+            {
+                foreach (LogMessageParams loggedError in loggedErrors)
+                    Log.Error("Unexpected error logged by language server (via window/logMessage): {ErrorMessage:l}", loggedError.Message);
+
+                Assert.Fail(
+                    message: $"The language server logged an unexpected error (via window/logMessage): {loggedErrors[0].Message}"
+                );
+            }
+            Assert.Empty(loggedErrors);
+        }
+
+        /// <summary>
+        ///     Ensure that the language server has not logged any errors during the test run.
+        /// </summary>
+        void EnsureLanguageServerLoggedAnError()
+        {
+            var loggedErrors = _loggedMessages.Where(loggedMessage => loggedMessage.Type == MessageType.Error).ToList();
+            if (loggedErrors.Count > 0)
+            {
+                foreach (LogMessageParams loggedError in loggedErrors)
+                    Log.Error("Expected error logged by language server (via window/logMessage): {ErrorMessage:l}", loggedError.Message);
+            }
+            else
+                Assert.Fail("The language server was expected to log an error (via window/logMessage), but did not.");
+        }
+
+        /// <summary>
+        ///     Called when the language server has sent a message to the client (via a "window/logMessage" notification).
+        /// </summary>
+        /// <param name="fixture">
+        ///     The <see cref="LanguageServerFixture"/> representing the language server that logged the message.
+        /// </param>
+        /// <param name="loggedMessage">
+        ///     <see cref="LogMessageParams"/> representing a copy of the logged message.
+        /// </param>
+        void OnLanguageServerMessageLogged(LanguageServerFixture fixture, LogMessageParams loggedMessage)
+        {
+            if (loggedMessage == null)
+                throw new ArgumentNullException(nameof(loggedMessage));
+
+            _loggedMessages.Add(loggedMessage);
         }
     }
 }

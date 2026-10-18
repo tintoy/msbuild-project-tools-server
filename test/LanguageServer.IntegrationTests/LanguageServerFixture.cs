@@ -1,4 +1,9 @@
+using Microsoft.Build.Locator;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
+using Newtonsoft.Json.Linq;
+using Newtonsoft.Json.Serialization;
 using OmniSharp.Extensions.LanguageServer.Client;
 using OmniSharp.Extensions.LanguageServer.Protocol;
 using OmniSharp.Extensions.LanguageServer.Protocol.Client;
@@ -6,6 +11,7 @@ using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using OmniSharp.Extensions.LanguageServer.Protocol.Window;
 using Serilog.Extensions.Logging;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -29,6 +35,24 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
         const string ServerDllName = "MSBuildProjectTools.LanguageServer.Host.dll";
 
         static readonly Assembly ThisAssembly = typeof(LanguageServerFixture).Assembly;
+
+        /// <summary>
+        ///     JSON serialisation settings to use when generating global.json.
+        /// </summary>
+        static JsonSerializerSettings GlobalJsonSerializerSettings => new JsonSerializerSettings
+        {
+            ContractResolver = new CamelCasePropertyNamesContractResolver(),
+            NullValueHandling = NullValueHandling.Include,
+            Converters =
+            {
+                new StringEnumConverter(),
+            }
+        };
+
+        /// <summary>
+        ///     The default roll-forward policy to use when selecting a .NET SDK version for use by the language server (affects the behaviour of <see cref="MSBuildLocator"/>.
+        /// </summary>
+        public const string DefaultSdkRollForwardPolicy = "feature";
 
         /// <summary>
         ///  Controls dynamic registration support of the language client.
@@ -94,6 +118,13 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
         public ILanguageClient Client => _client;
 
         /// <summary>
+        ///     Is the language server running?
+        /// </summary>
+        public bool IsRunning => _client != null;
+
+        public event Action<LanguageServerFixture, LogMessageParams> MessageLogged;
+
+        /// <summary>
         /// Start the language server and connect the client.
         /// </summary>
         /// <param name="workspaceRoot">
@@ -113,8 +144,10 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
             if (_client != null)
                 throw new InvalidOperationException("Language server is already started.");
 
+            // DotnetInfo dotnetInfo = DotnetInfo.GetCurrent(baseDirectory: workspaceRoot);
+
             _logger = loggerProvider?.CreateLogger("LanguageServerFixture");
-            
+
             // Find the language server executable
             string serverExecutable = FindServerExecutable();
             if (string.IsNullOrEmpty(serverExecutable))
@@ -179,6 +212,22 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
                             _logger?.LogInformation("[SRV/LSP/{Lvl:l}] {Msg}", nameof(LogLevel.Information), message.Message); break;
                         case MessageType.Log:
                             _logger?.LogDebug("[SRV/LSP/{Lvl:l}] {Msg}", nameof(LogLevel.Debug), message.Message); break;
+                    }
+
+                    if (MessageLogged != null)
+                    {
+                        try
+                        {
+                            MessageLogged(this, new LogMessageParams // Clone, to be safe.
+                            {
+                                Type = message.Type,
+                                Message = message.Message,
+                            });
+                        }
+                        catch (Exception logHandlerError)
+                        {
+                            _logger.LogError(logHandlerError, "Unexpected error while handling log message.");
+                        }
                     }
                 });
                 if (!_dynamicRegistration)
@@ -311,6 +360,113 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
         }
 
         public async ValueTask DisposeAsync() => await StopAsync();
+
+        /// <summary>
+        ///     Create or update the global.json file that controls the version of the .NET SDK used in the specified workspace root.
+        /// </summary>
+        /// <param name="workspaceRoot">
+        ///     A <see cref="DirectoryInfo"/> representing the root directory of the target workspace.
+        /// </param>
+        /// <param name="targetSdkVersion">
+        ///     The version of the .NET SDK to target.
+        /// </param>
+        /// <param name="sdkRollForwardPolicy">
+        ///     The policy for rolling forward to newer versions of the .NET SDK (if present).
+        /// </param>
+        /// <returns>
+        ///     The full path to global.json.
+        /// </returns>
+        public string ConfigureTargetSdkForWorkspace(string workspaceRoot, string targetSdkVersion, string sdkRollForwardPolicy = DefaultSdkRollForwardPolicy)
+        {
+            if (String.IsNullOrWhiteSpace(workspaceRoot))
+                throw new ArgumentException($"Argument cannot be null, empty, or entirely composed of whitespace: {nameof(workspaceRoot)}.", nameof(workspaceRoot));
+
+            if (String.IsNullOrWhiteSpace(targetSdkVersion))
+                throw new ArgumentException($"Argument cannot be null, empty, or entirely composed of whitespace: {nameof(targetSdkVersion)}.", nameof(targetSdkVersion));
+
+            if (String.IsNullOrWhiteSpace(sdkRollForwardPolicy))
+                throw new ArgumentException($"Argument cannot be null, empty, or entirely composed of whitespace: {nameof(sdkRollForwardPolicy)}.", nameof(sdkRollForwardPolicy));
+
+            FileInfo globalJsonFile = ConfigureTargetSdkForWorkspace(
+                new DirectoryInfo(workspaceRoot),
+                targetSdkVersion,
+                sdkRollForwardPolicy
+            );
+
+            return globalJsonFile.FullName;
+        }
+
+        /// <summary>
+        ///     Create or update the global.json file that controls the version of the .NET SDK used in the specified workspace root.
+        /// </summary>
+        /// <param name="workspaceRoot">
+        ///     A <see cref="DirectoryInfo"/> representing the root directory of the target workspace.
+        /// </param>
+        /// <param name="targetSdkVersion">
+        ///     The version of the .NET SDK to target.
+        /// </param>
+        /// <param name="sdkRollForwardPolicy">
+        ///     The policy for rolling forward to newer versions of the .NET SDK (if present).
+        /// </param>
+        /// <returns>
+        ///     A <see cref="FileInfo"/> representing global.json in the workspace root.
+        /// </returns>
+        public FileInfo ConfigureTargetSdkForWorkspace(DirectoryInfo workspaceRoot, string targetSdkVersion, string sdkRollForwardPolicy = DefaultSdkRollForwardPolicy)
+        {
+            if (workspaceRoot == null)
+                throw new ArgumentNullException(nameof(workspaceRoot));
+
+            if (String.IsNullOrWhiteSpace(targetSdkVersion))
+                throw new ArgumentException($"Argument cannot be null, empty, or entirely composed of whitespace: {nameof(targetSdkVersion)}.", nameof(targetSdkVersion));
+
+            if (String.IsNullOrWhiteSpace(sdkRollForwardPolicy))
+                throw new ArgumentException($"Argument cannot be null, empty, or entirely composed of whitespace: {nameof(sdkRollForwardPolicy)}.", nameof(sdkRollForwardPolicy));
+
+            if (!workspaceRoot.Exists)
+                workspaceRoot.Create();
+
+            GlobalJsonRoot globalJson;
+
+            var jsonSerializer = JsonSerializer.Create(GlobalJsonSerializerSettings);
+
+            var globalJsonFile = new FileInfo(
+                Path.Combine(workspaceRoot.FullName, "global.json")
+            );
+            if (globalJsonFile.Exists)
+            {
+                using (TextReader globalJsonReader = globalJsonFile.OpenText())
+                {
+                    globalJson = jsonSerializer.Deserialize<GlobalJsonRoot>(
+                        reader: new JsonTextReader(globalJsonReader)
+                    );
+                }
+
+                globalJson = globalJson with
+                {
+                    Sdk = globalJson.Sdk with
+                    {
+                        Version = targetSdkVersion,
+                        RollForward = sdkRollForwardPolicy
+                    }
+                };
+            }
+            else
+            {
+                globalJson = new GlobalJsonRoot(
+                    Sdk: new GlobalJsonSdk(
+                        Version: targetSdkVersion,
+                        RollForward: sdkRollForwardPolicy
+                    )
+                );
+            }
+
+            using (TextWriter globalJsonWriter = globalJsonFile.CreateText())
+            {
+                jsonSerializer.Serialize(globalJsonWriter, globalJson);
+            }
+
+            return globalJsonFile;
+        }
 
         /// <summary>
         /// Find the language server executable.
@@ -470,5 +626,23 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
 
             return null;
         }
+
+        public record class GlobalJsonRoot(GlobalJsonSdk Sdk)
+        {
+            /// <summary>
+            ///     JSON extension data (used to support round-tripping of unrecognised JSON members).
+            /// </summary>
+            [JsonExtensionData]
+            public IDictionary<string, JToken> ExtensionData { get; set; } = new Dictionary<string, JToken>(StringComparer.Ordinal);
+        };
+
+        public record class GlobalJsonSdk(string Version, string RollForward = DefaultSdkRollForwardPolicy)
+        {
+            /// <summary>
+            ///     JSON extension data (used to support round-tripping of unrecognised JSON members).
+            /// </summary>
+            [JsonExtensionData]
+            public IDictionary<string, JToken> ExtensionData { get; set; } = new Dictionary<string, JToken>(StringComparer.Ordinal);
+        };
     }
 }
