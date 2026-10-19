@@ -49,7 +49,6 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
 
         private readonly LanguageServerFixture _fixture = new(false);
         private readonly TempDirectory _workspaceRoot = new();
-        private readonly List<LogMessageParams> _loggedMessages = new List<LogMessageParams>();
 
         async Task IAsyncLifetime.InitializeAsync()
         {
@@ -58,8 +57,6 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
 
         async Task IAsyncLifetime.DisposeAsync()
         {
-            _fixture.MessageLogged -= OnLanguageServerMessageLogged;
-
             await _fixture.StopAsync();
             _workspaceRoot.Dispose();
         }
@@ -100,14 +97,12 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
         {
             await StartLanguageServerAsync(targetSdkVersion, clearStartupLogs: true);
 
-            _loggedMessages.Clear();
-
             await OpenDocumentFile("Test.csproj", CsprojFileContent, "Project loaded.");
 
             if (expectSuccess)
-                EnsureLanguageServerLoggedNoErrors();
+                _fixture.LogCollector.ExpectNoErrors(Log);
             else
-                EnsureLanguageServerLoggedAnError();
+                _fixture.LogCollector.ExpectError(Log);
 
             //TODO: Do more checks related to "document sync"
         }
@@ -721,65 +716,13 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
                 sdkRollForwardPolicy: sdkRollForwardPolicy
             );
 
-            _fixture.MessageLogged += OnLanguageServerMessageLogged;
-
             var loggerProvider = new SerilogLoggerProvider(
                 Log.ForContext(GetType())
             );
             await _fixture.StartAsync(_workspaceRoot, loggerProvider);
 
             if (clearStartupLogs)
-                _loggedMessages.Clear();
-        }
-
-        /// <summary>
-        ///     Ensure that the language server has not logged any errors during the test run.
-        /// </summary>
-        void EnsureLanguageServerLoggedNoErrors()
-        {
-            var loggedErrors = _loggedMessages.Where(loggedMessage => loggedMessage.Type == MessageType.Error).ToList();
-            if (loggedErrors.Count > 0)
-            {
-                foreach (LogMessageParams loggedError in loggedErrors)
-                    Log.Error("Unexpected error logged by language server (via window/logMessage): {ErrorMessage:l}", loggedError.Message);
-
-                Assert.Fail(
-                    message: $"The language server logged an unexpected error (via window/logMessage): {loggedErrors[0].Message}"
-                );
-            }
-            Assert.Empty(loggedErrors);
-        }
-
-        /// <summary>
-        ///     Ensure that the language server has not logged any errors during the test run.
-        /// </summary>
-        void EnsureLanguageServerLoggedAnError()
-        {
-            var loggedErrors = _loggedMessages.Where(loggedMessage => loggedMessage.Type == MessageType.Error).ToList();
-            if (loggedErrors.Count > 0)
-            {
-                foreach (LogMessageParams loggedError in loggedErrors)
-                    Log.Error("Expected error logged by language server (via window/logMessage): {ErrorMessage:l}", loggedError.Message);
-            }
-            else
-                Assert.Fail("The language server was expected to log an error (via window/logMessage), but did not.");
-        }
-
-        /// <summary>
-        ///     Called when the language server has sent a message to the client (via a "window/logMessage" notification).
-        /// </summary>
-        /// <param name="fixture">
-        ///     The <see cref="LanguageServerFixture"/> representing the language server that logged the message.
-        /// </param>
-        /// <param name="loggedMessage">
-        ///     <see cref="LogMessageParams"/> representing a copy of the logged message.
-        /// </param>
-        void OnLanguageServerMessageLogged(LanguageServerFixture fixture, LogMessageParams loggedMessage)
-        {
-            if (loggedMessage == null)
-                throw new ArgumentNullException(nameof(loggedMessage));
-
-            _loggedMessages.Add(loggedMessage);
+                _fixture.LogCollector.Clear();
         }
     }
 }
