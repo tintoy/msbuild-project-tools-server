@@ -389,8 +389,7 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
             </Project>
             """);
 
-            MSBuildEngineInstance compatibleMSBuild = MSBuildHelper.FindEngineForTargetFrameworkVersion(_fixture.TargetFrameworkVersion, logger: Log);
-            Assert.NotNull(compatibleMSBuild);
+            MSBuildEngineInstance msbuildEngine = DiscoverMSBuildEngineForCurrentWorkspace();
 
             var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(5));
             SymbolInformationOrDocumentSymbolContainer documentSymbolResult = await _fixture.Client.SendRequest(new DocumentSymbolParams

@@ -99,30 +99,7 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
             _logCollector = new LanguageServerLogCollector(this);
 
             _dynamicRegistration = dynamicRegistration;
-
-            TargetFrameworkName = ThisAssembly.GetCustomAttribute<TargetFrameworkAttribute>()?.FrameworkName;
-            TargetFrameworkVersion = new Version(0, 0, 0);
-
-            if (TargetFrameworkName == null)
-                return;
-
-            const string versionPrefix = "Version=v";
-
-            string[] targetFrameworkNameComponents = TargetFrameworkName.Split(',');
-            string? targetFrameworkVersionComponent = targetFrameworkNameComponents.FirstOrDefault(
-                component => component.StartsWith(versionPrefix)
-            );
-            if (targetFrameworkVersionComponent == null)
-                return;
-
-            targetFrameworkVersionComponent = targetFrameworkVersionComponent.Substring(versionPrefix.Length);
-            if (Version.TryParse(targetFrameworkVersionComponent, out Version? targetFrameworkVersion))
-                TargetFrameworkVersion = targetFrameworkVersion;
         }
-
-        public string? TargetFrameworkName { get; }
-
-        public Version? TargetFrameworkVersion { get; }
 
         /// <summary>
         /// The language client.
