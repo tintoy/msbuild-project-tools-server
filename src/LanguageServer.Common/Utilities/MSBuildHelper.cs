@@ -137,7 +137,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         {
             logger ??= Log.Logger;
 
-            VisualStudioInstance[] allInstances = MSBuildLocator.QueryVisualStudioInstances().ToArray();
+            VisualStudioInstance[] allInstances = MSBuildLocator.QueryVisualStudioInstances(new VisualStudioInstanceQueryOptions {  AllowAllDotnetLocations = true, AllowAllRuntimeVersions = true, DiscoveryTypes = DiscoveryType.DotNetSdk }).ToArray();
 
             VisualStudioInstance firstCompatibleInstance = allInstances
                 .OrderBy(instance => instance.Version)

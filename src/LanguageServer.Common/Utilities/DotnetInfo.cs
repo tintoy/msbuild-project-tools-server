@@ -84,11 +84,33 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
                 (dotNetExitCode, dotnetOutput) = InvokeDotNetHost("--version", baseDirectory, logger, enableHostTracing: enableDotnetHostDiagnostics);
                 using (dotnetOutput)
                 {
+                    switch (dotNetExitCode)
+                    {
+                        case DotNetHostExitCode.Success:
+                        {
+                            break;
+                        }
+                        case DotNetHostExitCode.LibHostSdkFindFailure:
+                        case DotNetHostExitCode.SdkResolverResolveFailure:
+                        {
+                            logger.Error("Cannot resolve the target .NET SDK tooling or runtime for directory {BaseDirectory}. Please verify that the SDK version referenced in global.json (or a compatible runtime that matches the configured roll-forward policy) is correctly installed. Visit https://learn.microsoft.com/en-us/dotnet/core/tools/global-json#rollforward for more information.", baseDirectory);
+
+                            throw new DotnetDiscoveryException($"Cannot resolve the target .NET SDK tooling or runtime for directory '{baseDirectory}'. Please verify that the SDK version referenced in global.json (or a compatible runtime that matches the configured roll-forward policy) is correctly installed. Visit https://learn.microsoft.com/en-us/dotnet/core/tools/global-json#rollforward for more information.");
+                        }
+                        default:
+                        {
+                            throw new DotnetDiscoveryException($"Failed to determine current .NET version for directory '{baseDirectory}' ({dotNetExitCode}).");
+                        }
+                    }
                     if (dotNetExitCode == DotNetHostExitCode.LibHostSdkFindFailure)
                     {
                         logger.Error("Cannot resolve the target .NET SDK tooling or runtime for directory {BaseDirectory}. Please verify that the SDK version referenced in global.json (or a compatible runtime that matches the configured roll-forward policy) is correctly installed. Visit https://learn.microsoft.com/en-us/dotnet/core/tools/global-json#rollforward for more information.", baseDirectory);
 
                         throw new DotnetDiscoveryException($"Cannot resolve the target .NET SDK tooling or runtime for directory '{baseDirectory}'. Please verify that the SDK version referenced in global.json (or a compatible runtime that matches the configured roll-forward policy) is correctly installed. Visit https://learn.microsoft.com/en-us/dotnet/core/tools/global-json#rollforward for more information.");
+                    }
+                    else if (dotNetExitCode == DotNetHostExitCode.SdkResolverResolveFailure)
+                    {
+
                     }
                     else if (dotNetExitCode != DotNetHostExitCode.Success)
                         throw new DotnetDiscoveryException($"Failed to determine current .NET version for directory '{baseDirectory}' ({dotNetExitCode}).");
@@ -405,11 +427,30 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         {
         }
 
+        /// <inheritdoc cref="Exception(string)" />
+        public DotnetDiscoveryException(string message, DotNetHostExitCode dotNetHostExitCode)
+            : base(message)
+        {
+            DotNetHostExitCode = dotNetHostExitCode;
+        }
+
         /// <inheritdoc cref="Exception(string, Exception)" />
         public DotnetDiscoveryException(string message, Exception innerException)
             : base(message, innerException)
         {
         }
+
+        /// <inheritdoc cref="Exception(string, Exception)" />
+        public DotnetDiscoveryException(string message, DotNetHostExitCode dotNetHostExitCode, Exception innerException)
+            : base(message, innerException)
+        {
+            DotNetHostExitCode = dotNetHostExitCode;
+        }
+
+        /// <summary>
+        ///     The exit code from the dotnet host.
+        /// </summary>
+        public DotNetHostExitCode? DotNetHostExitCode { get; }
     }
 
     /// <summary>

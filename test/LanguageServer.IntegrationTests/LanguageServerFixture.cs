@@ -172,8 +172,8 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
             var serverInfo = new ProcessStartInfo
             {
                 FileName = "dotnet",
-                Arguments = ServerDllName,
-                WorkingDirectory = Path.GetDirectoryName(serverExecutable),
+                Arguments = serverExecutable,
+                WorkingDirectory = workspaceRoot,
                 RedirectStandardInput = true,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
@@ -187,6 +187,10 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
 
             _serverExitCompletion = new TaskCompletionSource<object?>();
             _ctsServerInitialize = new CancellationTokenSource();
+            _ctsServerInitialize.Token.Register(() =>
+            {
+                System.Diagnostics.Debugger.Break();
+            });
             _serverExitCompletion.CanceledBy(_ctsServerInitialize);
             _serverProcess = new Process
             {

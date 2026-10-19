@@ -21,9 +21,9 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
         public const string Net10_0_100 = "10.0.100";
 
         /// <summary>
-        ///     The default SDK version for .NET 20.0 (non-existent; expected to fail).
+        ///     The default SDK version for .NET 20.0 (non-existent; used to simulate failure conditions).
         /// </summary>
-        public const string Net20_0_100 = "12.0.100";
+        public const string Net20_0_100 = "20.0.100";
 
         /// <summary>
         ///     The default version of the .NET SDK used for integration tests.

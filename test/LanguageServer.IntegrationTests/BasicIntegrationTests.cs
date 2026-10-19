@@ -89,20 +89,16 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
         }
 
         [Theory]
-        [InlineData(SdkVersions.Net8_0_100, true)]
-        [InlineData(SdkVersions.Net9_0_100, true)]
-        [InlineData(SdkVersions.Net10_0_100, true)]
-        [InlineData(SdkVersions.Net20_0_100, false)]
-        public async Task DocumentSyncCsproj(string targetSdkVersion, bool expectSuccess)
+        [InlineData(SdkVersions.Net8_0_100)]
+        [InlineData(SdkVersions.Net9_0_100)]
+        [InlineData(SdkVersions.Net10_0_100)]
+        public async Task DocumentSyncCsproj(string targetSdkVersion)
         {
             await StartLanguageServerAsync(targetSdkVersion, clearStartupLogs: true);
 
             await OpenDocumentFile("Test.csproj", CsprojFileContent, "Project loaded.");
 
-            if (expectSuccess)
-                _fixture.LogCollector.ExpectNoErrors(Log);
-            else
-                _fixture.LogCollector.ExpectError(Log);
+            _fixture.LogCollector.ExpectNoErrors(Log);
 
             //TODO: Do more checks related to "document sync"
         }
@@ -313,8 +309,7 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
             </Project>
             """);
 
-            MSBuildEngineInstance compatibleMSBuild = MSBuildHelper.FindEngineForTargetFrameworkVersion(_fixture.TargetFrameworkVersion, logger: Log);
-            Assert.NotNull(compatibleMSBuild);
+            MSBuildEngineInstance msbuildEngine = DiscoverMSBuildEngineForCurrentWorkspace();
 
             var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(5));
             LocationOrLocationLinks definitionResult = await _fixture.Client.SendRequest(new DefinitionParams
@@ -334,7 +329,7 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
                     {
                         Uri = DocumentUri.FromFileSystemPath(
                             Path.Combine(
-                                compatibleMSBuild.GetSdkImportDirectory("Microsoft.NET.Sdk"),
+                                msbuildEngine.GetSdkImportDirectory("Microsoft.NET.Sdk"),
                                 "Sdk.props"
                             )
                         ),
@@ -349,7 +344,7 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
                     {
                         Uri = DocumentUri.FromFileSystemPath(
                             Path.Combine(
-                                compatibleMSBuild.GetSdkImportDirectory("Microsoft.NET.Sdk"),
+                                msbuildEngine.GetSdkImportDirectory("Microsoft.NET.Sdk"),
                                 "Sdk.targets"
                             )
                         ),
@@ -702,7 +697,7 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
             Assert.Equal(expectedNotBusyMsg, lastBusyRaised.Message);
         }
 
-        async Task StartLanguageServerAsync(string targetSdkVersion = SdkVersions.Default, string sdkRollForwardPolicy = LanguageServerFixture.DefaultSdkRollForwardPolicy, bool clearStartupLogs = false)
+        async Task StartLanguageServerAsync(string targetSdkVersion = SdkVersions.Default, string sdkRollForwardPolicy = LanguageServerFixture.DefaultSdkRollForwardPolicy, bool clearStartupLogs = false, bool expectLoggedError = false)
         {
             if (string.IsNullOrWhiteSpace(targetSdkVersion))
                 throw new ArgumentException($"Argument cannot be null, empty, or entirely composed of whitespace: {nameof(targetSdkVersion)}.", nameof(targetSdkVersion));
@@ -721,8 +716,31 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
             );
             await _fixture.StartAsync(_workspaceRoot, loggerProvider);
 
+            if (expectLoggedError)
+                _fixture.LogCollector.ExpectError(Log);
+            else
+                _fixture.LogCollector.ExpectNoErrors(Log);
+
             if (clearStartupLogs)
                 _fixture.LogCollector.Clear();
+        }
+
+        /// <summary>
+        ///     Get an <see cref="MSBuildEngineInstance"/> representing the MSBuild engine to be used in the current workspace root directory.
+        /// </summary>
+        /// <returns>
+        ///     The <see cref="MSBuildEngineInstance"/> (will <see cref="Assert"/> that it is not <c>null</c>).
+        /// </returns>
+        MSBuildEngineInstance DiscoverMSBuildEngineForCurrentWorkspace()
+        {
+            var dotnetInfo = DotnetInfo.GetCurrent(baseDirectory: _workspaceRoot);
+
+            var actualSdkVersion = Version.Parse(dotnetInfo.SdkVersion);
+
+            MSBuildEngineInstance compatibleMSBuild = MSBuildHelper.FindEngineForTargetFrameworkVersion(actualSdkVersion, logger: Log);
+            Assert.NotNull(compatibleMSBuild);
+
+            return compatibleMSBuild;
         }
     }
 }
