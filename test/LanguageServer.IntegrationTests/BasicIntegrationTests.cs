@@ -50,15 +50,12 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
         private readonly LanguageServerFixture _fixture = new(false);
         private readonly TempDirectory _workspaceRoot = new();
 
-        public async Task InitializeAsync()
+        async Task IAsyncLifetime.InitializeAsync()
         {
-            var loggerProvider = new SerilogLoggerProvider(
-                Log.ForContext(GetType())
-            );
-            await _fixture.StartAsync(_workspaceRoot, loggerProvider);
+            // Language server is started by each test, since the test may need to configure a specific SDK version.
         }
 
-        public async Task DisposeAsync()
+        async Task IAsyncLifetime.DisposeAsync()
         {
             await _fixture.StopAsync();
             _workspaceRoot.Dispose();
@@ -68,8 +65,10 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
         ///     Test that the language server can respond to server capabilities request.
         /// </summary>
         [Fact]
-        public void ServerProvidesCapabilities()
+        public async Task ServerProvidesCapabilities()
         {
+            await StartLanguageServerAsync();
+
             Assert.NotNull(_fixture.Client);
             Assert.NotNull(_fixture.Client.ServerSettings);
             Assert.NotNull(_fixture.Client.ServerSettings.Capabilities);
@@ -79,25 +78,39 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
         ///     Test that a specific server capability (CompletionProvider) is available.
         /// </summary>
         [Fact]
-        public void ServerProvidesStaticCompletionHandler()
+        public async Task ServerProvidesStaticCompletionHandler()
         {
+            await StartLanguageServerAsync();
+
             Assert.NotNull(_fixture.Client);
             Assert.NotNull(_fixture.Client!.ServerSettings?.Capabilities?.CompletionProvider);
             Assert.DoesNotContain(_fixture.Client!.RegistrationManager?.CurrentRegistrations,
                 reg => reg.Method == TextDocumentNames.Completion);
         }
 
-        [Fact]
-        public async Task DocumentSyncCsproj()
+        [Theory]
+        [InlineData(SdkVersions.Net8_0_100)]
+        [InlineData(SdkVersions.Net9_0_100)]
+        [InlineData(SdkVersions.Net10_0_100)]
+        public async Task DocumentSyncCsproj(string targetSdkVersion)
         {
+            await StartLanguageServerAsync(targetSdkVersion, clearStartupLogs: true);
+
             await OpenDocumentFile("Test.csproj", CsprojFileContent, "Project loaded.");
+
+            _fixture.LogCollector.ExpectNoErrors(Log);
 
             //TODO: Do more checks related to "document sync"
         }
 
-        [Fact]
-        public async Task AutoCompleteCsproj()
+        [Theory]
+        [InlineData(SdkVersions.Net8_0_100)]
+        [InlineData(SdkVersions.Net9_0_100)]
+        [InlineData(SdkVersions.Net10_0_100)]
+        public async Task AutoCompleteCsproj(string targetSdkVersion)
         {
+            await StartLanguageServerAsync(targetSdkVersion, clearStartupLogs: true);
+
             var testFilePath = Path.Combine(_workspaceRoot, "Test.csproj");
             await File.WriteAllTextAsync(testFilePath,
             """
@@ -146,9 +159,14 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
             );
         }
 
-        [Fact]
-        public async Task AutoCompletePackageReference()
+        [Theory]
+        [InlineData(SdkVersions.Net8_0_100)]
+        [InlineData(SdkVersions.Net9_0_100)]
+        [InlineData(SdkVersions.Net10_0_100)]
+        public async Task AutoCompletePackageReference(string targetSdkVersion)
         {
+            await StartLanguageServerAsync(targetSdkVersion, clearStartupLogs: true);
+
             var testFilePath = Path.Combine(_workspaceRoot, "Test.csproj");
             await File.WriteAllTextAsync(testFilePath,
             """
@@ -195,9 +213,14 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
             });
         }
 
-        [Fact]
-        public async Task HoverPackageReference()
+        [Theory]
+        [InlineData(SdkVersions.Net8_0_100)]
+        [InlineData(SdkVersions.Net9_0_100)]
+        [InlineData(SdkVersions.Net10_0_100)]
+        public async Task HoverPackageReference(string targetSdkVersion)
         {
+            await StartLanguageServerAsync(targetSdkVersion, clearStartupLogs: true);
+
             var testFilePath = Path.Combine(_workspaceRoot, "Test.csproj");
             await File.WriteAllTextAsync(testFilePath,
             """
@@ -230,9 +253,14 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
             );
         }
 
-        [Fact]
-        public async Task HoverCsproj()
+        [Theory]
+        [InlineData(SdkVersions.Net8_0_100)]
+        [InlineData(SdkVersions.Net9_0_100)]
+        [InlineData(SdkVersions.Net10_0_100)]
+        public async Task HoverCsproj(string targetSdkVersion)
         {
+            await StartLanguageServerAsync(targetSdkVersion, clearStartupLogs: true);
+
             var testFilePath = Path.Combine(_workspaceRoot, "Test.csproj");
             await File.WriteAllTextAsync(testFilePath,
             """
@@ -262,9 +290,14 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
             );
         }
 
-        [Fact]
-        public async Task DefinitionCsproj()
+        [Theory]
+        [InlineData(SdkVersions.Net8_0_100)]
+        [InlineData(SdkVersions.Net9_0_100)]
+        [InlineData(SdkVersions.Net10_0_100)]
+        public async Task DefinitionCsproj(string targetSdkVersion)
         {
+            await StartLanguageServerAsync(targetSdkVersion, clearStartupLogs: true);
+
             var testFilePath = Path.Combine(_workspaceRoot, "Test.csproj");
             await File.WriteAllTextAsync(testFilePath,
             """
@@ -276,8 +309,7 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
             </Project>
             """);
 
-            MSBuildEngineInstance compatibleMSBuild = MSBuildHelper.FindEngineForTargetFrameworkVersion(_fixture.TargetFrameworkVersion, logger: Log);
-            Assert.NotNull(compatibleMSBuild);
+            MSBuildEngineInstance msbuildEngine = DiscoverMSBuildEngineForCurrentWorkspace();
 
             var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(5));
             LocationOrLocationLinks definitionResult = await _fixture.Client.SendRequest(new DefinitionParams
@@ -297,7 +329,7 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
                     {
                         Uri = DocumentUri.FromFileSystemPath(
                             Path.Combine(
-                                compatibleMSBuild.GetSdkImportDirectory("Microsoft.NET.Sdk"),
+                                msbuildEngine.GetSdkImportDirectory("Microsoft.NET.Sdk"),
                                 "Sdk.props"
                             )
                         ),
@@ -312,7 +344,7 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
                     {
                         Uri = DocumentUri.FromFileSystemPath(
                             Path.Combine(
-                                compatibleMSBuild.GetSdkImportDirectory("Microsoft.NET.Sdk"),
+                                msbuildEngine.GetSdkImportDirectory("Microsoft.NET.Sdk"),
                                 "Sdk.targets"
                             )
                         ),
@@ -335,9 +367,14 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
             Assert.Equal(expectedDefinitions, actualDefinitions);
         }
 
-        [Fact]
-        public async Task SymbolsCsproj()
+        [Theory]
+        [InlineData(SdkVersions.Net8_0_100)]
+        [InlineData(SdkVersions.Net9_0_100)]
+        [InlineData(SdkVersions.Net10_0_100)]
+        public async Task SymbolsCsproj(string targetSdkVersion)
         {
+            await StartLanguageServerAsync(targetSdkVersion, clearStartupLogs: true);
+
             var testFilePath = Path.Combine(
                 Path.GetFullPath(_workspaceRoot),
                 "Test.csproj"
@@ -352,8 +389,7 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
             </Project>
             """);
 
-            MSBuildEngineInstance compatibleMSBuild = MSBuildHelper.FindEngineForTargetFrameworkVersion(_fixture.TargetFrameworkVersion, logger: Log);
-            Assert.NotNull(compatibleMSBuild);
+            MSBuildEngineInstance msbuildEngine = DiscoverMSBuildEngineForCurrentWorkspace();
 
             var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(5));
             SymbolInformationOrDocumentSymbolContainer documentSymbolResult = await _fixture.Client.SendRequest(new DocumentSymbolParams
@@ -468,17 +504,27 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
             );
         }
 
-        [Fact]
-        public async Task DocumentSyncSlnx()
+        [Theory]
+        [InlineData(SdkVersions.Net8_0_100)]
+        [InlineData(SdkVersions.Net9_0_100)]
+        [InlineData(SdkVersions.Net10_0_100)]
+        public async Task DocumentSyncSlnx(string targetSdkVersion)
         {
+            await StartLanguageServerAsync(targetSdkVersion, clearStartupLogs: true);
+
             await OpenDocumentFile("Test.slnx", SlnxFileContent, "Solution loaded.");
 
             //TODO: Do more checks related to "document sync"
         }
 
-        [Fact]
-        public async Task AutoCompleteSlnx()
+        [Theory]
+        [InlineData(SdkVersions.Net8_0_100)]
+        [InlineData(SdkVersions.Net9_0_100)]
+        [InlineData(SdkVersions.Net10_0_100)]
+        public async Task AutoCompleteSlnx(string targetSdkVersion)
         {
+            await StartLanguageServerAsync(targetSdkVersion, clearStartupLogs: true);
+
             var testFilePath = Path.Combine(_workspaceRoot, "Test.slnx");
             await File.WriteAllTextAsync(testFilePath,
             """
@@ -521,9 +567,14 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
             );
         }
 
-        [Fact]
-        public async Task HoverSlnx()
+        [Theory]
+        [InlineData(SdkVersions.Net8_0_100)]
+        [InlineData(SdkVersions.Net9_0_100)]
+        [InlineData(SdkVersions.Net10_0_100)]
+        public async Task HoverSlnx(string targetSdkVersion)
         {
+            await StartLanguageServerAsync(targetSdkVersion, clearStartupLogs: true);
+
             var testFilePath = Path.Combine(_workspaceRoot, "Test.slnx");
             await File.WriteAllTextAsync(testFilePath,
             """
@@ -585,10 +636,7 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
         ///     notification by testing that the busy state notification (msbuild/busy)
         ///     reaches the client twice.
         /// </summary>
-        [Theory]
-        [InlineData("Test.csproj", CsprojFileContent, "Project loaded.")]
-        [InlineData("Test.slnx", SlnxFileContent, "Solution loaded.")]
-        public async Task OpenDocumentFile(string fileName, string fileContent, string expectedNotBusyMsg)
+        async Task OpenDocumentFile(string fileName, string fileContent, string expectedNotBusyMsg)
         {
             var testFilePath = Path.Combine(_workspaceRoot, fileName);
             await File.WriteAllTextAsync(testFilePath, fileContent);
@@ -646,6 +694,52 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
 
             Assert.False(lastBusyRaised.IsBusy);
             Assert.Equal(expectedNotBusyMsg, lastBusyRaised.Message);
+        }
+
+        async Task StartLanguageServerAsync(string targetSdkVersion = SdkVersions.Default, string sdkRollForwardPolicy = LanguageServerFixture.DefaultSdkRollForwardPolicy, bool clearStartupLogs = false, bool expectLoggedError = false)
+        {
+            if (string.IsNullOrWhiteSpace(targetSdkVersion))
+                throw new ArgumentException($"Argument cannot be null, empty, or entirely composed of whitespace: {nameof(targetSdkVersion)}.", nameof(targetSdkVersion));
+
+            if (string.IsNullOrWhiteSpace(sdkRollForwardPolicy))
+                throw new ArgumentException($"Argument cannot be null, empty, or entirely composed of whitespace: {nameof(sdkRollForwardPolicy)}.", nameof(sdkRollForwardPolicy));
+
+            _fixture.ConfigureTargetSdkForWorkspace(
+                workspaceRoot: _workspaceRoot.Path,
+                targetSdkVersion: targetSdkVersion,
+                sdkRollForwardPolicy: sdkRollForwardPolicy
+            );
+
+            var loggerProvider = new SerilogLoggerProvider(
+                Log.ForContext(GetType())
+            );
+            await _fixture.StartAsync(_workspaceRoot, loggerProvider);
+
+            if (expectLoggedError)
+                _fixture.LogCollector.ExpectError(Log);
+            else
+                _fixture.LogCollector.ExpectNoErrors(Log);
+
+            if (clearStartupLogs)
+                _fixture.LogCollector.Clear();
+        }
+
+        /// <summary>
+        ///     Get an <see cref="MSBuildEngineInstance"/> representing the MSBuild engine to be used in the current workspace root directory.
+        /// </summary>
+        /// <returns>
+        ///     The <see cref="MSBuildEngineInstance"/> (will <see cref="Assert"/> that it is not <c>null</c>).
+        /// </returns>
+        MSBuildEngineInstance DiscoverMSBuildEngineForCurrentWorkspace()
+        {
+            var dotnetInfo = DotnetInfo.GetCurrent(baseDirectory: _workspaceRoot);
+
+            var actualSdkVersion = Version.Parse(dotnetInfo.SdkVersion);
+
+            MSBuildEngineInstance compatibleMSBuild = MSBuildHelper.FindEngineForTargetFrameworkVersion(actualSdkVersion, logger: Log);
+            Assert.NotNull(compatibleMSBuild);
+
+            return compatibleMSBuild;
         }
     }
 }

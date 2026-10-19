@@ -15,6 +15,11 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
     /// </summary>
     public partial class DotnetInfo
     {
+        /// <summary>
+        ///     A mask for the lowest 8 bits of the dotnet host process exit code (required for cross-platform compatibility reasons; exit codes are a single byte on Linux and MacOS, unlike Windows exit codes, which are 32-bit).
+        /// </summary>
+        public const int HostExitCodeMask = 0xFF;
+
         [GeneratedRegex(@"(?<SdkVersion>.*) \[(?<SdkBaseDirectory>.*)\]")]
         private static partial Regex SdkInfoParser();
 
@@ -84,14 +89,24 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
                 (dotNetExitCode, dotnetOutput) = InvokeDotNetHost("--version", baseDirectory, logger, enableHostTracing: enableDotnetHostDiagnostics);
                 using (dotnetOutput)
                 {
-                    if (dotNetExitCode == DotNetHostExitCode.LibHostSdkFindFailure)
+                    switch (dotNetExitCode)
                     {
-                        logger.Error("Cannot resolve the target .NET SDK tooling or runtime for directory {BaseDirectory}. Please verify that the SDK version referenced in global.json (or a compatible runtime that matches the configured roll-forward policy) is correctly installed. Visit https://learn.microsoft.com/en-us/dotnet/core/tools/global-json#rollforward for more information.", baseDirectory);
+                        case DotNetHostExitCode.Success:
+                        {
+                            break;
+                        }
+                        case DotNetHostExitCode.LibHostSdkFindFailure:
+                        case DotNetHostExitCode.SdkResolverResolveFailure:
+                        {
+                            logger.Error("Cannot resolve the target .NET SDK tooling or runtime for directory {BaseDirectory}. Please verify that the SDK version referenced in global.json (or a compatible runtime that matches the configured roll-forward policy) is correctly installed. Visit https://learn.microsoft.com/en-us/dotnet/core/tools/global-json#rollforward for more information.", baseDirectory);
 
-                        throw new DotnetDiscoveryException($"Cannot resolve the target .NET SDK tooling or runtime for directory '{baseDirectory}'. Please verify that the SDK version referenced in global.json (or a compatible runtime that matches the configured roll-forward policy) is correctly installed. Visit https://learn.microsoft.com/en-us/dotnet/core/tools/global-json#rollforward for more information.");
+                            throw new DotnetDiscoveryException($"Cannot resolve the target .NET SDK tooling or runtime for directory '{baseDirectory}'. Please verify that the SDK version referenced in global.json (or a compatible runtime that matches the configured roll-forward policy) is correctly installed. Visit https://learn.microsoft.com/en-us/dotnet/core/tools/global-json#rollforward for more information.", dotNetExitCode);
+                        }
+                        default:
+                        {
+                            throw new DotnetDiscoveryException($"Failed to determine current .NET version for directory '{baseDirectory}' (the dotnet host process returned exit code {dotNetExitCode}).", dotNetExitCode);
+                        }
                     }
-                    else if (dotNetExitCode != DotNetHostExitCode.Success)
-                        throw new DotnetDiscoveryException($"Failed to determine current .NET version for directory '{baseDirectory}' ({dotNetExitCode}).");
 
                     sdkVersion = ParseDotNetVersionOutput(dotnetOutput);
 
@@ -104,7 +119,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
                 using (dotnetOutput)
                 {
                     if (dotNetExitCode != DotNetHostExitCode.Success)
-                        throw new DotnetDiscoveryException($"Failed to discover available .NET SDKs for directory '{baseDirectory}' ({dotNetExitCode}) .");
+                        throw new DotnetDiscoveryException($"Failed to discover available .NET SDKs for directory '{baseDirectory}' ({dotNetExitCode}) .", dotNetExitCode);
 
                     List<DotnetSdkInfo> discoveredSdks = ParseDotNetListSdksOutput(dotnetOutput);
 
@@ -121,7 +136,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
                 using (dotnetOutput)
                 {
                     if (dotNetExitCode != DotNetHostExitCode.Success)
-                        throw new DotnetDiscoveryException($"Failed to discover available .NET runtimes for directory '{baseDirectory}' ({dotNetExitCode}) .");
+                        throw new DotnetDiscoveryException($"Failed to discover available .NET runtimes for directory '{baseDirectory}' ({dotNetExitCode}) .", dotNetExitCode);
 
                     List<DotnetRuntimeInfo> discoveredRuntimes = ParseDotNetListRuntimesOutput(dotnetOutput);
 
@@ -335,7 +350,8 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
                 logger.Debug("Waiting for redirected STDOUT/STDERR streams to complete for process {TargetProcessId}...", dotnetHostProcess.Id);
                 dotnetHostProcess.WaitForExit();
 
-                var hostExitCode = (DotNetHostExitCode)dotnetHostProcess.ExitCode;
+                // Cross-platform compatiblity: we truncate the exit code to the lowest 8 bits (since this is all we'll get on Linux and MacOS).
+                var hostExitCode = (DotNetHostExitCode)(dotnetHostProcess.ExitCode & HostExitCodeMask);
 
                 if (hostExitCode.IsWellKnownExitCode())
                     logger.Debug("{Command} terminated with exit code 0x{ExitCode:x} ({ExitCodeName}).", command, (int)hostExitCode, hostExitCode);
@@ -405,11 +421,30 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         {
         }
 
+        /// <inheritdoc cref="Exception(string)" />
+        public DotnetDiscoveryException(string message, DotNetHostExitCode dotNetHostExitCode)
+            : base(message)
+        {
+            DotNetHostExitCode = dotNetHostExitCode;
+        }
+
         /// <inheritdoc cref="Exception(string, Exception)" />
         public DotnetDiscoveryException(string message, Exception innerException)
             : base(message, innerException)
         {
         }
+
+        /// <inheritdoc cref="Exception(string, Exception)" />
+        public DotnetDiscoveryException(string message, DotNetHostExitCode dotNetHostExitCode, Exception innerException)
+            : base(message, innerException)
+        {
+            DotNetHostExitCode = dotNetHostExitCode;
+        }
+
+        /// <summary>
+        ///     The exit code from the dotnet host.
+        /// </summary>
+        public DotNetHostExitCode? DotNetHostExitCode { get; }
     }
 
     /// <summary>
@@ -473,9 +508,10 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
     /// <remarks>
     ///     Derived from <seealso href="https://github.com/dotnet/runtime/blob/d123560a23078989f9563b83fa49a24802e88378/docs/design/features/host-error-codes.md"/>.
     ///     
-    ///     Note that these exit codes are basically HRESULTs.
+    ///     Note that, although these exit codes are basically HRESULTs, we mask out all but the lowest 8 bits of the exit code for cross-platform compatibility reasons (exit codes are a single byte on Linux and MacOS, unlike Windows exit codes, which are 32-bit).
     /// </remarks>
     public enum DotNetHostExitCode
+        : byte
     {
         /// <summary>
         ///     Operation was successful.
@@ -485,7 +521,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         /// <summary>
         ///     One of the specified arguments for the operation is invalid.
         /// </summary>
-        InvalidArgFailure = -2147450751,
+        InvalidArgFailure = -2147450751 & DotnetInfo.HostExitCodeMask,
 
         /// <summary>
         ///     There was a failure loading a dependent library.
@@ -496,7 +532,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         ///     
         ///      Probably means corrupted or incomplete installation.
         /// </remarks>
-        CoreHostLibLoadFailure = -2147450750,
+        CoreHostLibLoadFailure = -2147450750 & DotnetInfo.HostExitCodeMask,
 
         /// <summary>
         ///     One of the dependent libraries is missing.
@@ -506,12 +542,12 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         ///     
         ///     Probably means corrupted or incomplete installation.
         /// </remarks>
-        CoreHostLibMissingFailure = -2147450749,
+        CoreHostLibMissingFailure = -2147450749 & DotnetInfo.HostExitCodeMask,
 
         /// <summary>
         ///     One of the dependent libraries is missing a required entry point.
         /// </summary>
-        CoreHostEntryPointFailure = -2147450748,
+        CoreHostEntryPointFailure = -2147450748 & DotnetInfo.HostExitCodeMask,
 
         /// <summary>
         ///     The hosting component is trying to use the path to the current module (the hosting component itself) and, from it, deduce the location of the installation, but either the location of the current module could not be determined (some weird OS call failure) or the location is not in the right place relative to other expected components.
@@ -519,7 +555,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         /// <remarks>
         ///     For example the <c>hostfxr</c> may look at its location and try to deduce the location of the <c>shared</c> folder with the framework from it; it assumes the typical install layout on disk but if that doesn't work, then this error will be returned.
         /// </remarks>
-        CoreHostCurHostFindFailure = -2147450747,
+        CoreHostCurHostFindFailure = -2147450747 & DotnetInfo.HostExitCodeMask,
 
         /// <summary>
         ///     Initialization of the <c>hostpolicy</c> dependency resolver failed.
@@ -531,7 +567,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         ///         <item>One of the frameworks or the app is missing a required <c>.deps.json</c> file.</item>
         ///     </list>
         /// </remarks>
-        ResolverInitFailure = -2147450741,
+        ResolverInitFailure = -2147450741 & DotnetInfo.HostExitCodeMask,
 
         /// <summary>
         ///     Resolution of dependencies in <c>hostpolicy</c> failed.
@@ -539,7 +575,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         /// <remarks>
         ///     This can have several different causes but, in general, it means that one of the processed <c>.deps.json</c> contains an entry for a file which could not found, or its resolution failed for some other reason (conflict for example).
         /// </remarks>
-        ResolverResolveFailure = -2147450740,
+        ResolverResolveFailure = -2147450740 & DotnetInfo.HostExitCodeMask,
 
         /// <summary>
         ///     Failure to determine the location of the current executable.
@@ -547,7 +583,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         /// <remarks>
         ///     The hosting layer uses the current executable path to deduce the install location (in some cases). If that path can't be obtained (OS call fails, or the returned path doesn't exist), then this error is returned.
         /// </remarks>
-        LibHostCurExeFindFailure = -2147450739,
+        LibHostCurExeFindFailure = -2147450739 & DotnetInfo.HostExitCodeMask,
 
         /// <summary>
         ///     Initialization of the <c>hostpolicy</c> library failed.
@@ -559,7 +595,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         ///     This would in general mean incompatibility between the <c>hostfxr</c> and <c>hostpolicy</c>, which should really only happen if somehow a newer <c>hostpolicy</c> is used by older <c>hostfxr</c>.
         ///     Typically, that indicates a corrupted installation.
         /// </remarks>
-        LibHostInitFailure = -2147450738,
+        LibHostInitFailure = -2147450738 & DotnetInfo.HostExitCodeMask,
 
         /// <summary>
         ///     Failure to find the requested SDK.
@@ -570,7 +606,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         ///     The search is based on deduced install location and on the requested version (potentially from a <c>global.json</c> file).
         ///     If either no matching SDK version can be found, or that version exists, but it's missing the dotnet.dll file, this error code is returned.
         /// </remarks>
-        LibHostSdkFindFailure = -2147450735,
+        LibHostSdkFindFailure = -2147450735 & DotnetInfo.HostExitCodeMask,
 
         /// <summary>
         ///     The .runtimeconfig.json file is invalid.
@@ -590,7 +626,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         ///     
         ///     It is also used when there is a problem reading the CLSID map file in comhost.
         /// </remarks>
-        InvalidConfigFile = -2147450733,
+        InvalidConfigFile = -2147450733 & DotnetInfo.HostExitCodeMask,
 
         /// <summary>
         ///     It was not possible to find a compatible framework version.
@@ -601,12 +637,12 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         ///     
         ///     Typically, it would be returned if, for example, a 3.0 app is trying to run on a machine which has no 3.0 installed or a 32bit 3.0 app is running on a machine which has 3.0 installed but only for 64bit.
         /// </remarks>
-        FrameworkMissingFailure = -2147450730,
+        FrameworkMissingFailure = -2147450730 & DotnetInfo.HostExitCodeMask,
 
         /// <summary>
         ///     Returned by <c>hostfxr_get_native_search_directories</c> if the <c>hostpolicy</c> could not calculate the <c>NATIVE_DLL_SEARCH_DIRECTORIES</c>.
         /// </summary>
-        HostApiFailed = -2147450729,
+        HostApiFailed = -2147450729 & DotnetInfo.HostExitCodeMask,
 
         /// <summary>
         ///     Returned from <c>hostfxr_resolve_sdk2</c> when it fails to find a matching SDK.
@@ -614,7 +650,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         /// <remarks>
         ///     Similar to <c>LibHostSdkFindFailure</c>, but only used in the <c>hostfxr_resolve_sdk2</c>.
         /// </remarks>
-        SdkResolverResolveFailure = -2147450725,
+        SdkResolverResolveFailure = -2147450725 & DotnetInfo.HostExitCodeMask,
 
         /// <summary>
         ///     During processing of .runtimeconfig.json there were two framework references to the same framework which were not compatible.
@@ -625,7 +661,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         ///     In such case the Microsoft.AspNet.App has .runtimeconfig.json which also references Microsoft.NETCore.App but it only allows versions 2.0 up to 2.9 (via roll forward options).
         ///     So the version 3.0 requested by the app is incompatible.
         /// </remarks>
-        FrameworkCompatFailure = -2147450724,
+        FrameworkCompatFailure = -2147450724 & DotnetInfo.HostExitCodeMask,
 
         /// <summary>
         ///     Feature which requires certain version of the hosting layer binaries was used on a version which doesn't support it.
@@ -633,7 +669,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         /// <remarks>
         ///     For example if a COM component specified to run on 2.0 Microsoft.NETCore.App - as that contains older version of <c>hostpolicy</c> which doesn't support the necessary features to provide COM services.
         /// </remarks>
-        HostApiUnsupportedVersion = -2147450718,
+        HostApiUnsupportedVersion = -2147450718 & DotnetInfo.HostExitCodeMask,
 
         /// <summary>
         ///     Error returned by <c>hostfxr_initialize_for_runtime_config</c> if the component being initialized requires framework which is not available or incompatible with the frameworks loaded by the runtime already in the process.
@@ -641,7 +677,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         /// <remarks>
         ///     For example trying to load a component which requires 3.0 into a process which is already running a 2.0 runtime.
         /// </remarks>
-        CoreHostIncompatibleConfig = -2147450715,
+        CoreHostIncompatibleConfig = -2147450715 & DotnetInfo.HostExitCodeMask,
     }
 
     /// <summary>
@@ -669,6 +705,9 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
         /// <returns>
         ///     <c>true</c>, if the exit code represents success; otherwise, <c>false</c>.
         /// </returns>
-        public static bool IsSuccess(this DotNetHostExitCode hostExitCode) => hostExitCode >= DotNetHostExitCode.Success;
+        /// <remarks>
+        ///     .NET host exit codes greater than 128 represent errors returned by the host APIs (see <see href="https://github.com/dotnet/runtime/blob/main/docs/design/features/host-error-codes.md"/> for details).
+        /// </remarks>
+        public static bool IsSuccess(this DotNetHostExitCode hostExitCode) => (byte)hostExitCode <= 128;
     }
 }

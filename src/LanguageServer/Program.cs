@@ -41,7 +41,20 @@ namespace MSBuildProjectTools.LanguageServer
 
                 using (msbuildDiscoveryLogger as IDisposable)
                 {
-                    MSBuildHelper.DiscoverMSBuildEngine(logger: msbuildDiscoveryLogger);
+                    string workingDirectory = Directory.GetCurrentDirectory();
+
+                    try
+                    {
+
+
+                        MSBuildHelper.DiscoverMSBuildEngine(baseDirectory: workingDirectory, logger: msbuildDiscoveryLogger);
+                    }
+                    catch (DotnetDiscoveryException dotnetDiscoveryFailure) when (dotnetDiscoveryFailure.DotNetHostExitCode == DotNetHostExitCode.SdkResolverResolveFailure || dotnetDiscoveryFailure.DotNetHostExitCode == DotNetHostExitCode.LibHostSdkFindFailure)
+                    {
+                        msbuildDiscoveryLogger.Error(dotnetDiscoveryFailure, "Cannot find a compatible version of the .NET SDK for use with working directory {WorkingDirectory}.", workingDirectory);
+
+                        return ExitCode.NoCompatibleSdk;
+                    }
                 }
 
                 ConfigureNuGetCredentialProviders();
@@ -81,19 +94,40 @@ namespace MSBuildProjectTools.LanguageServer
 
                     log.Debug("Server process is ready to terminate.");
 
-                    return 0;
+                    return ExitCode.Success;
                 }
             }
             catch (Exception unexpectedError)
             {
                 Console.Error.WriteLine(unexpectedError);
 
-                return 1;
+                return ExitCode.UnexpectedError;
             }
             finally
             {
                 Log.CloseAndFlush();
             }
+        }
+
+        /// <summary>
+        ///     Well-known process exit codes for the language-server host.
+        /// </summary>
+        public static class ExitCode
+        {
+            /// <summary>
+            ///     The language-server host terminated after graceful shutdown.
+            /// </summary>
+            public static readonly int Success = 0;
+
+            /// <summary>
+            ///     The language-server host terminated due to an unexpected error.
+            /// </summary>
+            public static readonly int UnexpectedError = 1;
+
+            /// <summary>
+            ///     The language-server host terminated because it was unable to find a compatible version of the .NET SDK for the current working directory.
+            /// </summary>
+            public static readonly int NoCompatibleSdk = 2;
         }
 
         /// <summary>
