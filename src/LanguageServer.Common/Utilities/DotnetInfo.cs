@@ -104,21 +104,9 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
                         }
                         default:
                         {
-                            throw new DotnetDiscoveryException($"Failed to determine current .NET version for directory '{baseDirectory}' ({dotNetExitCode}).");
+                            throw new DotnetDiscoveryException($"Failed to determine current .NET version for directory '{baseDirectory}' (the dotnet host process returned exit code {dotNetExitCode}).", dotNetExitCode);
                         }
                     }
-                    if (dotNetExitCode == DotNetHostExitCode.LibHostSdkFindFailure)
-                    {
-                        logger.Error("Cannot resolve the target .NET SDK tooling or runtime for directory {BaseDirectory}. Please verify that the SDK version referenced in global.json (or a compatible runtime that matches the configured roll-forward policy) is correctly installed. Visit https://learn.microsoft.com/en-us/dotnet/core/tools/global-json#rollforward for more information.", baseDirectory);
-
-                        throw new DotnetDiscoveryException($"Cannot resolve the target .NET SDK tooling or runtime for directory '{baseDirectory}'. Please verify that the SDK version referenced in global.json (or a compatible runtime that matches the configured roll-forward policy) is correctly installed. Visit https://learn.microsoft.com/en-us/dotnet/core/tools/global-json#rollforward for more information.");
-                    }
-                    else if (dotNetExitCode == DotNetHostExitCode.SdkResolverResolveFailure)
-                    {
-
-                    }
-                    else if (dotNetExitCode != DotNetHostExitCode.Success)
-                        throw new DotnetDiscoveryException($"Failed to determine current .NET version for directory '{baseDirectory}' ({dotNetExitCode}).");
 
                     sdkVersion = ParseDotNetVersionOutput(dotnetOutput);
 
@@ -131,7 +119,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
                 using (dotnetOutput)
                 {
                     if (dotNetExitCode != DotNetHostExitCode.Success)
-                        throw new DotnetDiscoveryException($"Failed to discover available .NET SDKs for directory '{baseDirectory}' ({dotNetExitCode}) .");
+                        throw new DotnetDiscoveryException($"Failed to discover available .NET SDKs for directory '{baseDirectory}' ({dotNetExitCode}) .", dotNetExitCode);
 
                     List<DotnetSdkInfo> discoveredSdks = ParseDotNetListSdksOutput(dotnetOutput);
 
@@ -148,7 +136,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
                 using (dotnetOutput)
                 {
                     if (dotNetExitCode != DotNetHostExitCode.Success)
-                        throw new DotnetDiscoveryException($"Failed to discover available .NET runtimes for directory '{baseDirectory}' ({dotNetExitCode}) .");
+                        throw new DotnetDiscoveryException($"Failed to discover available .NET runtimes for directory '{baseDirectory}' ({dotNetExitCode}) .", dotNetExitCode);
 
                     List<DotnetRuntimeInfo> discoveredRuntimes = ParseDotNetListRuntimesOutput(dotnetOutput);
 
