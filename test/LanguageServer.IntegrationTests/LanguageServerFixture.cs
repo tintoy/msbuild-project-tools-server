@@ -149,7 +149,10 @@ namespace MSBuildProjectTools.LanguageServer.IntegrationTests
             var serverInfo = new ProcessStartInfo
             {
                 FileName = "dotnet",
-                Arguments = serverExecutable,
+                ArgumentList =
+                {
+                    serverExecutable
+                },
                 WorkingDirectory = workspaceRoot,
                 RedirectStandardInput = true,
                 RedirectStandardOutput = true,
