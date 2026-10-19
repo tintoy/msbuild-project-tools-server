@@ -95,7 +95,7 @@ namespace MSBuildProjectTools.LanguageServer.Utilities
                         {
                             logger.Error("Cannot resolve the target .NET SDK tooling or runtime for directory {BaseDirectory}. Please verify that the SDK version referenced in global.json (or a compatible runtime that matches the configured roll-forward policy) is correctly installed. Visit https://learn.microsoft.com/en-us/dotnet/core/tools/global-json#rollforward for more information.", baseDirectory);
 
-                            throw new DotnetDiscoveryException($"Cannot resolve the target .NET SDK tooling or runtime for directory '{baseDirectory}'. Please verify that the SDK version referenced in global.json (or a compatible runtime that matches the configured roll-forward policy) is correctly installed. Visit https://learn.microsoft.com/en-us/dotnet/core/tools/global-json#rollforward for more information.");
+                            throw new DotnetDiscoveryException($"Cannot resolve the target .NET SDK tooling or runtime for directory '{baseDirectory}'. Please verify that the SDK version referenced in global.json (or a compatible runtime that matches the configured roll-forward policy) is correctly installed. Visit https://learn.microsoft.com/en-us/dotnet/core/tools/global-json#rollforward for more information.", dotNetExitCode);
                         }
                         default:
                         {
